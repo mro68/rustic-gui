@@ -1,0 +1,3 @@
+# Clippy-Konfiguration für rustic-gui
+msrv = "1.75"
+warn-on-all-warnings = true
