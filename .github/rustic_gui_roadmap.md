@@ -248,15 +248,15 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
   - [x] `RusticGuiError` enum
   - [x] thiserror Integration
   - [x] Konvertierung für Tauri (String)
-- [ ] **DTOs erstellen** (4h)
-  - [ ] `RepositoryDto`
-  - [ ] `SnapshotDto`
-  - [ ] `BackupJobDto`
-  - [ ] `RestoreOptionsDto`
-- [ ] **TypeScript Types generieren** (2h)
-  - [ ] Serde-basierte Typen
-  - [ ] `src/lib/types/index.ts`
-- [ ] **Tests für Error-Handling** (2h)
+- [x] **DTOs erstellen** (4h)
+  - [x] `RepositoryDto`
+  - [x] `SnapshotDto`
+  - [x] `BackupJobDto`
+  - [x] `RestoreOptionsDto`
+- [x] **TypeScript Types generieren** (2h)
+  - [x] Serde-basierte Typen
+  - [x] `src/lib/types/index.ts`
+- [x] **Tests für Error-Handling** (2h)
 
 **Subtotal:** 12 Stunden
 

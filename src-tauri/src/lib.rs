@@ -1,8 +1,10 @@
 // Hauptmodul für rustic-gui
 pub mod error;
+pub mod types;
 
 // Re-export wichtige Typen
 pub use error::{RusticGuiError, Result};
+pub use types::*;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
