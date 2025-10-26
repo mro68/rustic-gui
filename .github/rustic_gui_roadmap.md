@@ -58,7 +58,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 ## Milestone 0: Project Setup ✅
 
-**Status:** In Planning  
+**Status:** Completed ✅  
 **Geschätzte Dauer:** 3-5 Tage
 
 ### Setup-Tasks
@@ -90,21 +90,21 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
   npm create tauri-app@latest rustic-gui
   # Choose: Svelte + TypeScript
   ```
-- [ ] **Git Repository initialisieren**
+- [x] **Git Repository initialisieren**
   ```bash
   git init
   git add .
   git commit -m "chore: Initial project setup"
   ```
-- [ ] **GitHub Repository erstellen** (optional)
-  - [ ] Repository anlegen
-  - [ ] Remote hinzufügen
-  - [ ] Initial push
+- [x] **GitHub Repository erstellen** (optional)
+  - [x] Repository anlegen
+  - [x] Remote hinzufügen
+  - [x] Initial push
 
 **Geschätzte Zeit:** 2 Stunden
 
 #### 0.3 Projekt-Struktur aufbauen
-- [ ] **Frontend-Ordner erstellen**
+- [x] **Frontend-Ordner erstellen**
   ```
   src/lib/
   ├── components/
@@ -117,7 +117,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
   ├── types/
   └── utils/
   ```
-- [ ] **Backend-Ordner strukturieren**
+- [x] **Backend-Ordner strukturieren**
   ```
   src-tauri/src/
   ├── rustic/
@@ -130,7 +130,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
   ├── scheduler/
   └── keychain/
   ```
-- [ ] **Tests-Ordner vorbereiten**
+- [x] **Tests-Ordner vorbereiten**
   ```
   src-tauri/tests/
   src/lib/__tests__/
@@ -139,7 +139,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 **Geschätzte Zeit:** 2 Stunden
 
 #### 0.4 Dependencies einrichten
-- [ ] **Rust Dependencies hinzufügen**
+- [x] **Rust Dependencies hinzufügen**
   ```toml
   rustic_core = "0.8.0"
   rustic_backend = "0.5.3"
@@ -157,13 +157,13 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
   dirs = "5.0"
   toml = "0.8"
   ```
-- [ ] **TypeScript Dependencies hinzufügen**
+- [x] **TypeScript Dependencies hinzufügen**
   ```json
   "@tauri-apps/api": "^2.0.0"
   "svelte": "^5.0.0"
   "typescript": "^5.5.0"
   ```
-- [ ] **Dev Dependencies**
+- [x] **Dev Dependencies**
   ```json
   "vitest": "^1.0.0"
   "@testing-library/svelte": "^4.0.0"
@@ -175,58 +175,58 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 **Geschätzte Zeit:** 2 Stunden
 
 #### 0.5 Tooling konfigurieren
-- [ ] **ESLint Config erstellen**
-  - [ ] eslint.config.js
-  - [ ] Regeln für TS + Svelte
-- [ ] **Prettier Config erstellen**
-  - [ ] .prettierrc
-  - [ ] .prettierignore
-- [ ] **Rust Tooling**
-  - [ ] rustfmt.toml
-  - [ ] clippy.toml (optional)
-- [ ] **Git Hooks (optional)**
-  - [ ] pre-commit: Lint + Format
-  - [ ] pre-push: Tests
-- [ ] **VS Code Settings**
-  - [ ] .vscode/settings.json
-  - [ ] .vscode/extensions.json (Empfehlungen)
+- [x] **ESLint Config erstellen**
+  - [x] eslint.config.js
+  - [x] Regeln für TS + Svelte
+- [x] **Prettier Config erstellen**
+  - [x] .prettierrc
+  - [x] .prettierignore
+- [x] **Rust Tooling**
+  - [x] rustfmt.toml
+  - [x] clippy.toml (optional)
+- [x] **Git Hooks (optional)**
+  - [x] pre-commit: Lint + Format
+  - [x] pre-push: Tests
+- [x] **VS Code Settings**
+  - [x] .vscode/settings.json
+  - [x] .vscode/extensions.json (Empfehlungen)
 
 **Geschätzte Zeit:** 3 Stunden
 
 #### 0.6 Dokumentation vorbereiten
-- [ ] **README.md erstellen**
-  - [ ] Projekt-Beschreibung
-  - [ ] Installation
-  - [ ] Development Setup
-- [ ] **CHANGELOG.md initialisieren**
-- [ ] **LICENSE hinzufügen** (MIT)
-- [ ] **.gitignore konfigurieren**
-  - [ ] Node modules
-  - [ ] Rust target/
-  - [ ] OS-spezifische Dateien
-- [ ] **CONTRIBUTING.md** (optional)
+- [x] **README.md erstellen**
+  - [x] Projekt-Beschreibung
+  - [x] Installation
+  - [x] Development Setup
+- [x] **CHANGELOG.md initialisieren**
+- [x] **LICENSE hinzufügen** (MIT)
+- [x] **.gitignore konfigurieren**
+  - [x] Node modules
+  - [x] Rust target/
+  - [x] OS-spezifische Dateien
+- [x] **CONTRIBUTING.md** (optional)
 
 **Geschätzte Zeit:** 2 Stunden
 
 #### 0.7 Verify Setup
-- [ ] **Test Build**
+- [x] **Test Build**
   ```bash
   npm run tauri:dev
   ```
-- [ ] **Test Lint**
+- [x] **Test Lint**
   ```bash
   npm run lint
   cargo clippy
   ```
-- [ ] **Test Format**
+- [x] **Test Format**
   ```bash
   npm run format:check
   cargo fmt --check
   ```
-- [ ] **Verify App läuft**
-  - [ ] Fenster öffnet sich
-  - [ ] Hot-Reload funktioniert
-  - [ ] Keine Fehler in Console
+- [x] **Verify App läuft**
+  - [x] Fenster öffnet sich
+  - [x] Hot-Reload funktioniert
+  - [x] Keine Fehler in Console
 
 **Geschätzte Zeit:** 1 Stunde
 
@@ -236,18 +236,18 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 ## Milestone 1: Core Backend 🔵
 
-**Status:** Todo  
+**Status:** In Progress 🔵  
 **Geschätzte Dauer:** 2-3 Wochen  
 **Dependencies:** Milestone 0
 
 ### 1.1 Grundlegende Typen & Error-Handling
 
 #### Tasks
-- [ ] **Error-Types definieren** (4h)
-  - [ ] `src-tauri/src/error.rs`
-  - [ ] `RusticGuiError` enum
-  - [ ] thiserror Integration
-  - [ ] Konvertierung für Tauri (String)
+- [x] **Error-Types definieren** (4h)
+  - [x] `src-tauri/src/error.rs`
+  - [x] `RusticGuiError` enum
+  - [x] thiserror Integration
+  - [x] Konvertierung für Tauri (String)
 - [ ] **DTOs erstellen** (4h)
   - [ ] `RepositoryDto`
   - [ ] `SnapshotDto`
