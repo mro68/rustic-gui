@@ -1,3 +1,9 @@
+// Hauptmodul für rustic-gui
+pub mod error;
+
+// Re-export wichtige Typen
+pub use error::{RusticGuiError, Result};
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
