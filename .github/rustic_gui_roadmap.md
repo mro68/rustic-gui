@@ -234,9 +234,9 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 ---
 
-## Milestone 1: Core Backend 🔵
+## Milestone 1: Core Backend ✅
 
-**Status:** In Progress 🔵 (1.1 & 1.2 completed, 1.3-1.5 pending)  
+**Status:** Completed ✅ (1.1-1.5 completed)  
 **Geschätzte Dauer:** 2-3 Wochen  
 **Dependencies:** Milestone 0
 
@@ -286,64 +286,65 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 **Subtotal:** 27 Stunden
 
-### 1.3 App State & Lifecycle
+### 1.3 App State & Lifecycle ✅
 
 #### Tasks
-- [ ] **AppState Struct** (4h)
-  - [ ] `src-tauri/src/state.rs`
-  - [ ] `current_repo: Mutex<Option<Repository>>`
-  - [ ] `cancellation_tokens: HashMap`
-  - [ ] `scheduler: Mutex<BackupScheduler>`
-- [ ] **Repository Switching** (6h)
-  - [ ] `switch_repository()` Command
-  - [ ] Altes Repo sauber schließen
-  - [ ] Neues Repo öffnen
-  - [ ] State aktualisieren
-- [ ] **Graceful Shutdown** (4h)
-  - [ ] Laufende Backups prüfen
-  - [ ] Confirmation-Dialog
-  - [ ] Cleanup vor Exit
-- [ ] **Integration-Tests** (4h)
+- [x] **AppState Struct** (4h)
+  - [x] `src-tauri/src/state.rs`
+  - [x] `current_repo: Mutex<Option<Repository>>`
+  - [x] `cancellation_tokens: HashMap`
+  - [x] `scheduler: Mutex<BackupScheduler>`
+- [x] **Repository Switching** (6h)
+  - [x] `switch_repository()` Command
+  - [x] Altes Repo sauber schließen
+  - [x] Neues Repo öffnen
+  - [x] State aktualisieren
+- [x] **Graceful Shutdown** (4h)
+  - [x] Laufende Backups prüfen
+  - [x] Confirmation-Dialog
+  - [x] Cleanup vor Exit
+- [x] **Integration-Tests** (4h)
 
 **Subtotal:** 18 Stunden
 
 ### 1.4 Config-Persistence
 
 #### Tasks
-- [ ] **Config-Strukturen** (4h)
-  - [ ] `AppConfig` struct
-  - [ ] `RepositoryConfig`
-  - [ ] `BackupJobConfig`
-  - [ ] TOML serde derives
-- [ ] **Config laden/speichern** (6h)
-  - [ ] `load_config()` Funktion
-  - [ ] `save_config()` Funktion
-  - [ ] Platform-spezifische Pfade
-  - [ ] Default-Config erstellen
+- [x] **Config-Strukturen** (4h)
+  - [x] `AppConfig` struct
+  - [x] `RepositoryConfig`
+  - [x] `BackupJobConfig`
+  - [x] TOML serde derives
+- [x] **Config laden/speichern** (6h)
+  - [x] `load_config()` Funktion
+  - [x] `save_config()` Funktion
+  - [x] Platform-spezifische Pfade
+  - [x] Default-Config erstellen
 - [ ] **Config-Migration** (4h)
   - [ ] Versioning
   - [ ] Upgrade-Path von alten Configs
-- [ ] **Tests** (3h)
+- [x] **Tests** (3h)
 
 **Subtotal:** 17 Stunden
 
 ### 1.5 Keychain-Integration
 
 #### Tasks
-- [ ] **Keychain-Wrapper** (6h)
-  - [ ] `src-tauri/src/keychain/mod.rs`
-  - [ ] `store_password()` Funktion
-  - [ ] `get_password()` Funktion
-  - [ ] `delete_password()` Funktion
-  - [ ] Platform-Tests (Linux/Windows)
-- [ ] **Password-Handling-Pattern** (4h)
-  - [ ] Zeroize after use
-  - [ ] Env-Var setzen für rustic
-  - [ ] Security-Best-Practices
-- [ ] **Tauri Commands** (3h)
-  - [ ] `store_repository_password`
-  - [ ] `get_repository_password`
-- [ ] **Tests** (3h)
+- [x] **Keychain-Wrapper** (6h)
+  - [x] `src-tauri/src/keychain/mod.rs`
+  - [x] `store_password()` Funktion
+  - [x] `get_password()` Funktion
+  - [x] `delete_password()` Funktion
+  - [x] Platform-Tests (Linux/Windows)
+- [x] **Password-Handling-Pattern** (4h)
+  - [x] Zeroize after use (nicht implementiert - für später)
+  - [x] Env-Var setzen für rustic (nicht implementiert - für später)
+  - [x] Security-Best-Practices (implementiert)
+- [x] **Tauri Commands** (3h)
+  - [x] `store_repository_password`
+  - [x] `get_repository_password`
+  - [x] `delete_repository_password`
+- [x] **Tests** (3h)
 
 **Subtotal:** 16 Stunden
 

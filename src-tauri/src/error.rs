@@ -27,6 +27,9 @@ pub enum RusticGuiError {
     #[error("Konfiguration ungültig: {field}")]
     InvalidConfig { field: String },
 
+    #[error("Konfigurationsfehler: {message}")]
+    ConfigError { message: String },
+
     #[error("IO-Fehler: {0}")]
     IoError(#[from] std::io::Error),
 

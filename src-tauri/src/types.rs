@@ -107,6 +107,18 @@ pub struct RetentionPolicy {
     pub keep_yearly: Option<u32>,
 }
 
+impl Default for RetentionPolicy {
+    fn default() -> Self {
+        Self {
+            keep_last: Some(10),
+            keep_daily: Some(7),
+            keep_weekly: Some(4),
+            keep_monthly: Some(12),
+            keep_yearly: Some(2),
+        }
+    }
+}
+
 /// DTO für Restore-Optionen
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RestoreOptionsDto {
