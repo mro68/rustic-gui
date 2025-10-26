@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rustic - Repository & Security Dialogs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Arial, sans-serif;
+            background: #1a1d2e;
+            color: #e4e4e7;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .demo-container {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .demo-nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background: #22273a;
+            color: #e4e4e7;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .demo-btn:hover {
+            background: #2d3348;
+        }
+
+        .demo-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #22273a;
+            border-radius: 16px;
+            border: 1px solid #2d3348;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #2d3348;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #f4f4f5;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #71717a;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: #2d3348;
+            color: #e4e4e7;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #2d3348;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #e4e4e7;
+            margin-bottom: 8px;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #71717a;
+            margin-top: 4px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1a1d2e;
+            border: 1px solid #2d3348;
+            border-radius: 6px;
+            color: #e4e4e7;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-input.monospace {
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1a1d2e;
+            border: 1px solid #2d3348;
+            border-radius: 6px;
+            color: #e4e4e7;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 14px;
+            color: #e4e4e7;
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #2d3348;
+            color: #e4e4e7;
+            border: 1px solid #3e4457;
+        }
+
+        .btn-secondary:hover {
+            background: #3e4457;
+        }
+
+        .btn-browse {
+            padding: 10px 16px;
+            background: #2d3348;
+            border: 1px solid #3e4457;
+            color: #e4e4e7;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .input-with-button {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-with-button .form-input {
+            flex: 1;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #93c5fd;
+            margin-bottom: 20px;
+        }
+
+        .info-box.warning {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+        }
+
+        .info-box.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        .info-box.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+        }
+
+        /* Repository Type Selector */
+        .repo-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .repo-type-card {
+            background: #1a1d2e;
+            border: 2px solid #2d3348;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .repo-type-card:hover {
+            border-color: #3b82f6;
+        }
+
+        .repo-type-card.selected {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+        }
+
+        .repo-type-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .repo-type-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #e4e4e7;
+        }
+
+        /* Password Strength */
+        .password-strength {
+            margin-top: 8px;
+            display: flex;
+            gap: 4px;
+        }
+
+        .strength-bar {
+            height: 4px;
+            flex: 1;
+            background: #2d3348;
+            border-radius: 2px;
+        }
+
+        .strength-bar.filled {
+            background: #22c55e;
+        }
+
+        .strength-bar.medium {
+            background: #eab308;
+        }
+
+        .strength-bar.weak {
+            background: #ef4444;
+        }
+
+        /* Progress */
+        .progress-item {
+            margin-bottom: 16px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #2d3348;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+            transition: width 0.3s;
+        }
+
+        .progress-bar-fill.success {
+            background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+        }
+
+        .toast {
+            background: #22273a;
+            border: 1px solid #2d3348;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-left: 4px solid #22c55e;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: #a1a1aa;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #71717a;
+            cursor: pointer;
+            padding: 0;
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .modal {
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .repo-type-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-nav">
+            <button class="demo-btn active" onclick="showDialog('add-repo')">Add Repository</button>
+            <button class="demo-btn" onclick="showDialog('unlock-repo')">Unlock Repository</button>
+            <button class="demo-btn" onclick="showDialog('repo-check')">Check Repository</button>
+            <button class="demo-btn" onclick="showDialog('repo-prune')">Prune Repository</button>
+            <button class="demo-btn" onclick="showDialog('change-password')">Change Password</button>
+        </div>
+
+        <!-- Add Repository Dialog -->
+        <div class="modal-overlay active" id="add-repo">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Add Repository</h2>
+                    <button class="modal-close" onclick="closeDialog('add-repo')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-box">
+                        💡 Choose the repository type and configure the connection. You can use local paths, SFTP, S3, or other backends supported by rustic.
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Repository</label>
+                        <div style="padding: 12px; background: #1a1d2e; border-radius: 6px; border: 1px solid #2d3348;">
+                            <div style="font-weight: 500; margin-bottom: 4px;">Documents Backup</div>
+                            <div style="font-size: 12px; color: #71717a; font-family: 'Courier New', monospace;">/mnt/backup/documents</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" placeholder="Enter repository password" autofocus>
+                        <div class="form-help">Enter the password to unlock this repository</div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="remember-session">
+                        <label for="remember-session">Remember for this session</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeDialog('unlock-repo')">Cancel</button>
+                    <button class="btn btn-primary" onclick="unlockRepo()">Unlock</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Check Repository Dialog -->
+        <div class="modal-overlay" id="repo-check">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Check Repository</h2>
+                    <button class="modal-close" onclick="closeDialog('repo-check')" disabled style="opacity: 0.3;">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-box">
+                        🔍 Checking repository integrity...
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Repository</label>
+                        <div style="padding: 12px; background: #1a1d2e; border-radius: 6px; border: 1px solid #2d3348;">
+                            <div style="font-weight: 500; margin-bottom: 4px;">Documents Backup</div>
+                            <div style="font-size: 12px; color: #71717a; font-family: 'Courier New', monospace;">/mnt/backup/documents</div>
+                        </div>
+                    </div>
+
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span style="color: #e4e4e7;">Checking pack files</span>
+                            <span style="color: #71717a;">234 / 456 (51%)</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" style="width: 51%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span style="color: #e4e4e7;">Verifying data integrity</span>
+                            <span style="color: #71717a;">In progress...</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" style="width: 23%;"></div>
+                        </div>
+                    </div>
+
+                    <div style="background: #1a1d2e; border: 1px solid #2d3348; border-radius: 8px; padding: 16px; font-family: 'Courier New', monospace; font-size: 12px; max-height: 200px; overflow-y: auto;">
+                        <div style="margin-bottom: 6px; color: #4ade80;">[14:23:45] Starting repository check...</div>
+                        <div style="margin-bottom: 6px; color: #4ade80;">[14:23:46] Checking repository structure</div>
+                        <div style="margin-bottom: 6px; color: #4ade80;">[14:23:47] Reading pack files...</div>
+                        <div style="margin-bottom: 6px; color: #71717a;">[14:23:50] Checked 234 / 456 packs</div>
+                        <div style="margin-bottom: 6px; color: #71717a;">[14:23:51] Verifying data integrity...</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary">Cancel Check</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prune Repository Dialog -->
+        <div class="modal-overlay" id="repo-prune">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Prune Repository</h2>
+                    <button class="modal-close" onclick="closeDialog('repo-prune')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-box warning">
+                        ⚠️ Pruning will remove unreferenced data from the repository. This operation is safe but cannot be undone.
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Repository</label>
+                        <div style="padding: 12px; background: #1a1d2e; border-radius: 6px; border: 1px solid #2d3348;">
+                            <div style="font-weight: 500; margin-bottom: 4px;">Documents Backup</div>
+                            <div style="font-size: 12px; color: #71717a; font-family: 'Courier New', monospace;">/mnt/backup/documents</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #1a1d2e; border: 1px solid #2d3348; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <h3 style="font-size: 14px; margin-bottom: 12px; font-weight: 500;">Current Status</h3>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2d3348;">
+                            <span style="color: #71717a; font-size: 13px;">Total Size</span>
+                            <span style="font-size: 13px;">156.3 GB</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2d3348;">
+                            <span style="color: #71717a; font-size: 13px;">Used Size</span>
+                            <span style="font-size: 13px;">87.2 GB</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                            <span style="color: #71717a; font-size: 13px;">Unused Data</span>
+                            <span style="font-size: 13px; color: #fbbf24;">69.1 GB (44%)</span>
+                        </div>
+                    </div>
+
+                    <div class="info-box success">
+                        💾 Pruning will free approximately <strong>69.1 GB</strong> of space
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="confirm-prune">
+                        <label for="confirm-prune">I understand that this operation cannot be undone</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeDialog('repo-prune')">Cancel</button>
+                    <button class="btn btn-primary" onclick="startPrune()">Start Pruning</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password Dialog -->
+        <div class="modal-overlay" id="change-password">
+            <div class="modal" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2 class="modal-title">Change Repository Password</h2>
+                    <button class="modal-close" onclick="closeDialog('change-password')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-box warning">
+                        ⚠️ Changing the repository password will require re-encrypting all data. This may take some time.
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Repository</label>
+                        <select class="form-select">
+                            <option>Documents Backup - /mnt/backup/documents</option>
+                            <option>Server Backup - /mnt/backup/server</option>
+                            <option>Cloud Backup - s3://my-bucket</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Current Password</label>
+                        <input type="password" class="form-input" placeholder="Enter current password">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">New Password</label>
+                        <input type="password" id="new-password" class="form-input" placeholder="Enter new password">
+                        <div class="password-strength">
+                            <div class="strength-bar"></div>
+                            <div class="strength-bar"></div>
+                            <div class="strength-bar"></div>
+                            <div class="strength-bar"></div>
+                        </div>
+                        <div class="form-help">Use a strong password with at least 12 characters</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-input" placeholder="Confirm new password">
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="update-keychain" checked>
+                        <label for="update-keychain">Update password in system keychain</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeDialog('change-password')">Cancel</button>
+                    <button class="btn btn-primary">Change Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        function showDialog(id) {
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.classList.remove('active');
+            });
+            document.getElementById(id).classList.add('active');
+            
+            document.querySelectorAll('.demo-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function closeDialog(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function selectRepoType(card, type) {
+            document.querySelectorAll('.repo-type-card').forEach(c => {
+                c.classList.remove('selected');
+            });
+            card.classList.add('selected');
+            
+            const pathInput = document.getElementById('repo-path');
+            const placeholders = {
+                'local': '/mnt/backup/my-repo',
+                'sftp': 'sftp://user@host:/path/to/repo',
+                's3': 's3:s3.amazonaws.com/bucket-name',
+                'rclone': 'rclone:remote:path'
+            };
+            
+            pathInput.placeholder = placeholders[type];
+            if (type !== 'local') {
+                pathInput.value = '';
+            }
+        }
+
+        function showToast(type, title, message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌'
+            };
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        function testRepository() {
+            closeDialog('add-repo');
+            showToast('success', 'Repository Added', 'Documents Backup has been successfully configured');
+        }
+
+        function unlockRepo() {
+            closeDialog('unlock-repo');
+            showToast('success', 'Repository Unlocked', 'Documents Backup is now accessible');
+        }
+
+        function startPrune() {
+            if (!document.getElementById('confirm-prune').checked) {
+                showToast('error', 'Confirmation Required', 'Please confirm that you understand this operation cannot be undone');
+                return;
+            }
+            closeDialog('repo-prune');
+            showToast('success', 'Prune Started', 'Repository pruning has started. This may take a few minutes.');
+        }
+
+        // Password strength indicator
+        document.getElementById('new-password')?.addEventListener('input', (e) => {
+            const password = e.target.value;
+            const bars = document.querySelectorAll('#change-password .strength-bar');
+            
+            bars.forEach(bar => bar.classList.remove('filled', 'weak', 'medium'));
+            
+            if (password.length >= 8) {
+                bars[0].classList.add('filled', 'weak');
+            }
+            if (password.length >= 12) {
+                bars[1].classList.add('filled', 'medium');
+            }
+            if (password.length >= 16 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
+                bars[2].classList.add('filled');
+            }
+            if (password.length >= 20 && /[!@#$%^&*]/.test(password)) {
+                bars[3].classList.add('filled');
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                    overlay.classList.remove('active');
+                });
+            }
+        });
+
+        // Close on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>label">Repository Type</label>
+                        <div class="repo-type-grid">
+                            <div class="repo-type-card selected" onclick="selectRepoType(this, 'local')">
+                                <div class="repo-type-icon">💾</div>
+                                <div class="repo-type-name">Local</div>
+                            </div>
+                            <div class="repo-type-card" onclick="selectRepoType(this, 'sftp')">
+                                <div class="repo-type-icon">🌐</div>
+                                <div class="repo-type-name">SFTP</div>
+                            </div>
+                            <div class="repo-type-card" onclick="selectRepoType(this, 's3')">
+                                <div class="repo-type-icon">☁️</div>
+                                <div class="repo-type-name">S3</div>
+                            </div>
+                            <div class="repo-type-card" onclick="selectRepoType(this, 'rclone')">
+                                <div class="repo-type-icon">🔗</div>
+                                <div class="repo-type-name">rclone</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Repository Name</label>
+                        <input type="text" class="form-input" placeholder="e.g., My Documents Backup" value="Documents Backup">
+                        <div class="form-help">A friendly name to identify this repository</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Repository Path</label>
+                        <div class="input-with-button">
+                            <input type="text" id="repo-path" class="form-input monospace" placeholder="/mnt/backup/my-repo" value="/mnt/backup/documents">
+                            <button class="btn-browse">📁 Browse</button>
+                        </div>
+                        <div class="form-help">Absolute path to the repository directory</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Repository Password</label>
+                        <input type="password" id="repo-password" class="form-input" placeholder="Enter repository password" value="••••••••••••">
+                        <div class="password-strength">
+                            <div class="strength-bar filled"></div>
+                            <div class="strength-bar filled"></div>
+                            <div class="strength-bar filled"></div>
+                            <div class="strength-bar"></div>
+                        </div>
+                        <div class="form-help">Strong password recommended. Will be stored in system keychain.</div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="init-repo" checked>
+                        <label for="init-repo">Initialize new repository if it doesn't exist</label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="save-password" checked>
+                        <label for="save-password">Save password in system keychain</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeDialog('add-repo')">Cancel</button>
+                    <button class="btn btn-primary" onclick="testRepository()">Test & Add Repository</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unlock Repository Dialog -->
+        <div class="modal-overlay" id="unlock-repo">
+            <div class="modal" style="max-width: 450px;">
+                <div class="modal-header">
+                    <h2 class="modal-title">Unlock Repository</h2>
+                    <button class="modal-close" onclick="closeDialog('unlock-repo')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-

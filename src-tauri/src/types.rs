@@ -24,7 +24,7 @@ pub struct RepositoryDto {
 }
 
 /// Typen von Repositories
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum RepositoryType {
     Local,
     Sftp,
@@ -34,7 +34,7 @@ pub enum RepositoryType {
 }
 
 /// Status eines Repositories
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum RepositoryStatus {
     /// Repository ist verfügbar und gesund
     Healthy,

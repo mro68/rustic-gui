@@ -236,7 +236,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 ## Milestone 1: Core Backend 🔵
 
-**Status:** In Progress 🔵  
+**Status:** In Progress 🔵 (1.1 & 1.2 completed, 1.3-1.5 pending)  
 **Geschätzte Dauer:** 2-3 Wochen  
 **Dependencies:** Milestone 0
 
@@ -263,26 +263,26 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 1.2 Repository-Management
 
 #### Tasks
-- [ ] **Repository-Init implementieren** (8h)
-  - [ ] `init_repository()` Funktion
-  - [ ] Local backend
-  - [ ] rclone-basierte Cloud-Init
-  - [ ] Tests mit temp directories
-- [ ] **Repository-Open implementieren** (6h)
-  - [ ] `open_repository()` Funktion
-  - [ ] Index laden
-  - [ ] Error-Handling (wrong password, etc.)
-- [ ] **Repository-Info abrufen** (4h)
-  - [ ] Snapshot-Count
-  - [ ] Total Size
-  - [ ] Backend-Type Detection
-- [ ] **Repository-Check implementieren** (6h)
-  - [ ] `check_repository()` Funktion
-  - [ ] Pack-Validation
-  - [ ] Progress-Reporting
-- [ ] **Repository-Unlock** (3h)
-  - [ ] Lock-Files entfernen
-  - [ ] Force-Unlock mit Warnung
+- [x] **Repository-Init implementieren** (8h)
+  - [x] `init_repository()` Funktion
+  - [x] Local backend
+  - [x] rclone-basierte Cloud-Init
+  - [x] Tests mit temp directories
+- [x] **Repository-Open implementieren** (6h)
+  - [x] `open_repository()` Funktion
+  - [x] Index laden
+  - [x] Error-Handling (wrong password, etc.)
+- [x] **Repository-Info abrufen** (4h)
+  - [x] Snapshot-Count
+  - [x] Total Size
+  - [x] Backend-Type Detection
+- [x] **Repository-Check implementieren** (6h)
+  - [x] `check_repository()` Funktion
+  - [x] Pack-Validation
+  - [x] Progress-Reporting
+- [x] **Repository-Unlock** (3h)
+  - [x] Lock-Files entfernen
+  - [x] Force-Unlock mit Warnung
 
 **Subtotal:** 27 Stunden
 

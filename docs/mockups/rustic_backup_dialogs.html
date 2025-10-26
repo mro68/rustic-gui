@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rustic - Backup & Job Dialogs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Arial, sans-serif;
+            background: #1a1d2e;
+            color: #e4e4e7;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .demo-container {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .demo-nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background: #22273a;
+            color: #e4e4e7;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .demo-btn:hover {
+            background: #2d3348;
+        }
+
+        .demo-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        /* Modal Dialog */
+        .modal {
+            background: #22273a;
+            border-radius: 16px;
+            border: 1px solid #2d3348;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #2d3348;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #f4f4f5;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #71717a;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: #2d3348;
+            color: #e4e4e7;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #2d3348;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #e4e4e7;
+            margin-bottom: 8px;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #71717a;
+            margin-top: 4px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1a1d2e;
+            border: 1px solid #2d3348;
+            border-radius: 6px;
+            color: #e4e4e7;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1a1d2e;
+            border: 1px solid #2d3348;
+            border-radius: 6px;
+            color: #e4e4e7;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1a1d2e;
+            border: 1px solid #2d3348;
+            border-radius: 6px;
+            color: #e4e4e7;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 14px;
+            color: #e4e4e7;
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #2d3348;
+            color: #e4e4e7;
+            border: 1px solid #3e4457;
+        }
+
+        .btn-secondary:hover {
+            background: #3e4457;
+        }
+
+        .btn-browse {
+            padding: 10px 16px;
+            background: #2d3348;
+            border: 1px solid #3e4457;
+            color: #e4e4e7;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .btn-browse:hover {
+            background: #3e4457;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid #2d3348;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 10px 16px;
+            cursor: pointer;
+            color: #71717a;
+            font-size: 14px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #e4e4e7;
+        }
+
+        .tab.active {
+            color: #e4e4e7;
+            border-bottom-color: #3b82f6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #93c5fd;
+            margin-bottom: 20px;
+        }
+
+        /* Schedule Builder */
+        .schedule-builder {
+            background: #1a1d2e;
+            border: 1px solid #2d3348;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .schedule-quick {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .schedule-preset {
+            padding: 10px;
+            background: #22273a;
+            border: 2px solid #2d3348;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .schedule-preset:hover {
+            border-color: #3b82f6;
+        }
+
+        .schedule-preset.selected {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+        }
+
+        .input-with-button {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-with-button .form-input {
+            flex: 1;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+        }
+
+        .toast {
+            background: #22273a;
+            border: 1px solid #2d3348;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-left: 4px solid #22c55e;
+        }
+
+        .toast-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: #a1a1aa;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #71717a;
+            cursor: pointer;
+            padding: 0;
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .modal {
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .schedule-quick {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-nav">
+            <button class="demo-btn active" onclick="showDialog('create-job')">Create Backup Job</button>
+            <button class="demo-btn" onclick="showDialog('edit-job')">Edit Backup Job</button>
+            <button class="demo-btn" onclick="showDialog('run-backup')">Run Backup (Progress)</button>
+            <button class="demo-btn" onclick="showDialog('delete-job')">Delete Job (Confirmation)</button>
+        </div>
+
+        <!-- Create Backup Job Dialog -->
+        <div class="modal-overlay active" id="create-job" role="dialog" aria-labelledby="create-job-title" aria-modal="true">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="create-job-title">Create Backup Job</h2>
+                    <button class="modal-close" onclick="closeDialog('create-job')" aria-label="Close dialog">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="tabs">
+                        <div class="tab active" onclick="switchTab(event, 'job-general')">General</div>
+                        <div class="tab" onclick="switchTab(event, 'job-paths')">Paths & Exclusions</div>
+                        <div class="tab" onclick="switchTab(event, 'job-schedule')">Schedule</div>
+                        <div class="tab" onclick="switchTab(event, 'job-retention')">Retention</div>
+                    </div>
+
+                    <!-- General Tab -->
+                    <div class="tab-content active" id="job-general">
+                        <div class="form-group">
+                            <label class="form-label" for="job-name">Job Name</label>
+                            <input type="text" id="job-name" class="form-input" placeholder="e.g., Daily Documents Backup" value="Documents Daily">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="target-repo">Target Repository</label>
+                            <select id="target-repo" class="form-select">
+                                <option>Documents Backup - /mnt/backup/documents</option>
+                                <option>Server Backup - /mnt/backup/server</option>
+                                <option>Cloud Backup - s3://my-bucket</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="job-tags">Tags</label>
+                            <input type="text" id="job-tags" class="form-input" placeholder="daily, documents, important" value="daily, docs">
+                            <div class="form-help">Comma-separated tags to organize snapshots</div>
+                        </div>
+                    </div>
+
+                    <!-- Paths Tab -->
+                    <div class="tab-content" id="job-paths">
+                        <div class="form-group">
+                            <label class="form-label" for="source-paths">Source Paths</label>
+                            <textarea id="source-paths" class="form-textarea" placeholder="/home/user/documents&#10;/home/user/projects">/home/user/documents</textarea>
+                            <div style="margin-top: 8px;">
+                                <button class="btn-browse" type="button" aria-label="Add path">📁 Add Path</button>
+                            </div>
+                            <div class="form-help">One path per line. Use absolute paths.</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="exclude-patterns">Exclude Patterns</label>
+                            <textarea id="exclude-patterns" class="form-textarea" placeholder="*.tmp&#10;node_modules/&#10;.git/">*.tmp
+node_modules/
+.cache/
+*.log</textarea>
+                            <div class="form-help">Glob patterns to exclude files and directories</div>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="one-file-system" checked>
+                            <label for="one-file-system">Stay on same filesystem (don't cross mount points)</label>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Tab -->
+                    <div class="tab-content" id="job-schedule">
+                        <div class="form-group">
+                            <label class="form-label">Schedule Type</label>
+                            <div class="schedule-builder">
+                                <div class="schedule-quick">
+                                    <div class="schedule-preset selected">
+                                        <div style="margin-bottom: 4px;">📅</div>
+                                        <div>Daily</div>
+                                    </div>
+                                    <div class="schedule-preset">
+                                        <div style="margin-bottom: 4px;">📆</div>
+                                        <div>Weekly</div>
+                                    </div>
+                                    <div class="schedule-preset">
+                                        <div style="margin-bottom: 4px;">🗓️</div>
+                                        <div>Monthly</div>
+                                    </div>
+                                    <div class="schedule-preset">
+                                        <div style="margin-bottom: 4px;">⚙️</div>
+                                        <div>Custom</div>
+                                    </div>
+                                    <div class="schedule-preset">
+                                        <div style="margin-bottom: 4px;">🖐️</div>
+                                        <div>Manual</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="schedule-time">Time</label>
+                                <input type="time" id="schedule-time" class="form-input" value="02:00">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="schedule-timezone">Timezone</label>
+                                <select id="schedule-timezone" class="form-select">
+                                    <option>Local Time</option>
+                                    <option>UTC</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            ⏰ This job will run daily at 02:00 local time
+                        </div>
+                    </div>
+
+                    <!-- Retention Tab -->
+                    <div class="tab-content" id="job-retention">
+                        <div class="form-group">
+                            <label class="form-label" for="retention-policy">Retention Policy</label>
+                            <select id="retention-policy" class="form-select">
+                                <option>Simple - Keep last N snapshots</option>
+                                <option selected>Advanced - Keep daily/weekly/monthly</option>
+                                <option>Custom forget policy</option>
+                            </select>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="keep-daily">Keep Last Daily</label>
+                                <input type="number" id="keep-daily" class="form-input" value="7" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="keep-weekly">Keep Last Weekly</label>
+                                <input type="number" id="keep-weekly" class="form-input" value="4" min="0">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="keep-monthly">Keep Last Monthly</label>
+                                <input type="number" id="keep-monthly" class="form-input" value="6" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="keep-yearly">Keep Last Yearly</label>
+                                <input type="number" id="keep-yearly" class="form-input" value="2" min="0">
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            📊 Policy: Keep 7 daily, 4 weekly, 6 monthly, and 2 yearly snapshots
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="auto-prune" checked>
+                            <label for="auto-prune">Automatically prune old snapshots after backup</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeDialog('create-job')">Cancel</button>
+                    <button class="btn btn-primary" onclick="createJob()">Create Job</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Job Dialog (same structure, pre-filled) -->
+        <div class="modal-overlay" id="edit-job" role="dialog" aria-modal="true">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Edit Backup Job</h2>
+                    <button class="modal-close" onclick="closeDialog('edit-job')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-box">
+                        ✏️ Editing: <strong>Documents Daily</strong>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Job Name</label>
+                        <input type="text" class="form-input" value="Documents Daily">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Source Paths</label>
+                        <textarea class="form-textarea">/home/user/documents</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Schedule</label>
+                        <input type="text" class="form-input" value="Daily at 02:00" disabled>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeDialog('edit-job')">Cancel</button>
+                    <button class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Run Backup Progress Dialog -->
+        <div class="modal-overlay" id="run-backup" role="dialog" aria-modal="true">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Running Backup</h2>
+                    <button class="modal-close" onclick="closeDialog('run-backup')" disabled style="opacity: 0.3;">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-box" style="background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); color: #4ade80;">
+                        🔄 Backup job "Documents Daily" is running...
+                    </div>
+
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="font-size: 13px; color: #e4e4e7;">Processing files</span>
+                            <span style="font-size: 13px; color: #71717a;">2,345 / 12,345 (19%)</span>
+                        </div>
+                        <div style="width: 100%; height: 8px; background: #2d3348; border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; width: 19%; background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%); transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="font-size: 13px; color: #e4e4e7;">Upload progress</span>
+                            <span style="font-size: 13px; color: #71717a;">1.2 GB / 8.7 GB</span>
+                        </div>
+                        <div style="width: 100%; height: 8px; background: #2d3348; border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; width: 14%; background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%); transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+
+                    <div style="background: #1a1d2e; border: 1px solid #2d3348; border-radius: 8px; padding: 16px; font-family: 'Courier New', monospace; font-size: 12px; max-height: 200px; overflow-y: auto;">
+                        <div style="margin-bottom: 6px; color: #4ade80;">[14:23:45] Scanning /home/user/documents</div>
+                        <div style="margin-bottom: 6px; color: #4ade80;">[14:23:46] Found 12,345 files</div>
+                        <div style="margin-bottom: 6px; color: #4ade80;">[14:23:47] Processing files...</div>
+                        <div style="margin-bottom: 6px; color: #71717a;">[14:23:50] Uploaded: report.pdf (2.3 MB)</div>
+                        <div style="margin-bottom: 6px; color: #71717a;">[14:23:51] Uploaded: presentation.pptx (8.1 MB)</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary">Cancel Backup</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Job Confirmation Dialog -->
+        <div class="modal-overlay" id="delete-job" role="dialog" aria-modal="true">
+            <div class="modal" style="max-width: 450px;">
+                <div class="modal-header">
+                    <h2 class="modal-title">Delete Backup Job?</h2>
+                    <button class="modal-close" onclick="closeDialog('delete-job')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-box" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #f87171;">
+                        ⚠️ This action cannot be undone
+                    </div>
+
+                    <p style="margin-bottom: 16px; line-height: 1.6;">
+                        Are you sure you want to delete the backup job <strong>"Documents Daily"</strong>?
+                    </p>
+
+                    <p style="color: #71717a; font-size: 13px; line-height: 1.6;">
+                        The job configuration will be deleted, but existing snapshots in the repository will remain untouched.
+                    </p>
+
+                    <div class="checkbox-group" style="margin-top: 16px;">
+                        <input type="checkbox" id="confirm-delete">
+                        <label for="confirm-delete">I understand this action is permanent</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeDialog('delete-job')">Cancel</button>
+                    <button class="btn" style="background: #dc2626; color: white;" onclick="confirmDelete()">Delete Job</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+
+    <script>
+        function showDialog(id) {
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.classList.remove('active');
+            });
+            document.getElementById(id).classList.add('active');
+            
+            document.querySelectorAll('.demo-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function closeDialog(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function switchTab(event, tabId) {
+            const modal = event.target.closest('.modal');
+            modal.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            modal.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function showToast(type, title, message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = { success: '✅' };
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        function createJob() {
+            closeDialog('create-job');
+            showToast('success', 'Job Created', 'Backup job "Documents Daily" has been created successfully');
+        }
+
+        function confirmDelete() {
+            if (document.getElementById('confirm-delete').checked) {
+                closeDialog('delete-job');
+                showToast('success', 'Job Deleted', 'Backup job "Documents Daily" has been deleted');
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                    overlay.classList.remove('active');
+                });
+            }
+        });
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.schedule-preset').forEach(preset => {
+            preset.addEventListener('click', () => {
+                document.querySelectorAll('.schedule-preset').forEach(p => {
+                    p.classList.remove('selected');
+                });
+                preset.classList.add('selected');
+                
+                const infoBox = document.querySelector('#job-schedule .info-box');
+                const type = preset.textContent.trim();
+                
+                if (type === 'Daily') {
+                    infoBox.innerHTML = '⏰ This job will run daily at 02:00 local time';
+                } else if (type === 'Weekly') {
+                    infoBox.innerHTML = '⏰ This job will run weekly on Sunday at 02:00 local time';
+                } else if (type === 'Monthly') {
+                    infoBox.innerHTML = '⏰ This job will run monthly on the 1st at 02:00 local time';
+                } else if (type === 'Custom') {
+                    infoBox.innerHTML = '⚙️ Use custom cron expression for advanced scheduling';
+                } else if (type === 'Manual') {
+                    infoBox.innerHTML = '🖐️ This job will only run when manually triggered';
+                }
+            });
+        });
+
+        // Retention policy info update
+        const retentionInputs = document.querySelectorAll('#job-retention input[type="number"]');
+        retentionInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                const daily = document.getElementById('keep-daily').value;
+                const weekly = document.getElementById('keep-weekly').value;
+                const monthly = document.getElementById('keep-monthly').value;
+                const yearly = document.getElementById('keep-yearly').value;
+                
+                const infoBox = document.querySelector('#job-retention .info-box');
+                infoBox.innerHTML = `📊 Policy: Keep ${daily} daily, ${weekly} weekly, ${monthly} monthly, and ${yearly} yearly snapshots`;
+            });
+        });
+    </script>
+</body>
+</html>

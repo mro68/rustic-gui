@@ -50,6 +50,13 @@ impl From<RusticGuiError> for String {
     }
 }
 
+// Für Tauri InvokeError
+impl From<RusticGuiError> for tauri::ipc::InvokeError {
+    fn from(error: RusticGuiError) -> Self {
+        tauri::ipc::InvokeError::from(error.to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
