@@ -354,31 +354,31 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 ## Milestone 2: Basic UI 🟡
 
-**Status:** Todo  
+**Status:** In Progress (2.1 completed, 2.2-2.6 todo)  
 **Geschätzte Dauer:** 2-3 Wochen  
 **Dependencies:** Milestone 1
 
-### 2.1 Layout & Navigation
+### 2.1 Layout & Navigation ✅
 
 #### Tasks
-- [ ] **MainLayout Component** (6h)
-  - [ ] `src/lib/components/layout/MainLayout.svelte`
-  - [ ] Sidebar + Content-Bereich
-  - [ ] Responsive Grid
-- [ ] **Sidebar Navigation** (8h)
-  - [ ] Logo/Branding
-  - [ ] Nav-Items (Dashboard, Repos, Snapshots, Jobs, Settings)
-  - [ ] Active-State
-  - [ ] Icons
-  - [ ] Mobile Toggle
-- [ ] **Header Component** (4h)
-  - [ ] Page-Title
-  - [ ] User-Avatar (optional)
-  - [ ] Mobile Menu-Button
-- [ ] **Router Setup** (6h)
-  - [ ] Page-Switching Logic
-  - [ ] URL-basiertes Routing (optional)
-  - [ ] Back/Forward (optional)
+- [x] **MainLayout Component** (6h)
+  - [x] `src/lib/components/layout/MainLayout.svelte`
+  - [x] Sidebar + Content-Bereich
+  - [x] Responsive Grid
+- [x] **Sidebar Navigation** (8h)
+  - [x] Logo/Branding
+  - [x] Nav-Items (Dashboard, Repos, Snapshots, Jobs, Settings)
+  - [x] Active-State
+  - [x] Icons
+  - [x] Mobile Toggle
+- [x] **Header Component** (4h)
+  - [x] Page-Title
+  - [x] User-Avatar (optional)
+  - [x] Mobile Menu-Button
+- [x] **Router Setup** (6h)
+  - [x] Page-Switching Logic
+  - [x] URL-basiertes Routing (optional)
+  - [x] Back/Forward (optional)
 
 **Subtotal:** 24 Stunden
 
