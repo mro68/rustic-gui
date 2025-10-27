@@ -1,0 +1,9 @@
+[workspace]
+resolver = "3"
+members = [
+    "src-tauri"
+]
+
+[workspace.metadata.clippy]
+msrv = "1.75"
+warn-on-all-warnings = true

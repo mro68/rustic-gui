@@ -1,7 +1,7 @@
 # Rustic GUI - Development Roadmap
 
 > **Projekt-Roadmap mit Milestones, Tasks und Zeitschätzungen**
-> 
+>
 > Version: 1.0 | Status: Planning Phase | Start: 2025-10-26
 
 ---
@@ -9,12 +9,15 @@
 ## 📊 Projekt-Übersicht
 
 ### Ziel
+
 Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, Job-Scheduling und Multi-Repository-Support.
 
 ### Geschätzte Gesamtdauer
+
 **12-16 Wochen** (bei Vollzeit-Entwicklung)
 
 ### Technologie-Stack
+
 - Frontend: Svelte 5 + TypeScript
 - Backend: Rust + Tauri 2.0
 - Integration: rustic_core 0.7 + rclone FFI
@@ -25,30 +28,37 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ## 🎯 Milestones
 
 ### Milestone 0: Project Setup ✅
+
 **Dauer:** 3-5 Tage  
 **Ziel:** Entwicklungsumgebung und Projekt-Grundgerüst
 
 ### Milestone 1: Core Backend 🔵
+
 **Dauer:** 2-3 Wochen  
 **Ziel:** Rustic-Integration und grundlegende Repository-Operationen
 
 ### Milestone 2: Basic UI 🟡
+
 **Dauer:** 2-3 Wochen  
 **Ziel:** Hauptansichten und Navigation
 
 ### Milestone 3: Backup & Restore 🟢
+
 **Dauer:** 2-3 Wochen  
 **Ziel:** Vollständige Backup/Restore-Funktionalität
 
 ### Milestone 4: Job Management 🟣
+
 **Dauer:** 2 Wochen  
 **Ziel:** Scheduling und automatisierte Backups
 
 ### Milestone 5: Polish & Testing 🔴
+
 **Dauer:** 2 Wochen  
 **Ziel:** Stabilität, Tests, Dokumentation
 
 ### Milestone 6: Release 🚀
+
 **Dauer:** 1 Woche  
 **Ziel:** Production-Ready Release v1.0
 
@@ -64,6 +74,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### Setup-Tasks
 
 #### 0.1 Entwicklungsumgebung
+
 - [x] **Rust installieren** (1.75+)
   - [x] rustup installieren
   - [x] stable toolchain setzen
@@ -85,6 +96,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 **Geschätzte Zeit:** 4 Stunden
 
 #### 0.2 Projekt initialisieren
+
 - [x] **Tauri-Projekt erstellen**
   ```bash
   npm create tauri-app@latest rustic-gui
@@ -104,6 +116,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 **Geschätzte Zeit:** 2 Stunden
 
 #### 0.3 Projekt-Struktur aufbauen
+
 - [x] **Frontend-Ordner erstellen**
   ```
   src/lib/
@@ -139,6 +152,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 **Geschätzte Zeit:** 2 Stunden
 
 #### 0.4 Dependencies einrichten
+
 - [x] **Rust Dependencies hinzufügen**
   ```toml
   rustic_core = "0.8.0"
@@ -175,6 +189,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 **Geschätzte Zeit:** 2 Stunden
 
 #### 0.5 Tooling konfigurieren
+
 - [x] **ESLint Config erstellen**
   - [x] eslint.config.js
   - [x] Regeln für TS + Svelte
@@ -194,6 +209,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 **Geschätzte Zeit:** 3 Stunden
 
 #### 0.6 Dokumentation vorbereiten
+
 - [x] **README.md erstellen**
   - [x] Projekt-Beschreibung
   - [x] Installation
@@ -209,6 +225,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 **Geschätzte Zeit:** 2 Stunden
 
 #### 0.7 Verify Setup
+
 - [x] **Test Build**
   ```bash
   npm run tauri:dev
@@ -243,6 +260,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 1.1 Grundlegende Typen & Error-Handling
 
 #### Tasks
+
 - [x] **Error-Types definieren** (4h)
   - [x] `src-tauri/src/error.rs`
   - [x] `RusticGuiError` enum
@@ -263,6 +281,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 1.2 Repository-Management
 
 #### Tasks
+
 - [x] **Repository-Init implementieren** (8h)
   - [x] `init_repository()` Funktion
   - [x] Local backend
@@ -289,6 +308,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 1.3 App State & Lifecycle ✅
 
 #### Tasks
+
 - [x] **AppState Struct** (4h)
   - [x] `src-tauri/src/state.rs`
   - [x] `current_repo: Mutex<Option<Repository>>`
@@ -310,6 +330,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 1.4 Config-Persistence
 
 #### Tasks
+
 - [x] **Config-Strukturen** (4h)
   - [x] `AppConfig` struct
   - [x] `RepositoryConfig`
@@ -330,6 +351,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 1.5 Keychain-Integration
 
 #### Tasks
+
 - [x] **Keychain-Wrapper** (6h)
   - [x] `src-tauri/src/keychain/mod.rs`
   - [x] `store_password()` Funktion
@@ -361,6 +383,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 2.1 Layout & Navigation ✅
 
 #### Tasks
+
 - [x] **MainLayout Component** (6h)
   - [x] `src/lib/components/layout/MainLayout.svelte`
   - [x] Sidebar + Content-Bereich
@@ -385,110 +408,115 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 2.2 Shared Components
 
 #### Tasks
-- [ ] **Button Component** (3h)
-  - [ ] Variants (primary, secondary, danger)
-  - [ ] Sizes (small, medium, large)
-  - [ ] Loading-State
-  - [ ] Icon-Support
-- [ ] **Modal Component** (6h)
-  - [ ] Overlay + Dialog
-  - [ ] Close-Button
-  - [ ] ESC-Key Handler
-  - [ ] Click-Outside-to-Close
-  - [ ] Accessibility (focus-trap)
-- [ ] **Toast/Notification** (6h)
-  - [ ] Toast-Container
-  - [ ] Success/Error/Warning Variants
-  - [ ] Auto-Dismiss
-  - [ ] Queue-System
-  - [ ] Svelte Store für Toast-State
-- [ ] **LoadingSpinner** (2h)
-- [ ] **ProgressBar** (3h)
-  - [ ] Determinate (%)
-  - [ ] Indeterminate
-  - [ ] Smooth Animations
+
+- [x] **Button Component** (3h)
+  - [x] Variants (primary, secondary, danger)
+  - [x] Sizes (small, medium, large)
+  - [x] Loading-State
+  - [x] Icon-Support
+- [x] **Modal Component** (6h)
+  - [x] Overlay + Dialog
+  - [x] Close-Button
+  - [x] ESC-Key Handler
+  - [x] Click-Outside-to-Close
+  - [x] Accessibility (focus-trap)
+- [x] **Toast/Notification** (6h)
+  - [x] Toast-Container
+  - [x] Success/Error/Warning Variants
+  - [x] Auto-Dismiss
+  - [x] Queue-System
+  - [x] Svelte Store für Toast-State
+- [x] **LoadingSpinner** (2h)
+- [x] **ProgressBar** (3h)
+  - [x] Determinate (%)
+  - [x] Indeterminate
+  - [x] Smooth Animations
 
 **Subtotal:** 20 Stunden
 
 ### 2.3 Stores & State Management
 
 #### Tasks
-- [ ] **repositories Store** (4h)
-  - [ ] `src/lib/stores/repositories.ts`
-  - [ ] Writable store für Liste
-  - [ ] Active repository
-  - [ ] Load/Add/Remove Funktionen
-- [ ] **snapshots Store** (4h)
-  - [ ] Snapshot-Liste
-  - [ ] Filter/Sort State
-  - [ ] Load-Funktionen
-- [ ] **backupJobs Store** (4h)
-  - [ ] Job-Liste
-  - [ ] Running-State
-  - [ ] Load/Update Funktionen
-- [ ] **toast Store** (2h)
-  - [ ] Toast-Queue
-  - [ ] Add/Remove Functions
-- [ ] **settings Store** (3h)
-  - [ ] Theme (dark/light)
-  - [ ] Language
-  - [ ] Load/Save
+
+- [x] **repositories Store** (4h)
+  - [x] `src/lib/stores/repositories.ts`
+  - [x] Writable store für Liste
+  - [x] Active repository
+  - [x] Load/Add/Remove Funktionen
+- [x] **snapshots Store** (4h)
+  - [x] Snapshot-Liste
+  - [x] Filter/Sort State
+  - [x] Load-Funktionen
+- [x] **backupJobs Store** (4h)
+  - [x] Job-Liste
+  - [x] Running-State
+  - [x] Load/Update Funktionen
+- [x] **toast Store** (2h)
+  - [x] Toast-Queue
+  - [x] Add/Remove Functions
+- [x] **settings Store** (3h)
+  - [x] Theme (dark/light)
+  - [x] Language
+  - [x] Load/Save
 
 **Subtotal:** 17 Stunden
 
 ### 2.4 API-Wrapper (Frontend)
 
 #### Tasks
-- [ ] **Repository API** (6h)
-  - [ ] `src/lib/api/repositories.ts`
-  - [ ] initRepository()
-  - [ ] openRepository()
-  - [ ] checkConnection()
-  - [ ] listRepositories()
-- [ ] **Snapshot API** (4h)
-  - [ ] listSnapshots()
-  - [ ] getSnapshotInfo()
-  - [ ] deleteSnapshot()
-- [ ] **Backup API** (4h)
-  - [ ] runBackup()
-  - [ ] cancelBackup()
-- [ ] **Event-Listener Setup** (4h)
-  - [ ] backup-progress Events
-  - [ ] backup-completed Events
-  - [ ] backup-failed Events
+
+- [x] **Repository API** (6h)
+  - [x] `src/lib/api/repositories.ts`
+  - [x] initRepository()
+  - [x] openRepository()
+  - [x] checkConnection()
+  - [x] listRepositories()
+- [x] **Snapshot API** (4h)
+  - [x] listSnapshots()
+  - [x] getSnapshotInfo()
+  - [x] deleteSnapshot()
+- [x] **Backup API** (4h)
+  - [x] runBackup()
+  - [x] cancelBackup()
+- [x] **Event-Listener Setup** (4h)
+  - [x] backup-progress Events
+  - [x] backup-completed Events
+  - [x] backup-failed Events
 
 **Subtotal:** 18 Stunden
 
 ### 2.5 Dashboard Page
 
 #### Tasks
-- [ ] **Dashboard Layout** (6h)
-  - [ ] Grid für Repository-Cards
-  - [ ] Recent Activity Log
+
+- [x] **Dashboard Layout** (6h)
+  - [x] Grid für Repository-Cards
+  - [x] Recent Activity Log
   - [ ] Storage Usage Charts (optional)
-- [ ] **Repository Card Component** (6h)
-  - [ ] Repo Name + Path
-  - [ ] Status Badge (Healthy/Warning)
-  - [ ] Quick-Actions (Backup, Browse)
-  - [ ] Context Menu (3-dot)
-- [ ] **Activity Log Component** (4h)
-  - [ ] Scrollable Log
-  - [ ] Timestamp + Message
-  - [ ] Icons für Actions
-- [ ] **Dashboard Store Integration** (3h)
-  - [ ] Load Repos on Mount
-  - [ ] Refresh-Logic
+- [x] **Repository Card Component** (6h)
+  - [x] Repo Name + Path
+  - [x] Status Badge (Healthy/Warning)
+  - [x] Quick-Actions (Backup, Browse)
+  - [x] Context Menu (3-dot)
+- [x] **Activity Log Component** (4h)
+  - [x] Scrollable Log
+  - [x] Timestamp + Message
+  - [x] Icons für Actions
+- [x] **Dashboard Store Integration** (3h)
+  - [x] Load Repos on Mount
+  - [x] Refresh-Logic
 
 **Subtotal:** 19 Stunden
 
 ### 2.6 CSS/Styling Setup
 
 #### Tasks
-- [ ] **CSS aus Mockups übernehmen** (8h)
-  - [ ] `src/app.css`
-  - [ ] Dark Theme Variables
-  - [ ] Component-Styles
-  - [ ] Responsive Breakpoints
+
+- [x] **CSS aus Mockups übernehmen** (8h)
+  - [x] `src/app.css`
+  - [x] Dark Theme Variables
+  - [x] Component-Styles
+  - [x] Responsive Breakpoints
 - [ ] **Tailwind Setup** (optional, 4h)
   - [ ] Tailwind Config
   - [ ] Purge Config
@@ -512,6 +540,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 3.1 Backup-Funktionalität (Backend)
 
 #### Tasks
+
 - [ ] **run_backup Command** (8h)
   - [ ] `src-tauri/src/rustic/backup.rs`
   - [ ] rustic_core Integration
@@ -538,6 +567,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 3.2 Snapshot-Management (Backend)
 
 #### Tasks
+
 - [ ] **list_snapshots Command** (4h)
   - [ ] rustic_core Integration
   - [ ] DTO-Konvertierung
@@ -559,6 +589,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 3.3 Restore-Funktionalität (Backend)
 
 #### Tasks
+
 - [ ] **get_file_tree Command** (8h)
   - [ ] `src-tauri/src/rustic/restore.rs`
   - [ ] Tree aus Snapshot laden
@@ -581,6 +612,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 3.4 Snapshots Page (Frontend)
 
 #### Tasks
+
 - [ ] **Snapshots Page Layout** (6h)
   - [ ] `src/lib/pages/Snapshots.svelte`
   - [ ] Toolbar (Search, Filter, Refresh)
@@ -606,6 +638,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 3.5 Restore Dialog (Frontend)
 
 #### Tasks
+
 - [ ] **Restore Dialog Component** (10h)
   - [ ] `src/lib/components/dialogs/RestoreDialog.svelte`
   - [ ] Snapshot-Selection
@@ -629,6 +662,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 3.6 Backup-Job Execution (Frontend)
 
 #### Tasks
+
 - [ ] **Run-Backup UI** (6h)
   - [ ] Backup-Button mit Loading
   - [ ] Progress-Modal
@@ -661,6 +695,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 4.1 Job-Scheduler (Backend)
 
 #### Tasks
+
 - [ ] **Scheduler-Setup** (8h)
   - [ ] `src-tauri/src/scheduler/mod.rs`
   - [ ] tokio-cron-scheduler Integration
@@ -684,6 +719,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 4.2 Job-Config (Backend)
 
 #### Tasks
+
 - [ ] **BackupJobConfig erweitern** (4h)
   - [ ] Schedule-Field
   - [ ] Last-Run Timestamp
@@ -704,6 +740,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 4.3 Backup Jobs Page (Frontend)
 
 #### Tasks
+
 - [ ] **Jobs Page Layout** (6h)
   - [ ] `src/lib/pages/BackupJobs.svelte`
   - [ ] Job-Liste
@@ -725,6 +762,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 4.4 Create/Edit Job Dialog (Frontend)
 
 #### Tasks
+
 - [ ] **Job-Dialog Basis** (6h)
   - [ ] `src/lib/components/dialogs/CreateJobDialog.svelte`
   - [ ] Tab-System (4 Tabs)
@@ -761,6 +799,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 4.5 Scheduled Jobs Monitoring
 
 #### Tasks
+
 - [ ] **Job-Status-Updates** (4h)
   - [ ] Events für Job-Status
   - [ ] Store-Updates
@@ -789,6 +828,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 5.1 Advanced Features
 
 #### Tasks
+
 - [ ] **Compare-Snapshots Dialog** (12h)
   - [ ] Two-Column Layout
   - [ ] Diff-Berechnung
@@ -813,6 +853,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 5.2 Error-Handling & Edge-Cases
 
 #### Tasks
+
 - [ ] **Comprehensive Error-Messages** (6h)
   - [ ] User-Friendly Messages
   - [ ] Details expandable
@@ -835,6 +876,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 5.3 Testing
 
 #### Tasks
+
 - [ ] **Unit-Tests (Rust)** (12h)
   - [ ] Alle Module testen
   - [ ] Edge-Cases
@@ -862,6 +904,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 5.4 Performance-Optimierung
 
 #### Tasks
+
 - [ ] **Bundle-Size Optimierung** (6h)
   - [ ] Tree-Shaking verifizieren
   - [ ] Unused Dependencies entfernen
@@ -884,6 +927,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 5.5 Accessibility & UX
 
 #### Tasks
+
 - [ ] **ARIA-Labels vervollständigen** (4h)
   - [ ] Alle interaktiven Elemente
   - [ ] Screen-Reader Testing
@@ -906,6 +950,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 5.6 Dokumentation
 
 #### Tasks
+
 - [ ] **User-Dokumentation** (12h)
   - [ ] Installation Guide
   - [ ] Quick-Start Tutorial
@@ -927,6 +972,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 5.7 Bug-Fixing & Stabilität
 
 #### Tasks
+
 - [ ] **Bug-Triage** (variabel)
   - [ ] Alle bekannten Bugs fixen
   - [ ] GitHub Issues durchgehen
@@ -959,6 +1005,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 6.1 Release-Vorbereitung
 
 #### Tasks
+
 - [ ] **Version-Bump** (1h)
   - [ ] package.json → 1.0.0
   - [ ] Cargo.toml → 1.0.0
@@ -980,6 +1027,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 6.2 Build-Pipeline
 
 #### Tasks
+
 - [ ] **CI/CD finalisieren** (8h)
   - [ ] GitHub Actions Workflow
   - [ ] Matrix-Build (Linux/Windows)
@@ -998,10 +1046,12 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 6.3 Release-Builds
 
 #### Tasks
+
 - [ ] **Production Builds erstellen** (4h)
   ```bash
   npm run tauri:build
   ```
+
   - [ ] Linux x86_64 AppImage
   - [ ] Windows x64 MSI
   - [ ] Windows x64 Portable EXE
@@ -1018,6 +1068,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 6.4 Release-Distribution
 
 #### Tasks
+
 - [ ] **GitHub Release erstellen** (2h)
   - [ ] Tag v1.0.0
   - [ ] Release-Notes aus CHANGELOG
@@ -1036,6 +1087,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 ### 6.5 Post-Release
 
 #### Tasks
+
 - [ ] **Monitoring Setup** (4h)
   - [ ] Issue-Tracker beobachten
   - [ ] User-Feedback sammeln
@@ -1057,23 +1109,25 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 ### Zeit-Investition pro Milestone
 
-| Milestone | Beschreibung | Geschätzte Zeit | Wochen |
-|-----------|-------------|-----------------|--------|
-| M0 | Project Setup | 16h | 0.4 |
-| M1 | Core Backend | 90h | 2.3 |
-| M2 | Basic UI | 114h | 2.9 |
-| M3 | Backup & Restore | 143h | 3.6 |
-| M4 | Job Management | 124h | 3.1 |
-| M5 | Polish & Testing | 200h | 5.0 |
-| M6 | Release | 55h | 1.4 |
-| **Total** | | **742h** | **~18.5 Wochen** |
+| Milestone | Beschreibung     | Geschätzte Zeit | Wochen           |
+| --------- | ---------------- | --------------- | ---------------- |
+| M0        | Project Setup    | 16h             | 0.4              |
+| M1        | Core Backend     | 90h             | 2.3              |
+| M2        | Basic UI         | 114h            | 2.9              |
+| M3        | Backup & Restore | 143h            | 3.6              |
+| M4        | Job Management   | 124h            | 3.1              |
+| M5        | Polish & Testing | 200h            | 5.0              |
+| M6        | Release          | 55h             | 1.4              |
+| **Total** |                  | **742h**        | **~18.5 Wochen** |
 
 ### Annahmen
+
 - **Arbeitszeit:** 40h/Woche (Vollzeit)
 - **Produktivität:** 100% (unrealistisch!)
 - **Realistische Einschätzung:** +30-50% Buffer → **24-28 Wochen**
 
 ### Kritischer Pfad
+
 ```
 M0 → M1 → M2 → M3 → M4 → M5 → M6
 ```
@@ -1091,6 +1145,7 @@ Falls schnellerer Launch gewünscht ist:
 **Ziel:** Grundlegende Backup/Restore-Funktionalität ohne Scheduling
 
 #### Features
+
 - ✅ Repository-Management (Local + Cloud)
 - ✅ Manuelles Backup
 - ✅ Snapshot-Liste anzeigen
@@ -1100,6 +1155,7 @@ Falls schnellerer Launch gewünscht ist:
 - ❌ Advanced Settings (später)
 
 #### MVP Timeline
+
 - M0: Project Setup (1 Woche)
 - M1: Core Backend (2 Wochen)
 - M2: Basic UI (2 Wochen)
@@ -1117,15 +1173,15 @@ Falls schnellerer Launch gewünscht ist:
 
 **Sprint-Dauer:** 2 Wochen
 
-| Sprint | Fokus | Deliverables |
-|--------|-------|--------------|
-| Sprint 0 | Setup | Projekt läuft lokal |
-| Sprint 1-2 | Backend Core | Repository CRUD funktioniert |
-| Sprint 3-4 | UI Foundation | Dashboard + Navigation |
-| Sprint 5-7 | Backup/Restore | Vollständiger Flow |
-| Sprint 8-9 | Job Management | Scheduling funktioniert |
-| Sprint 10-11 | Testing | Stabile Alpha |
-| Sprint 12 | Release | v1.0 Production-Ready |
+| Sprint       | Fokus          | Deliverables                 |
+| ------------ | -------------- | ---------------------------- |
+| Sprint 0     | Setup          | Projekt läuft lokal          |
+| Sprint 1-2   | Backend Core   | Repository CRUD funktioniert |
+| Sprint 3-4   | UI Foundation  | Dashboard + Navigation       |
+| Sprint 5-7   | Backup/Restore | Vollständiger Flow           |
+| Sprint 8-9   | Job Management | Scheduling funktioniert      |
+| Sprint 10-11 | Testing        | Stabile Alpha                |
+| Sprint 12    | Release        | v1.0 Production-Ready        |
 
 ---
 
@@ -1134,6 +1190,7 @@ Falls schnellerer Launch gewünscht ist:
 ### GitHub Project Board
 
 **Columns:**
+
 - 📋 Backlog
 - 🔜 Todo (Current Sprint)
 - 🏗️ In Progress
@@ -1141,6 +1198,7 @@ Falls schnellerer Launch gewünscht ist:
 - ✅ Done
 
 **Labels:**
+
 - `milestone-1`, `milestone-2`, etc.
 - `priority-high`, `priority-medium`, `priority-low`
 - `frontend`, `backend`
@@ -1150,6 +1208,7 @@ Falls schnellerer Launch gewünscht ist:
 ### Definition of Done (DoD)
 
 Eine Task ist "Done" wenn:
+
 - [ ] Code geschrieben
 - [ ] Tests geschrieben & passing
 - [ ] Code-Review durchgeführt
@@ -1164,47 +1223,57 @@ Eine Task ist "Done" wenn:
 ### Identifizierte Risiken
 
 #### 1. rustic_core API-Änderungen
+
 **Risiko:** rustic_core könnte Breaking Changes haben  
 **Wahrscheinlichkeit:** Mittel  
 **Impact:** Hoch  
 **Mitigation:**
+
 - Version pinnen (0.7.x)
 - Regelmäßig Updates prüfen
 - Migration-Plan für Breaking Changes
 
 #### 2. rclone-Integration Probleme
+
 **Risiko:** rclone FFI könnte instabil sein  
 **Wahrscheinlichkeit:** Mittel  
 **Impact:** Mittel  
 **Mitigation:**
+
 - Fallback zu rclone-Subprocess
 - Umfangreiche Tests mit verschiedenen Clouds
 - Community-Support nutzen
 
 #### 3. Performance bei großen Repositories
+
 **Risiko:** UI könnte bei >1000 Snapshots langsam werden  
 **Wahrscheinlichkeit:** Hoch  
 **Impact:** Mittel  
 **Mitigation:**
+
 - Virtual Scrolling implementieren
 - Pagination für Snapshots
 - Lazy-Loading
 - Performance-Tests früh einplanen
 
 #### 4. Cross-Platform Bugs
+
 **Risiko:** Plattform-spezifische Probleme  
 **Wahrscheinlichkeit:** Hoch  
 **Impact:** Mittel  
 **Mitigation:**
+
 - Früh auf beiden Plattformen testen
 - CI für Linux + Windows
 - Platform-spezifische Workarounds dokumentieren
 
 #### 5. Zeitüberschreitung
+
 **Risiko:** Projekt dauert länger als geschätzt  
 **Wahrscheinlichkeit:** Sehr Hoch  
 **Impact:** Niedrig  
 **Mitigation:**
+
 - MVP-First Approach
 - Features priorisieren (MoSCoW)
 - Regelmäßige Sprint-Reviews
@@ -1215,6 +1284,7 @@ Eine Task ist "Done" wenn:
 ## 🎨 Feature-Priorisierung (MoSCoW)
 
 ### Must Have (v1.0)
+
 - ✅ Repository-Management (Local + Cloud)
 - ✅ Manuelles Backup
 - ✅ Snapshot-Listing
@@ -1224,6 +1294,7 @@ Eine Task ist "Done" wenn:
 - ✅ Passwort-Management (Keychain)
 
 ### Should Have (v1.0)
+
 - ✅ Snapshot-Vergleich
 - ✅ Repository Check/Prune
 - ✅ Progress-Anzeigen
@@ -1231,6 +1302,7 @@ Eine Task ist "Done" wenn:
 - ✅ Settings-Page
 
 ### Could Have (v1.1+)
+
 - ⏸️ Desktop-Notifications
 - ⏸️ Email-Notifications bei Job-Completion
 - ⏸️ Repository-Statistiken (Charts)
@@ -1239,6 +1311,7 @@ Eine Task ist "Done" wenn:
 - ⏸️ Themes (mehr als Light/Dark)
 
 ### Won't Have (v1.0)
+
 - ❌ Web-Version
 - ❌ Mobile-App
 - ❌ Cloud-Sync der Config
@@ -1249,20 +1322,26 @@ Eine Task ist "Done" wenn:
 ## 🔮 Future Roadmap (Post v1.0)
 
 ### v1.1 (Q1 2026)
+
 **Focus:** Community Feedback & Stability
+
 - Bug-Fixes aus v1.0
 - Performance-Optimierungen
 - Kleinere Feature-Requests
 
 ### v1.2 (Q2 2026)
+
 **Focus:** Advanced Features
+
 - Snapshot-Diff Visualization
 - Repository-Statistiken mit Charts
 - Export/Import Config
 - Desktop-Notifications
 
 ### v2.0 (Q3 2026)
+
 **Focus:** Enterprise Features
+
 - Multi-User Support
 - Centralized Config Management
 - Reporting & Compliance
@@ -1270,7 +1349,9 @@ Eine Task ist "Done" wenn:
 - API für Automation
 
 ### v3.0 (2027)
+
 **Focus:** Cloud-Native
+
 - Web-Version
 - Mobile-App (iOS/Android)
 - Cloud-Backend für Config-Sync
@@ -1283,14 +1364,17 @@ Eine Task ist "Done" wenn:
 ### Während Entwicklung
 
 **Issues/Bugs:**
+
 - GitHub Issues: `https://github.com/your-org/rustic-gui/issues`
 - Discord: rustic-gui Channel (in rustic Discord)
 
 **Fragen:**
+
 - GitHub Discussions
 - Discord #help Channel
 
 **Pull Requests:**
+
 - Siehe CONTRIBUTING.md
 - Code-Review innerhalb 2-3 Tage
 
@@ -1304,6 +1388,7 @@ Für jede Version CHANGELOG.md aktualisieren:
 ## [1.0.0] - 2026-XX-XX
 
 ### Added
+
 - Initial Release
 - Repository-Management (Local, SFTP, S3, rclone)
 - Backup mit Progress-Anzeige
@@ -1313,12 +1398,15 @@ Für jede Version CHANGELOG.md aktualisieren:
 - Dark/Light Theme
 
 ### Changed
+
 - N/A (Initial Release)
 
 ### Fixed
+
 - N/A (Initial Release)
 
 ### Security
+
 - Passwort-Speicherung in System-Keychain
 - Input-Validation für alle User-Inputs
 ```
@@ -1328,6 +1416,7 @@ Für jede Version CHANGELOG.md aktualisieren:
 ## ✅ Sprint 0 (Woche 1) - Sofort starten!
 
 ### Diese Woche
+
 - [ ] Entwicklungsumgebung aufsetzen (Tag 1)
 - [ ] Tauri-Projekt initialisieren (Tag 1-2)
 - [ ] Projekt-Struktur erstellen (Tag 2)
@@ -1337,6 +1426,7 @@ Für jede Version CHANGELOG.md aktualisieren:
 - [ ] Verify Setup komplett (Tag 5)
 
 ### Exit-Criteria Sprint 0
+
 - ✅ `npm run tauri:dev` funktioniert
 - ✅ Hot-Reload funktioniert (Frontend + Backend)
 - ✅ Tests laufen durch
@@ -1352,19 +1442,23 @@ Für jede Version CHANGELOG.md aktualisieren:
 Falls Skills fehlen:
 
 ### Rust
+
 - The Rust Book: https://doc.rust-lang.org/book/
 - Rust by Example: https://doc.rust-lang.org/rust-by-example/
 - rustic_core Docs: https://docs.rs/rustic_core
 
 ### Tauri
+
 - Tauri Docs: https://tauri.app/v2/
 - Tauri Examples: https://github.com/tauri-apps/tauri/tree/dev/examples
 
 ### Svelte
+
 - Svelte Tutorial: https://svelte.dev/tutorial
 - Svelte 5 Preview: https://svelte-5-preview.vercel.app/
 
 ### TypeScript
+
 - TS Handbook: https://www.typescriptlang.org/docs/handbook/
 
 ---
@@ -1372,6 +1466,7 @@ Falls Skills fehlen:
 ## 🎉 Los geht's!
 
 **Nächster Schritt:**
+
 ```bash
 git clone <your-repo>
 cd rustic-gui
@@ -1382,6 +1477,6 @@ Viel Erfolg! 🚀
 
 ---
 
-*Roadmap Version: 1.0*  
-*Erstellt: 2025-10-26*  
-*Nächstes Review: Nach jedem Milestone*
+_Roadmap Version: 1.0_  
+_Erstellt: 2025-10-26_  
+_Nächstes Review: Nach jedem Milestone_

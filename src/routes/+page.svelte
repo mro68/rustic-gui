@@ -1,4 +1,5 @@
 <script lang="ts">
+  import '../app.css';
   /**
    * Haupt-Seite der Anwendung.
    *
@@ -6,6 +7,7 @@
    */
 
   import MainLayout from '$lib/components/layout/MainLayout.svelte';
+  import DashboardPage from '$lib/components/pages/DashboardPage.svelte';
   import { currentPage } from '$lib/stores/router';
 
   // Aktuelle Seite aus Store
@@ -18,34 +20,12 @@
     });
     return unsubscribe;
   });
-
-
 </script>
 
 <MainLayout>
   {#snippet children()}
     {#if page === 'dashboard'}
-      <div class="section-title">Dashboard</div>
-      <div class="dashboard-grid">
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Willkommen bei Rustic GUI</div>
-              <div class="card-subtitle">Backup-Management-Anwendung</div>
-            </div>
-          </div>
-          <p>Das Layout-System ist erfolgreich implementiert! 🎉</p>
-          <p>Nächste Schritte:</p>
-          <ul>
-            <li>✅ CSS-Grundlage aus Mockup übernommen</li>
-            <li>✅ MainLayout, Sidebar, Header erstellt</li>
-            <li>✅ Router-Store implementiert</li>
-            <li>🔄 Shared Components (Buttons, etc.)</li>
-            <li>🔄 Stores & API-Wrapper</li>
-            <li>🔄 Dashboard-Page mit echten Daten</li>
-          </ul>
-        </div>
-      </div>
+      <DashboardPage />
     {:else if page === 'repositories'}
       <div class="section-title">Repository-Management</div>
       <div class="card">

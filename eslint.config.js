@@ -46,6 +46,7 @@ export default [
         },
         rules: {
             ...svelte.configs.recommended.rules,
+            'no-undef': 'warn',
         },
     },
     {
