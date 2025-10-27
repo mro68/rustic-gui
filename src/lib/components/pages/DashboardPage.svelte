@@ -33,7 +33,8 @@
       const repos = await listRepositories();
       setRepositories(repos);
       repoList = repos;
-    } catch (e) {
+    } catch (_e) {
+      // eslint-disable-line no-unused-vars
       error = 'Fehler beim Laden der Repositories';
     } finally {
       loading = false;

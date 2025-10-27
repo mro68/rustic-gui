@@ -10,8 +10,15 @@ import { writable } from 'svelte/store';
  * - error: Fehlertext
  */
 
+type SnapshotFilter = {
+  tag?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
+  hostname?: string;
+} | null;
+
 const _snapshots = writable<Snapshot[]>([]);
-const _filter = writable<any>(null); // Typ ggf. anpassen
+const _filter = writable<SnapshotFilter>(null);
 const _sort = writable<string | null>(null);
 const _loading = writable(false);
 const _error = writable<string | null>(null);
@@ -23,27 +30,27 @@ export const loading = { subscribe: _loading.subscribe };
 export const error = { subscribe: _error.subscribe };
 
 // Actions
-export function setSnapshots(list: Snapshot[]) {
+export function setSnapshots(list: Snapshot[]): void {
   _snapshots.set(list);
 }
 
-export function setFilter(f: any) {
+export function setFilter(f: SnapshotFilter): void {
   _filter.set(f);
 }
 
-export function setSort(s: string | null) {
+export function setSort(s: string | null): void {
   _sort.set(s);
 }
 
-export function setLoading(val: boolean) {
+export function setLoading(val: boolean): void {
   _loading.set(val);
 }
 
-export function setError(msg: string | null) {
+export function setError(msg: string | null): void {
   _error.set(msg);
 }
 
-export function resetSnapshots() {
+export function resetSnapshots(): void {
   _snapshots.set([]);
   _filter.set(null);
   _sort.set(null);

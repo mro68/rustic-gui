@@ -23,27 +23,27 @@ export const error = { subscribe: _error.subscribe };
 export const activeRepository = derived(
   [_repositories, _activeRepositoryId],
   ([$repositories, $activeRepositoryId]) =>
-    $repositories.find(r => r.id === $activeRepositoryId) ?? null
+    $repositories.find((r) => r.id === $activeRepositoryId) ?? null
 );
 
 // Actions
-export function setRepositories(list: Repository[]) {
+export function setRepositories(list: Repository[]): void {
   _repositories.set(list);
 }
 
-export function setActiveRepository(id: string | null) {
+export function setActiveRepository(id: string | null): void {
   _activeRepositoryId.set(id);
 }
 
-export function setLoading(val: boolean) {
+export function setLoading(val: boolean): void {
   _loading.set(val);
 }
 
-export function setError(msg: string | null) {
+export function setError(msg: string | null): void {
   _error.set(msg);
 }
 
-export function resetRepositories() {
+export function resetRepositories(): void {
   _repositories.set([]);
   _activeRepositoryId.set(null);
   _loading.set(false);

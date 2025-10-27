@@ -14,11 +14,11 @@
 
   function handleBackup() {
     // TODO: Backup-Job starten
-    alert(`Backup für ${repo.name} gestartet (Platzhalter)`);
+    console.log(`Backup für ${repo.name} gestartet (Platzhalter)`);
   }
   function handleBrowse() {
     // TODO: Repository-Browser öffnen
-    alert(`Browse für ${repo.name} geöffnet (Platzhalter)`);
+    console.log(`Browse für ${repo.name} geöffnet (Platzhalter)`);
   }
 </script>
 

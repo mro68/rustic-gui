@@ -1,3 +1,28 @@
+use rustic::backup::{run_backup, BackupOptions, BackupProgress};
+
+/// Tauri-Command: Startet ein Backup und sendet Progress-Events an das Frontend.
+/// Erwartet BackupOptions mit job_id (für Event-Name) und sendet Fortschritt via emit.
+#[tauri::command]
+async fn run_backup_command(
+    app: tauri::AppHandle,
+    mut options: BackupOptions,
+) -> std::result::Result<(), String> {
+    tracing::info!("run_backup_command aufgerufen");
+    if options.job_id.is_none() {
+        options.job_id = Some("default".to_string());
+    }
+    let progress_callback = |progress: BackupProgress| {
+        tracing::debug!(
+            files = progress.files_processed,
+            bytes = progress.bytes_uploaded,
+            percent = ?progress.percent,
+            "Backup-Progress"
+        );
+    };
+    run_backup(app, options, progress_callback)
+        .await
+        .map_err(|e| e.to_string())
+}
 // Hauptmodul für rustic-gui
 pub mod config;
 pub mod error;
@@ -152,7 +177,8 @@ pub fn run() {
             prepare_shutdown,
             store_repository_password,
             get_repository_password,
-            delete_repository_password
+            delete_repository_password,
+            run_backup_command
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

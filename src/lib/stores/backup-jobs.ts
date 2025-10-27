@@ -20,23 +20,23 @@ export const loading = { subscribe: _loading.subscribe };
 export const error = { subscribe: _error.subscribe };
 
 // Actions
-export function setJobs(list: BackupJob[]) {
+export function setJobs(list: BackupJob[]): void {
   _jobs.set(list);
 }
 
-export function setRunningJobId(id: string | null) {
+export function setRunningJobId(id: string | null): void {
   _runningJobId.set(id);
 }
 
-export function setLoading(val: boolean) {
+export function setLoading(val: boolean): void {
   _loading.set(val);
 }
 
-export function setError(msg: string | null) {
+export function setError(msg: string | null): void {
   _error.set(msg);
 }
 
-export function resetJobs() {
+export function resetJobs(): void {
   _jobs.set([]);
   _runningJobId.set(null);
   _loading.set(false);

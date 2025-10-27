@@ -1,4 +1,5 @@
 <script lang="ts">
+  /* eslint-env browser */
   /**
    * Universelle Modal-Komponente für Rustic GUI
    *

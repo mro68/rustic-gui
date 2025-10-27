@@ -220,7 +220,7 @@ mod tests {
         let config_path = temp_dir.path().join("config.toml");
 
         // Temporäres Überschreiben des Config-Pfads für Test
-        std::env::set_var("RUSTIC_GUI_CONFIG_PATH", config_path.to_str().unwrap());
+        unsafe { std::env::set_var("RUSTIC_GUI_CONFIG_PATH", config_path.to_str().unwrap()); }
 
         let mut config = AppConfig::default();
         config.settings.theme = "dark".to_string();
@@ -274,7 +274,7 @@ mod tests {
         assert_eq!(job.name, "Test Job");
         assert_eq!(job.schedule.as_ref().unwrap(), "0 2 * * *");
 
-        std::env::remove_var("RUSTIC_GUI_CONFIG_PATH");
+        unsafe { std::env::remove_var("RUSTIC_GUI_CONFIG_PATH"); }
     }
 
     #[test]

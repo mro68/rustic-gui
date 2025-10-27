@@ -12,15 +12,15 @@ const _language = writable<string>('de');
 export const theme = { subscribe: _theme.subscribe };
 export const language = { subscribe: _language.subscribe };
 
-export function setTheme(val: 'dark' | 'light') {
+export function setTheme(val: 'dark' | 'light'): void {
   _theme.set(val);
 }
 
-export function setLanguage(val: string) {
+export function setLanguage(val: string): void {
   _language.set(val);
 }
 
-export function resetSettings() {
+export function resetSettings(): void {
   _theme.set('dark');
   _language.set('de');
 }
