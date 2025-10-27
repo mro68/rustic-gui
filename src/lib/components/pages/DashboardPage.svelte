@@ -20,7 +20,7 @@
   let repoList: Repository[] = [];
   let loading = false;
   let error: string | null = null;
-  let logEntries = [
+  let logEntries: { time: string; type: 'info' | 'warning' | 'error'; message: string }[] = [
     { time: '12:01', type: 'info', message: 'Backup erfolgreich abgeschlossen' },
     { time: '11:45', type: 'warning', message: 'Warnung: Verbindung langsam' },
     { time: '11:30', type: 'error', message: 'Fehler: Passwort falsch' },

@@ -1,4 +1,3 @@
-/* eslint-env browser */
 <script lang="ts">
   /**
    * Universelle Modal-Komponente für Rustic GUI
@@ -17,7 +16,7 @@
    * - header: Optionaler Header
    * - footer: Optionaler Footer
    */
-  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   export let open: boolean = false;
   export let closeOnEsc: boolean = true;
   export let closeOnBackdrop: boolean = true;
@@ -60,13 +59,13 @@
   }
 </script>
 
+/* eslint-env browser */
 {#if open}
   <div
     class="modal-backdrop"
     bind:this={modalRef}
-    tabindex="-1"
     aria-modal="true"
-    role="dialog"
+    role="presentation"
     aria-label={ariaLabel}
     on:click={handleBackdropClick}
   >
@@ -103,7 +102,7 @@
   .modal-dialog {
     background: var(--bg-primary);
     border-radius: var(--radius-lg);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
     min-width: 340px;
     max-width: 96vw;
     min-height: 80px;
@@ -149,11 +148,21 @@
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   }
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
   @keyframes popIn {
-    from { transform: scale(0.97); opacity: 0.7; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+      transform: scale(0.97);
+      opacity: 0.7;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 </style>
