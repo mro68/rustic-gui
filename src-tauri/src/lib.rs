@@ -1,3 +1,42 @@
+#[tauri::command]
+async fn forget_snapshots_command(
+    repository_path: String,
+    password: String,
+    policy: RetentionPolicy,
+) -> std::result::Result<Vec<String>, String> {
+    rustic::snapshot::forget_snapshots(&repository_path, &password, &policy)
+        .await
+        .map_err(|e| e.to_string())
+}
+#[tauri::command]
+async fn delete_snapshot_command(
+    repository_path: String,
+    password: String,
+    snapshot_id: String,
+) -> std::result::Result<(), String> {
+    rustic::snapshot::delete_snapshot(&repository_path, &password, &snapshot_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+#[tauri::command]
+async fn get_snapshot_command(
+    repository_path: String,
+    password: String,
+    snapshot_id: String,
+) -> std::result::Result<SnapshotDto, String> {
+    rustic::snapshot::get_snapshot(&repository_path, &password, &snapshot_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+#[tauri::command]
+async fn list_snapshots_command(
+    repository_path: String,
+    password: String,
+) -> std::result::Result<Vec<SnapshotDto>, String> {
+    rustic::snapshot::list_snapshots(&repository_path, &password)
+        .await
+        .map_err(|e| e.to_string())
+}
 use rustic::backup::{run_backup, BackupOptions, BackupProgress};
 
 /// Tauri-Command: Startet ein Backup und sendet Progress-Events an das Frontend.
@@ -178,7 +217,11 @@ pub fn run() {
             store_repository_password,
             get_repository_password,
             delete_repository_password,
-            run_backup_command
+            run_backup_command,
+            list_snapshots_command,
+            get_snapshot_command,
+            delete_snapshot_command,
+            forget_snapshots_command
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

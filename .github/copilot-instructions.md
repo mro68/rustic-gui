@@ -1,7 +1,7 @@
 # Rustic GUI - AI Development Instructions
 
 > **Zentrale Anweisungen für KI-gestützte Entwicklung des Rustic GUI Projekts**
-> 
+>
 > Version: 2.1 | Datum: 2025-10-26 | Sprache: Deutsch/Englisch (hybrid)
 
 ---
@@ -13,6 +13,7 @@
 **Du MUSST diese Instructions (inkl. aller verlinkten Dateien) vor JEDEM Entwicklungsschritt einlesen und befolgen!**
 
 **Workflow für jeden Task:**
+
 1. ✅ Lies diese Datei vollständig
 2. ✅ Lies die relevanten verlinkten Instructions-Dateien
 3. ✅ **Prüfe UI-Mockups in `docs/mockups/` (falls UI-Änderungen)**
@@ -24,6 +25,7 @@
 ### 📋 Dokumentations-Pflicht
 
 Nach **jedem** Feature/Bugfix:
+
 - ✅ Aktualisiere `ROADMAP.md` (Status, Fortschritt)
 - ✅ Aktualisiere relevante `*.instructions.md` bei neuen Patterns
 - ✅ Aktualisiere `CHANGELOG.md` bei User-relevanten Änderungen
@@ -34,6 +36,7 @@ Nach **jedem** Feature/Bugfix:
 Im Ordner `docs/mockups/` befinden sich **4 HTML-Mockup-Dateien** mit dem kompletten UI-Design.
 
 **Bei allen Svelte-Komponenten:**
+
 - ✅ Prüfe ZUERST welches Mockup existiert
 - ✅ Implementiere **exakt** nach Mockup-Vorgaben
 - ✅ Bei Abweichungen: Begründe und dokumentiere
@@ -488,24 +491,28 @@ Wenn du ein neues wiederverwendbares Pattern entwickelst:
 Bevor du mit einem Task startest:
 
 ### Setup-Phase (einmalig)
+
 - [ ] Alle `*.instructions.md` gelesen
 - [ ] **Alle 4 Mockup-Dateien angeschaut und UI verstanden**
 - [ ] Projekt-Struktur verstanden
 - [ ] Code-Conventions verinnerlicht
 
 ### Task-Start
+
 - [ ] Instructions erneut gelesen
 - [ ] Relevante Instructions-Dateien identifiziert
 - [ ] **Mockups geprüft (falls UI-Task) - KRITISCH!**
 - [ ] Roadmap-Status gecheckt
 
 ### Während Task
+
 - [ ] Code folgt Style-Guide
 - [ ] **UI entspricht Mockup (Farben, Spacing, Layout)**
 - [ ] Error-Handling implementiert
 - [ ] Tests geschrieben
 
 ### Task-Ende
+
 - [ ] Roadmap aktualisiert
 - [ ] Dokumentation ergänzt
 - [ ] Tests erfolgreich
@@ -516,6 +523,13 @@ Bevor du mit einem Task startest:
 ## 📚 Weiterführende Ressourcen
 
 ### Externe Dokumentation
+
+#### 📄 Projektspezifische API-Referenz
+
+- **rustic_core API (lokal, Stand 0.8.0):** [docs/rustic/rustic_core_api.md](../docs/rustic/rustic_core_api.md)
+- **rustic_backend API (lokal, Stand 0.5.3):** [docs/rustic/rustic_backend_api.md](../docs/rustic/rustic_backend_api.md)
+
+#### Externe Dokumentation
 
 - **rustic_core**: https://docs.rs/rustic_core
 - **rustic_backend**: https://docs.rs/rustic_backend

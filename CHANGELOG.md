@@ -9,6 +9,15 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Backend Snapshot-Management**: Vollständige Snapshot-Verwaltung implementiert
+  - `list_snapshots` Command: Lädt alle Snapshots eines Repositories mit DTO-Konvertierung
+  - `get_snapshot` Command: Holt detaillierte Infos zu einem einzelnen Snapshot
+  - `delete_snapshot` Command: Löscht einzelne Snapshots mit ID-Validierung
+  - `forget_snapshots` Command: Wendet Retention-Policies an (keep_last) und löscht Snapshots
+  - Robuste rustic_core-Integration mit korrekter API-Nutzung (RepositoryOptions, BackendOptions, SnapshotId)
+  - Vollständige Error-Handling und Validation
+  - Umfassende Unit-Tests für alle Commands (Happy-Path, Error-Cases, Edge-Cases)
+  - Type-sichere DTOs mit korrekter Feld-Mapping (file_count, total_size aus Summary)
 - **Backend Backup-Funktionalität**: Vollständige Backup-Logik mit Event-getriebenem Progress-Reporting
   - `run_backup` Command mit Tauri-Event-Emission (`backup-progress-{job_id}`)
   - `run_backup_logic` testable Backup-Funktion (ohne Tauri-Abhängigkeiten)

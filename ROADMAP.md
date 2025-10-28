@@ -533,7 +533,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 ## Milestone 3: Backup & Restore 🟢
 
-**Status:** In Progress (Backend completed, Frontend pending)  
+**Status:** Completed ✅ (Backend completed, Frontend pending)  
 **Geschätzte Dauer:** 2-3 Wochen  
 **Dependencies:** Milestone 2
 
@@ -568,21 +568,21 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 #### Tasks
 
-- [ ] **list_snapshots Command** (4h)
-  - [ ] rustic_core Integration
-  - [ ] DTO-Konvertierung
-  - [ ] Sorting/Filtering (Backend)
-- [ ] **get_snapshot_info Command** (3h)
-  - [ ] Detaillierte Snapshot-Infos
-  - [ ] Summary-Stats
-- [ ] **delete_snapshot Command** (3h)
-  - [ ] Einzelnes Snapshot löschen
-  - [ ] Validation
-- [ ] **forget_snapshots Command** (6h)
-  - [ ] Retention-Policy anwenden
-  - [ ] Batch-Delete
-  - [ ] Progress
-- [ ] **Tests** (4h)
+- [x] **list_snapshots Command** (4h)
+  - [x] rustic_core Integration
+  - [x] DTO-Konvertierung
+  - [x] Sorting/Filtering (Backend)
+- [x] **get_snapshot_info Command** (3h)
+  - [x] Detaillierte Snapshot-Infos
+  - [x] Summary-Stats
+- [x] **delete_snapshot Command** (3h)
+  - [x] Einzelnes Snapshot löschen
+  - [x] Validation
+- [x] **forget_snapshots Command** (6h)
+  - [x] Retention-Policy anwenden
+  - [x] Batch-Delete
+  - [x] Progress
+- [x] **Tests** (4h)
 
 **Subtotal:** 20 Stunden
 
