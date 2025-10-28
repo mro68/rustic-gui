@@ -26,6 +26,14 @@ export interface SnapshotDto {
   file_count: number;
   total_size: number;
   repository_id: string;
+  username?: string; // Optional: User who created the snapshot
+  summary?: SnapshotSummary; // Optional: Additional summary info
+}
+
+export interface SnapshotSummary {
+  files_count?: number;
+  dirs_count?: number;
+  data_size?: number;
 }
 
 export interface BackupJobDto {

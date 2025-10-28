@@ -1,5 +1,7 @@
-import type { Snapshot } from '$lib/types/snapshot.types';
-import { writable } from 'svelte/store';
+/* eslint-env browser, es2021 */
+import { listSnapshots as apiListSnapshots } from '$lib/api/snapshots';
+import type { SnapshotDto } from '$lib/types/index';
+import { get, writable } from 'svelte/store';
 
 /**
  * Store für Snapshot-Management.
@@ -17,7 +19,7 @@ type SnapshotFilter = {
   hostname?: string;
 } | null;
 
-const _snapshots = writable<Snapshot[]>([]);
+const _snapshots = writable<SnapshotDto[]>([]);
 const _filter = writable<SnapshotFilter>(null);
 const _sort = writable<string | null>(null);
 const _loading = writable(false);
@@ -30,8 +32,21 @@ export const loading = { subscribe: _loading.subscribe };
 export const error = { subscribe: _error.subscribe };
 
 // Actions
-export function setSnapshots(list: Snapshot[]): void {
+export function setSnapshots(list: SnapshotDto[]): void {
   _snapshots.set(list);
+}
+
+export function addSnapshots(newSnapshots: SnapshotDto[]): void {
+  _snapshots.update((current) => {
+    // Vermeide Duplikate basierend auf ID
+    const existingIds = new Set(current.map((s) => s.id));
+    const uniqueNew = newSnapshots.filter((s) => !existingIds.has(s.id));
+    return [...current, ...uniqueNew];
+  });
+}
+
+export function removeSnapshot(snapshotId: string): void {
+  _snapshots.update((current) => current.filter((s) => s.id !== snapshotId));
 }
 
 export function setFilter(f: SnapshotFilter): void {
@@ -56,4 +71,51 @@ export function resetSnapshots(): void {
   _sort.set(null);
   _loading.set(false);
   _error.set(null);
+}
+
+// Async Actions
+export async function loadSnapshots(repositoryId?: string): Promise<void> {
+  setLoading(true);
+  setError(null);
+
+  try {
+    const snapshotList = await apiListSnapshots(repositoryId);
+    if (repositoryId) {
+      // Wenn eine spezifische Repository geladen wird, füge hinzu statt zu ersetzen
+      addSnapshots(snapshotList);
+    } else {
+      // Wenn alle Snapshots geladen werden, ersetze die Liste
+      setSnapshots(snapshotList);
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-undef
+    console.error('Failed to load snapshots:', error);
+    setError(error instanceof Error ? error.message : 'Failed to load snapshots');
+  } finally {
+    setLoading(false);
+  }
+}
+
+export async function refreshSnapshots(): Promise<void> {
+  const currentSnapshots = get(_snapshots);
+  const repositoryIds = [...new Set(currentSnapshots.map((s) => s.repository_id))];
+
+  setLoading(true);
+  setError(null);
+
+  try {
+    // Lade Snapshots für alle bekannten Repositories neu
+    const allSnapshots: SnapshotDto[] = [];
+    for (const repoId of repositoryIds) {
+      const repoSnapshots = await apiListSnapshots(repoId);
+      allSnapshots.push(...repoSnapshots);
+    }
+    setSnapshots(allSnapshots);
+  } catch (error) {
+    // eslint-disable-next-line no-undef
+    console.error('Failed to refresh snapshots:', error);
+    setError(error instanceof Error ? error.message : 'Failed to refresh snapshots');
+  } finally {
+    setLoading(false);
+  }
 }

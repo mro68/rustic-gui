@@ -8,6 +8,7 @@
 
   import MainLayout from '$lib/components/layout/MainLayout.svelte';
   import DashboardPage from '$lib/components/pages/DashboardPage.svelte';
+  import Snapshots from '$lib/components/pages/Snapshots.svelte';
   import { currentPage } from '$lib/stores/router';
 
   // Aktuelle Seite aus Store
@@ -33,11 +34,7 @@
         <p>Features: Repository hinzufügen, öffnen, prüfen, konfigurieren.</p>
       </div>
     {:else if page === 'snapshots'}
-      <div class="section-title">Snapshots</div>
-      <div class="card">
-        <p>Hier werden alle Snapshots angezeigt und verwaltet.</p>
-        <p>Features: Liste, Details, Vergleich, Löschen.</p>
-      </div>
+      <Snapshots />
     {:else if page === 'backup-jobs'}
       <div class="section-title">Backup Jobs</div>
       <div class="card">

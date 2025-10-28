@@ -1,4 +1,4 @@
-import type { Snapshot } from '$lib/types/snapshot.types';
+import type { SnapshotDto } from '$lib/types/index';
 import { invoke } from '@tauri-apps/api/core';
 
 /**
@@ -9,12 +9,12 @@ import { invoke } from '@tauri-apps/api/core';
  * - deleteSnapshot
  */
 
-export async function listSnapshots(): Promise<Snapshot[]> {
-  return await invoke<Snapshot[]>('list_snapshots');
+export async function listSnapshots(repositoryId?: string): Promise<SnapshotDto[]> {
+  return await invoke<SnapshotDto[]>('list_snapshots', { repositoryId });
 }
 
-export async function getSnapshotInfo(id: string): Promise<Snapshot> {
-  return await invoke<Snapshot>('get_snapshot_info', { id });
+export async function getSnapshotInfo(id: string): Promise<SnapshotDto> {
+  return await invoke<SnapshotDto>('get_snapshot_info', { id });
 }
 
 export async function deleteSnapshot(id: string): Promise<void> {

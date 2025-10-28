@@ -19,6 +19,7 @@
   export let icon: any = null;
   export let type: 'button' | 'submit' | 'reset' = 'button';
   export let ariaLabel: string | undefined = undefined;
+  export let onclick: (() => void) | undefined = undefined;
 
   // Kombinierte Klassen
   $: btnClass = `btn btn-${variant} btn-${size} ${loading ? 'is-loading' : ''}`;
@@ -26,15 +27,18 @@
 
 <button
   class={btnClass}
-  type={type}
+  {type}
   disabled={disabled || loading}
   aria-busy={loading}
   aria-label={ariaLabel}
+  {onclick}
 >
   {#if loading}
     <span class="spinner" aria-hidden="true"></span>
   {:else if icon}
-    <span class="btn-icon" aria-hidden="true">{#if typeof icon === 'string'}{icon}{:else}<svelte:component this={icon} />{/if}</span>
+    <span class="btn-icon" aria-hidden="true"
+      >{#if typeof icon === 'string'}{icon}{:else}<svelte:component this={icon} />{/if}</span
+    >
   {/if}
   <span class="btn-content"><slot /></span>
 </button>
@@ -48,7 +52,10 @@
     border-radius: var(--radius-md);
     border: none;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    transition:
+      background 0.15s,
+      color 0.15s,
+      box-shadow 0.15s;
     outline: none;
     padding: 0 18px;
     height: 40px;
@@ -101,8 +108,12 @@
     margin-right: 4px;
   }
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
   .btn-content {
     display: flex;

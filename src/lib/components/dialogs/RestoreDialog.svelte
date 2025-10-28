@@ -16,7 +16,7 @@
   import Modal from '$lib/components/shared/Modal.svelte';
   import ProgressBar from '$lib/components/shared/ProgressBar.svelte';
   import type { FileTreeNode } from '$lib/types';
-  import type { Snapshot } from '$lib/types/snapshot.types';
+  import type { SnapshotDto } from '$lib/types/index';
   import { createEventDispatcher, onMount } from 'svelte';
 
   // Props
@@ -35,7 +35,7 @@
   }: Props = $props();
 
   // State
-  let snapshots = $state<Snapshot[]>([]);
+  let snapshots = $state<SnapshotDto[]>([]);
   let selectedSnapshotId = $state<string>('');
   let fileTree = $state<FileTreeNode | null>(null);
   let selectedFiles = $state<Set<string>>(new Set());
@@ -215,6 +215,17 @@
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
+
+  function formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleString('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+  }
 </script>
 
 <Modal open={isOpen} on:close={handleClose}>
@@ -230,7 +241,7 @@
         <select id="snapshot-select" class="form-input" bind:value={selectedSnapshotId}>
           {#each snapshots as snapshot}
             <option value={snapshot.id}>
-              {snapshot.date} - {snapshot.id.slice(0, 8)}
+              {formatDate(snapshot.time)} - {snapshot.id.slice(0, 8)}
             </option>
           {/each}
         </select>
