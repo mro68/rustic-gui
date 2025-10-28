@@ -25,6 +25,14 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   - Mobile-responsive Design mit Touch-Unterstützung
   - Accessibility-Verbesserungen (ARIA-Labels, Keyboard-Navigation)
   - TypeScript-Integration und Fehlerbehebungen
+- **Frontend Backup-Integration**: Vollständige Verbindung zwischen UI und Backend-Backup
+  - RunBackupDialog Komponente mit real-time Progress-Anzeige
+  - RepositoryCard Backup-Button Integration mit Job-Auswahl
+  - Event-gesteuerte Progress-Updates (backup-progress, backup-completed, backup-failed)
+  - Toast-Notifications für Backup-Erfolg und -Fehler
+  - Backup-Abbruch-Funktionalität mit Cancel-Button
+  - Type-Sicherheit mit aktualisierten DTOs (RepositoryDto, BackupProgress)
+  - Responsive Progress-Display mit Dateien, Bytes und geschätzter Restzeit
 - Initiales Projekt-Setup
 - Grundlegende Projekt-Struktur
 - Error-Handling Framework

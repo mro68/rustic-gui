@@ -1,4 +1,4 @@
-import type { Repository } from '$lib/types/repository.types';
+import type { RepositoryDto } from '$lib/types';
 import { derived, writable } from 'svelte/store';
 
 /**
@@ -9,7 +9,7 @@ import { derived, writable } from 'svelte/store';
  * - error: Fehlertext
  */
 
-const _repositories = writable<Repository[]>([]);
+const _repositories = writable<RepositoryDto[]>([]);
 const _activeRepositoryId = writable<string | null>(null);
 const _loading = writable(false);
 const _error = writable<string | null>(null);
@@ -27,7 +27,7 @@ export const activeRepository = derived(
 );
 
 // Actions
-export function setRepositories(list: Repository[]): void {
+export function setRepositories(list: RepositoryDto[]): void {
   _repositories.set(list);
 }
 

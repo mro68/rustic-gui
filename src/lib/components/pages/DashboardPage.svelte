@@ -13,11 +13,11 @@
   import { onMount } from 'svelte';
   import { listRepositories } from '../../api/repositories';
   import { setRepositories } from '../../stores/repositories';
-  import type { Repository } from '../../types/repository.types';
+  import type { RepositoryDto } from '../../types';
   import ActivityLog from './ActivityLog.svelte';
   import RepositoryCard from './RepositoryCard.svelte';
 
-  let repoList: Repository[] = [];
+  let repoList: RepositoryDto[] = [];
   let loading = false;
   let error: string | null = null;
   let logEntries: { time: string; type: 'info' | 'warning' | 'error'; message: string }[] = [

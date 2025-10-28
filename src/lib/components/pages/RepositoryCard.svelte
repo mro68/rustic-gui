@@ -5,17 +5,54 @@
 -->
 
 <script lang="ts">
-  import type { Repository } from '../../types/repository.types';
-  export let repo: Repository;
+  import { get } from 'svelte/store';
+  import { cancelBackup, runBackup } from '../../api/backup';
+  import { jobs } from '../../stores/backup-jobs';
+  import type { RepositoryDto } from '../../types';
+  import RunBackupDialog from '../dialogs/RunBackupDialog.svelte';
+
+  export let repo: RepositoryDto;
 
   // Status-Badge dynamisch (Platzhalter-Logik)
   let status: 'healthy' | 'warning' | 'error' = 'healthy';
   let statusText = status === 'healthy' ? 'Healthy' : status === 'warning' ? 'Warning' : 'Error';
 
+  // Backup-Dialog State
+  let showBackupDialog = false;
+  let currentJobId = '';
+  let currentJobName = '';
+
   function handleBackup() {
-    // TODO: Backup-Job starten
-    console.log(`Backup für ${repo.name} gestartet (Platzhalter)`);
+    // Finde einen Backup-Job für dieses Repository
+    const allJobs = get(jobs);
+    const repoJob = allJobs.find((job) => job.repositoryId === repo.id);
+
+    if (!repoJob) {
+      // TODO: Dialog öffnen um Job zu erstellen
+      console.warn(`Kein Backup-Job für Repository ${repo.name} gefunden`);
+      return;
+    }
+
+    // Job gefunden - Backup starten
+    currentJobId = repoJob.id;
+    currentJobName = repoJob.name;
+    showBackupDialog = true;
+
+    // Backup starten
+    runBackup(repoJob.id).catch((error) => {
+      console.error('Backup-Fehler:', error);
+      showBackupDialog = false;
+    });
   }
+
+  function handleCancelBackup() {
+    if (currentJobId) {
+      cancelBackup(currentJobId).catch((error) => {
+        console.error('Cancel-Backup-Fehler:', error);
+      });
+    }
+  }
+
   function handleBrowse() {
     // TODO: Repository-Browser öffnen
     console.log(`Browse für ${repo.name} geöffnet (Platzhalter)`);
@@ -33,11 +70,11 @@
   <div class="repo-info">
     <div class="repo-stat">
       <div class="repo-stat-label">Snapshots</div>
-      <div class="repo-stat-value">{repo.snapshotCount ?? '-'}</div>
+      <div class="repo-stat-value">{repo.snapshot_count ?? '-'}</div>
     </div>
     <div class="repo-stat">
       <div class="repo-stat-label">Total Size</div>
-      <div class="repo-stat-value">{repo.size ?? '-'}</div>
+      <div class="repo-stat-value">{repo.total_size ?? '-'}</div>
     </div>
   </div>
   <div class="card-actions">
@@ -46,6 +83,14 @@
     <span class="menu-dots">&#8942;</span>
   </div>
 </div>
+
+<!-- Backup-Dialog -->
+<RunBackupDialog
+  bind:open={showBackupDialog}
+  jobName={currentJobName}
+  jobId={currentJobId}
+  onCancel={handleCancelBackup}
+/>
 
 <style>
   /* Styles gemäß Mockup werden in app.css und Komponenten-CSS gepflegt */
