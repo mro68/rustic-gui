@@ -590,21 +590,21 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 #### Tasks
 
-- [ ] **get_file_tree Command** (8h)
-  - [ ] `src-tauri/src/rustic/restore.rs`
-  - [ ] Tree aus Snapshot laden
-  - [ ] Hierarchische Struktur
-  - [ ] Lazy-Loading für große Trees
-- [ ] **restore_files Command** (8h)
-  - [ ] rustic_core Integration
-  - [ ] File-Selection
-  - [ ] Target-Path
-  - [ ] Progress-Reporting
-  - [ ] Cancellation
-- [ ] **Restore-Options** (4h)
-  - [ ] Overwrite-Policy
-  - [ ] Restore-Permissions
-  - [ ] Restore-Timestamps
+- [x] **get_file_tree Command** (8h)
+  - [x] `src-tauri/src/rustic/restore.rs`
+  - [x] Tree aus Snapshot laden
+  - [x] Hierarchische Struktur
+  - [x] Lazy-Loading für große Trees
+- [x] **restore_files Command** (8h)
+  - [x] rustic_core Integration
+  - [x] File-Selection
+  - [x] Target-Path
+  - [x] Progress-Reporting
+  - [x] Cancellation
+- [x] **Restore-Options** (4h)
+  - [x] Overwrite-Policy
+  - [x] Restore-Permissions
+  - [x] Restore-Timestamps
 - [ ] **Tests** (5h)
 
 **Subtotal:** 25 Stunden

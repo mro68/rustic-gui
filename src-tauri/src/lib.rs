@@ -8,6 +8,7 @@ async fn forget_snapshots_command(
         .await
         .map_err(|e| e.to_string())
 }
+
 #[tauri::command]
 async fn delete_snapshot_command(
     repository_path: String,
@@ -18,6 +19,7 @@ async fn delete_snapshot_command(
         .await
         .map_err(|e| e.to_string())
 }
+
 #[tauri::command]
 async fn get_snapshot_command(
     repository_path: String,
@@ -28,6 +30,7 @@ async fn get_snapshot_command(
         .await
         .map_err(|e| e.to_string())
 }
+
 #[tauri::command]
 async fn list_snapshots_command(
     repository_path: String,
@@ -37,6 +40,7 @@ async fn list_snapshots_command(
         .await
         .map_err(|e| e.to_string())
 }
+
 use rustic::backup::{run_backup, BackupOptions, BackupProgress};
 
 /// Tauri-Command: Startet ein Backup und sendet Progress-Events an das Frontend.
@@ -198,6 +202,34 @@ fn delete_repository_password(
         .map_err(|e| format!("Passwort löschen fehlgeschlagen: {}", e))
 }
 
+#[tauri::command]
+async fn get_file_tree_command(
+    repository_path: String,
+    password: String,
+    snapshot_id: String,
+    path: Option<String>,
+) -> std::result::Result<FileTreeNode, String> {
+    rustic::restore::get_file_tree(&repository_path, &password, &snapshot_id, path.as_deref())
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn restore_files_command(
+    repository_path: String,
+    password: String,
+    snapshot_id: String,
+    files: Vec<String>,
+    target_path: String,
+    options: RestoreOptionsDto,
+) -> std::result::Result<(), String> {
+    // Konvertiere DTO zu internem Typ (falls nötig)
+    let restore_opts = options; // Für jetzt direkt verwenden
+    rustic::restore::restore_files(&repository_path, &password, &snapshot_id, files, &target_path, &restore_opts)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // App-State erstellen
@@ -221,7 +253,9 @@ pub fn run() {
             list_snapshots_command,
             get_snapshot_command,
             delete_snapshot_command,
-            forget_snapshots_command
+            forget_snapshots_command,
+            get_file_tree_command,
+            restore_files_command
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

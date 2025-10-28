@@ -138,6 +138,42 @@ pub struct RestoreOptionsDto {
     pub dry_run: bool,
 }
 
+/// Knoten im Dateibaum für File-Browser
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileTreeNode {
+    /// Name der Datei/Verzeichnis
+    pub name: String,
+    /// Vollständiger Pfad
+    pub path: String,
+    /// Ist es ein Verzeichnis?
+    pub is_directory: bool,
+    /// Größe in Bytes (0 für Verzeichnisse)
+    pub size: u64,
+    /// Änderungszeit (ISO 8601)
+    pub modified: Option<String>,
+    /// Kinder (None für Dateien, Some(vec![]) für leere Verzeichnisse)
+    pub children: Option<Vec<FileTreeNode>>,
+}
+
+/// Progress-Informationen für Restore-Operationen
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreProgress {
+    /// Anzahl verarbeiteter Dateien
+    pub files_processed: u64,
+    /// Anzahl wiederhergestellter Dateien
+    pub files_restored: u64,
+    /// Anzahl übersprungener Dateien
+    pub files_skipped: u64,
+    /// Anzahl fehlgeschlagener Dateien
+    pub files_failed: u64,
+    /// Verarbeitete Bytes
+    pub bytes_processed: u64,
+    /// Geschätzter Fortschritt in Prozent (0-100)
+    pub percent_complete: Option<f32>,
+    /// Aktuell verarbeitete Datei
+    pub current_file: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

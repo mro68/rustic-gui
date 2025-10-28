@@ -9,6 +9,15 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Backend Restore-Funktionalität**: Vollständige Restore-Logik mit hierarchischem File-Browser
+  - `get_file_tree` Command: Lädt Dateistruktur eines Snapshots als hierarchischen Baum
+  - `restore_files` Command: Stellt selektierte Dateien wieder her mit Overwrite-Policy
+  - Robuste rustic_core-Integration für Snapshot-Zugriff und Repository-Öffnung
+  - Hierarchische FileTreeNode-Struktur mit Lazy-Loading-Unterstützung
+  - RestoreOptionsDto mit Overwrite-Policy, Permissions und Timestamps
+  - Pfad-basierte Baum-Konstruktion aus Snapshot-Pfaden
+  - Vollständige Error-Handling und Validation
+  - Type-sichere DTOs für Frontend-Kommunikation
 - **Backend Snapshot-Management**: Vollständige Snapshot-Verwaltung implementiert
   - `list_snapshots` Command: Lädt alle Snapshots eines Repositories mit DTO-Konvertierung
   - `get_snapshot` Command: Holt detaillierte Infos zu einem einzelnen Snapshot
