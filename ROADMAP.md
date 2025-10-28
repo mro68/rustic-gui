@@ -533,7 +533,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 ## Milestone 3: Backup & Restore 🟢
 
-**Status:** Completed ✅ (Backend completed, Frontend pending)  
+**Status:** Completed ✅ (Backend & Frontend completed)  
 **Geschätzte Dauer:** 2-3 Wochen  
 **Dependencies:** Milestone 2
 
@@ -639,23 +639,23 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 #### Tasks
 
-- [ ] **Restore Dialog Component** (10h)
-  - [ ] `src/lib/components/dialogs/RestoreDialog.svelte`
-  - [ ] Snapshot-Selection
-  - [ ] File-Tree Component
-  - [ ] Restore-Options Form
-- [ ] **File-Tree Component** (12h)
-  - [ ] Hierarchische Darstellung
-  - [ ] Checkboxen für Selection
-  - [ ] Lazy-Loading
-  - [ ] Breadcrumb-Navigation
-  - [ ] Icons (Folder/File)
-- [ ] **Restore-Progress Dialog** (6h)
-  - [ ] Progress-Bar
-  - [ ] File-Count
-  - [ ] Current-File Display
-  - [ ] Cancel-Button
-- [ ] **Integration Tests** (4h)
+- [x] **Restore Dialog Component** (10h)
+  - [x] `src/lib/components/dialogs/RestoreDialog.svelte`
+  - [x] Snapshot-Selection
+  - [x] File-Tree Component
+  - [x] Restore-Options Form
+- [x] **File-Tree Component** (12h)
+  - [x] Hierarchische Darstellung
+  - [x] Checkboxen für Selection
+  - [x] Lazy-Loading
+  - [x] Breadcrumb-Navigation
+  - [x] Icons (Folder/File)
+- [x] **Restore-Progress Dialog** (6h)
+  - [x] Progress-Bar
+  - [x] File-Count
+  - [x] Current-File Display
+  - [x] Cancel-Button
+- [x] **Integration Tests** (4h)
 
 **Subtotal:** 32 Stunden
 

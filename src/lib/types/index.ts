@@ -93,3 +93,13 @@ export interface RestoreProgress extends ProgressInfo {
   bytes_restored: number;
   current_file?: string;
 }
+
+// File Tree Types für Restore-Browser
+export interface FileTreeNode {
+  name: string;
+  path: string;
+  is_directory: boolean;
+  size?: number;
+  modified?: string; // ISO 8601
+  children?: FileTreeNode[];
+}
