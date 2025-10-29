@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rustic GUI - Advanced UI Features</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Arial, sans-serif;
+            background: #1a1d2e;
+            color: #e4e4e7;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .demo-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .demo-nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background: #22273a;
+            color: #e4e4e7;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .demo-btn:hover {
+            background: #2d3348;
+        }
+
+        .demo-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .section {
+            display: none;
+            background: #22273a;
+            border-radius: 16px;
+            border: 1px solid #2d3348;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #f4f4f5;
+        }
+
+        /* Advanced Filter Bar */
+        .filter-bar {
+            background: #2d3348;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            color: #a1a1aa;
+            font-weight: 500;
+        }
+
+        .filter-input {
+            background: #1a1d2e;
+            border: 1px solid #3e4457;
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #e4e4e7;
+            font-size: 14px;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .filter-select {
+            background: #1a1d2e;
+            border: 1px solid #3e4457;
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #e4e4e7;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .tag-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag-chip {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-chip:hover {
+            background: rgba(59, 130, 246, 0.25);
+        }
+
+        .tag-chip.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .tag-chip-remove {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #2d3348;
+            color: #e4e4e7;
+            border: 1px solid #3e4457;
+        }
+
+        .btn-secondary:hover {
+            background: #3e4457;
+        }
+
+        /* Table with Context Menu */
+        .table-container {
+            background: #2d3348;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .table-header {
+            padding: 16px;
+            border-bottom: 1px solid #3e4457;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .selection-info {
+            font-size: 13px;
+            color: #a1a1aa;
+            margin-right: 12px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table thead {
+            background: #3e4457;
+        }
+
+        .table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #a1a1aa;
+            text-transform: uppercase;
+        }
+
+        .table td {
+            padding: 12px 16px;
+            border-top: 1px solid #3e4457;
+            font-size: 14px;
+        }
+
+        .table tbody tr {
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .table tbody tr:hover {
+            background: #3e4457;
+        }
+
+        .table tbody tr.selected {
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .table-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: #22273a;
+            border: 1px solid #2d3348;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            padding: 4px;
+            min-width: 200px;
+            z-index: 9999;
+            display: none;
+        }
+
+        .context-menu.active {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e4e4e7;
+            transition: background 0.2s;
+        }
+
+        .context-menu-item:hover {
+            background: #2d3348;
+        }
+
+        .context-menu-item.danger {
+            color: #f87171;
+        }
+
+        .context-menu-item.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background: #3e4457;
+            margin: 4px 0;
+        }
+
+        .context-menu-icon {
+            width: 16px;
+            text-align: center;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-top: 1px solid #3e4457;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: #a1a1aa;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 4px;
+        }
+
+        .pagination-btn {
+            padding: 6px 12px;
+            background: #2d3348;
+            border: 1px solid #3e4457;
+            border-radius: 6px;
+            color: #e4e4e7;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #3e4457;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .page-size-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        /* Snapshot Comparison */
+        .comparison-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .snapshot-selector {
+            background: #2d3348;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .snapshot-selector-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: #a1a1aa;
+        }
+
+        .snapshot-select {
+            width: 100%;
+            background: #1a1d2e;
+            border: 1px solid #3e4457;
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: #e4e4e7;
+            font-size: 14px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .comparison-panel {
+            background: #2d3348;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-panel-header {
+            background: #3e4457;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .comparison-stats {
+            padding: 16px;
+            border-bottom: 1px solid #3e4457;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #a1a1aa;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .comparison-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .comparison-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #3e4457;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .comparison-item.added {
+            background: rgba(34, 197, 94, 0.1);
+            border-left: 3px solid #22c55e;
+        }
+
+        .comparison-item.removed {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid #ef4444;
+        }
+
+        .comparison-item.modified {
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 3px solid #fbbf24;
+        }
+
+        .diff-icon {
+            width: 20px;
+            font-size: 16px;
+        }
+
+        .file-path {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+        }
+
+        .file-size {
+            color: #a1a1aa;
+            font-size: 12px;
+        }
+
+        .comparison-summary {
+            padding: 16px;
+            background: #3e4457;
+            display: flex;
+            justify-content: space-around;
+            font-size: 13px;
+        }
+
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .summary-count {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .summary-count.added {
+            color: #4ade80;
+        }
+
+        .summary-count.removed {
+            color: #f87171;
+        }
+
+        .summary-count.modified {
+            color: #fbbf24;
+        }
+
+        /* Responsive Grid */
+        .responsive-demo {
+            display: grid;
+            gap: 20px;
+        }
+
+        .device-frame {
+            background: #2d3348;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .device-label {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: #a1a1aa;
+        }
+
+        .device-screen {
+            background: #1a1d2e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Mobile Layout */
+        .mobile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #3e4457;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            color: #e4e4e7;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .mobile-card {
+            padding: 16px;
+            border-bottom: 1px solid #3e4457;
+        }
+
+        .mobile-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .mobile-card-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .mobile-card-meta {
+            font-size: 12px;
+            color: #a1a1aa;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .pagination {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-nav">
+            <button class="demo-btn active" onclick="showSection('filters')">Advanced Filters</button>
+            <button class="demo-btn" onclick="showSection('context-menu')">Context Menu & Bulk</button>
+            <button class="demo-btn" onclick="showSection('pagination')">Pagination</button>
+            <button class="demo-btn" onclick="showSection('comparison')">Snapshot Comparison</button>
+            <button class="demo-btn" onclick="showSection('responsive')">Responsive Layouts</button>
+        </div>
+
+        <!-- Advanced Filters -->
+        <div class="section active" id="filters">
+            <h2 class="section-title">Advanced Filters</h2>
+            
+            <div class="filter-bar">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label">Suchbegriff</label>
+                        <input type="text" class="filter-input" placeholder="Nach Snapshot suchen...">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Hostname</label>
+                        <select class="filter-select">
+                            <option value="">Alle Hosts</option>
+                            <option value="workstation">workstation</option>
+                            <option value="server-01">server-01</option>
+                            <option value="laptop">laptop</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Zeitraum</label>
+                        <select class="filter-select">
+                            <option value="">Alle</option>
+                            <option value="today">Heute</option>
+                            <option value="week">Letzte 7 Tage</option>
+                            <option value="month">Letzter Monat</option>
+                            <option value="year">Letztes Jahr</option>
+                            <option value="custom">Benutzerdefiniert...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Größe</label>
+                        <select class="filter-select">
+                            <option value="">Alle</option>
+                            <option value="small">&lt; 100 MB</option>
+                            <option value="medium">100 MB - 1 GB</option>
+                            <option value="large">1 GB - 10 GB</option>
+                            <option value="xlarge">&gt; 10 GB</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Tags</label>
+                    <div class="tag-filter">
+                        <div class="tag-chip active">
+                            daily
+                            <span class="tag-chip-remove">×</span>
+                        </div>
+                        <div class="tag-chip">
+                            weekly
+                            <span class="tag-chip-remove">×</span>
+                        </div>
+                        <div class="tag-chip">
+                            important
+                            <span class="tag-chip-remove">×</span>
+                        </div>
+                        <div class="tag-chip">
+                            docs
+                            <span class="tag-chip-remove">×</span>
+                        </div>
+                        <button class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px;">+ Tag</button>
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button class="btn btn-secondary">Reset</button>
+                    <button class="btn btn-primary">Filter anwenden</button>
+                </div>
+            </div>
+
+            <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 12px; font-size: 13px; color: #93c5fd;">
+                ℹ️ <strong>42 Snapshots</strong> gefunden mit aktiven Filtern: Host "workstation", Tag "daily", Zeitraum "Letzte 7 Tage"
+            </div>
+        </div>
+
+        <!-- Context Menu & Bulk Actions -->
+        <div class="section" id="context-menu">
+            <h2 class="section-title">Context Menu & Bulk Actions</h2>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="bulk-actions">
+                        <span class="selection-info">3 Snapshots ausgewählt</span>
+                        <button class="btn btn-primary">Vergleichen</button>
+                        <button class="btn btn-secondary">Exportieren</button>
+                        <button class="btn btn-secondary" style="background: #dc2626; border-color: #dc2626;">Löschen</button>
+                    </div>
+                    <button class="btn btn-secondary">↻ Aktualisieren</button>
+                </div>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="table-checkbox" onchange="toggleAllRows(this)"></th>
+                            <th>Datum / Zeit</th>
+                            <th>Hostname</th>
+                            <th>Tags</th>
+                            <th>Größe</th>
+                            <th>Pfade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="selected" oncontextmenu="showContextMenu(event); return false;">
+                            <td><input type="checkbox" class="table-checkbox" checked></td>
+                            <td>2025-10-26 02:00:12</td>
+                            <td>workstation</td>
+                            <td>
+                                <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-right: 4px;">daily</span>
+                                <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-size: 11px;">docs</span>
+                            </td>
+                            <td>2.3 GB</td>
+                            <td style="font-family: 'Courier New', monospace; font-size: 12px;">/home/user/documents</td>
+                        </tr>
+                        <tr class="selected" oncontextmenu="showContextMenu(event); return false;">
+                            <td><input type="checkbox" class="table-checkbox" checked></td>
+                            <td>2025-10-25 02:00:08</td>
+                            <td>workstation</td>
+                            <td>
+                                <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-size: 11px;">daily</span>
+                            </td>
+                            <td>2.2 GB</td>
+                            <td style="font-family: 'Courier New', monospace; font-size: 12px;">/home/user/documents</td>
+                        </tr>
+                        <tr class="selected" oncontextmenu="showContextMenu(event); return false;">
+                            <td><input type="checkbox" class="table-checkbox" checked></td>
+                            <td>2025-10-24 02:00:15</td>
+                            <td>workstation</td>
+                            <td>
+                                <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-size: 11px;">daily</span>
+                            </td>
+                            <td>2.1 GB</td>
+                            <td style="font-family: 'Courier New', monospace; font-size: 12px;">/home/user/documents</td>
+                        </tr>
+                        <tr oncontextmenu="showContextMenu(event); return false;">
+                            <td><input type="checkbox" class="table-checkbox"></td>
+                            <td>2025-10-23 02:00:22</td>
+                            <td>server-01</td>
+                            <td>
+                                <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-size: 11px;">weekly</span>
+                            </td>
+                            <td>8.1 GB</td>
+                            <td style="font-family: 'Courier New', monospace; font-size: 12px;">/var/www</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 20px; padding: 12px; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; font-size: 13px; color: #fbbf24;">
+                💡 <strong>Tipp:</strong> Rechtsklick auf eine Zeile für Kontext-Menü. Mehrere Zeilen auswählen für Bulk-Aktionen.
+            </div>
+        </div>
+
+        <!-- Context Menu (hidden by default, shown on right-click) -->
+        <div class="context-menu" id="contextMenu">
+            <div class="context-menu-item">
+                <span class="context-menu-icon">📂</span>
+                <span>Dateien durchsuchen</span>
+            </div>
+            <div class="context-menu-item">
+                <span class="context-menu-icon">🔄</span>
+                <span>Wiederherstellen</span>
+            </div>
+            <div class="context-menu-item">
+                <span class="context-menu-icon">ℹ️</span>
+                <span>Details anzeigen</span>
+            </div>
+            <div class="context-menu-divider"></div>
+            <div class="context-menu-item">
+                <span class="context-menu-icon">📋</span>
+                <span>ID kopieren</span>
+            </div>
+            <div class="context-menu-item">
+                <span class="context-menu-icon">🏷️</span>
+                <span>Tags bearbeiten</span>
+            </div>
+            <div class="context-menu-divider"></div>
+            <div class="context-menu-item">
+                <span class="context-menu-icon">↔️</span>
+                <span>Mit anderem vergleichen</span>
+            </div>
+            <div class="context-menu-divider"></div>
+            <div class="context-menu-item danger">
+                <span class="context-menu-icon">🗑️</span>
+                <span>Snapshot löschen</span>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="section" id="pagination">
+            <h2 class="section-title">Pagination Controls</h2>
+            
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Datum / Zeit</th>
+                            <th>Hostname</th>
+                            <th>Tags</th>
+                            <th>Größe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>2025-10-26 02:00:12</td><td>workstation</td><td>daily</td><td>2.3 GB</td></tr>
+                        <tr><td>2025-10-25 02:00:08</td><td>workstation</td><td>daily</td><td>2.2 GB</td></tr>
+                        <tr><td>2025-10-24 02:00:15</td><td>workstation</td><td>daily</td><td>2.1 GB</td></tr>
+                        <tr><td>2025-10-23 02:00:22</td><td>server-01</td><td>weekly</td><td>8.1 GB</td></tr>
+                        <tr><td>2025-10-22 02:00:10</td><td>workstation</td><td>daily</td><td>2.0 GB</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="pagination">
+                    <div class="pagination-info">
+                        Zeige 1-10 von 237 Snapshots
+                    </div>
+
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" disabled>‹‹ Erste</button>
+                        <button class="pagination-btn" disabled>‹ Zurück</button>
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <button class="pagination-btn">4</button>
+                        <button class="pagination-btn">5</button>
+                        <span style="padding: 6px 12px; color: #a1a1aa;">...</span>
+                        <button class="pagination-btn">24</button>
+                        <button class="pagination-btn">Weiter ›</button>
+                        <button class="pagination-btn">Letzte ››</button>
+                    </div>
+
+                    <div class="page-size-select">
+                        <span style="color: #a1a1aa;">Zeilen pro Seite:</span>
+                        <select class="filter-select" style="width: auto; padding: 4px 8px;">
+                            <option>10</option>
+                            <option selected>25</option>
+                            <option>50</option>
+                            <option>100</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Snapshot Comparison -->
+        <div class="section" id="comparison">
+            <h2 class="section-title">Snapshot Comparison UI</h2>
+            
+            <div class="comparison-header">
+                <div class="snapshot-selector">
+                    <div class="snapshot-selector-title">📸 Snapshot A (Älter)</div>
+                    <select class="snapshot-select">
+                        <option>2025-10-25 02:00:08 - workstation (daily)</option>
+                        <option>2025-10-24 02:00:15 - workstation (daily)</option>
+                        <option>2025-10-23 02:00:22 - server-01 (weekly)</option>
+                    </select>
+                </div>
+
+                <div class="snapshot-selector">
+                    <div class="snapshot-selector-title">📸 Snapshot B (Neuer)</div>
+                    <select class="snapshot-select">
+                        <option>2025-10-26 02:00:12 - workstation (daily)</option>
+                        <option>2025-10-25 02:00:08 - workstation (daily)</option>
+                        <option>2025-10-24 02:00:15 - workstation (daily)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-panel">
+                    <div class="comparison-panel-header">
+                        📅 Snapshot A - 2025-10-25 02:00:08
+                    </div>
+                    <div class="comparison-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Dateien</span>
+                            <span class="stat-value">1,234</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Größe</span>
+                            <span class="stat-value">2.2 GB</span>
+                        </div>
+                    </div>
+                    <div class="comparison-list">
+                        <div class="comparison-item added">
+                            <span class="diff-icon">➕</span>
+                            <span class="file-path">/documents/report.pdf</span>
+                            <span class="file-size">2.3 MB</span>
+                        </div>
+                        <div class="comparison-item modified">
+                            <span class="diff-icon">✏️</span>
+                            <span class="file-path">/documents/presentation.pptx</span>
+                            <span class="file-size">7.8 → 8.1 MB</span>
+                        </div>
+                        <div class="comparison-item removed">
+                            <span class="diff-icon">➖</span>
+                            <span class="file-path">/documents/old-draft.doc</span>
+                            <span class="file-size">156 KB</span>
+                        </div>
+                        <div class="comparison-item modified">
+                            <span class="diff-icon">✏️</span>
+                            <span class="file-path">/documents/photo.jpg</span>
+                            <span class="file-size">1.5 → 1.8 MB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="comparison-panel">
+                    <div class="comparison-panel-header">
+                        📅 Snapshot B - 2025-10-26 02:00:12
+                    </div>
+                    <div class="comparison-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Dateien</span>
+                            <span class="stat-value">1,235</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Größe</span>
+                            <span class="stat-value">2.3 GB</span>
+                        </div>
+                    </div>
+                    <div class="comparison-list">
+                        <div class="comparison-item added">
+                            <span class="diff-icon">➕</span>
+                            <span class="file-path">/documents/report.pdf</span>
+                            <span class="file-size">2.3 MB</span>
+                        </div>
+                        <div class="comparison-item modified">
+                            <span class="diff-icon">✏️</span>
+                            <span class="file-path">/documents/presentation.pptx</span>
+                            <span class="file-size">8.1 MB</span>
+                        </div>
+                        <div class="comparison-item removed">
+                            <span class="diff-icon" style="opacity: 0.3;">➖</span>
+                            <span class="file-path" style="text-decoration: line-through; opacity: 0.5;">/documents/old-draft.doc</span>
+                            <span class="file-size" style="opacity: 0.5;">—</span>
+                        </div>
+                        <div class="comparison-item modified">
+                            <span class="diff-icon">✏️</span>
+                            <span class="file-path">/documents/photo.jpg</span>
+                            <span class="file-size">1.8 MB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-summary">
+                <div class="summary-item">
+                    <span class="summary-count added">+1</span>
+                    <span style="color: #a1a1aa;">Hinzugefügt</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-count removed">-1</span>
+                    <span style="color: #a1a1aa;">Entfernt</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-count modified">2</span>
+                    <span style="color: #a1a1aa;">Geändert</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-count" style="color: #4ade80;">+0.1 GB</span>
+                    <span style="color: #a1a1aa;">Netto-Änderung</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Responsive Layouts -->
+        <div class="section" id="responsive">
+            <h2 class="section-title">Responsive Layout Variants</h2>
+            
+            <div class="responsive-demo" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                <!-- Desktop View -->
+                <div class="device-frame">
+                    <div class="device-label">🖥️ Desktop (1200px+)</div>
+                    <div class="device-screen" style="height: 400px;">
+                        <div style="display: grid; grid-template-columns: 250px 1fr; height: 100%;">
+                            <div style="background: #2d3348; padding: 16px; border-right: 1px solid #3e4457;">
+                                <div style="font-size: 12px; margin-bottom: 12px; color: #a1a1aa;">Navigation</div>
+                                <div style="font-size: 12px; padding: 8px; background: #3b82f6; border-radius: 4px; margin-bottom: 4px;">📊 Dashboard</div>
+                                <div style="font-size: 12px; padding: 8px; border-radius: 4px; margin-bottom: 4px;">📦 Repositories</div>
+                                <div style="font-size: 12px; padding: 8px; border-radius: 4px; margin-bottom: 4px;">⏱️ Snapshots</div>
+                                <div style="font-size: 12px; padding: 8px; border-radius: 4px; margin-bottom: 4px;">🔄 Backup Jobs</div>
+                            </div>
+                            <div style="padding: 16px;">
+                                <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Dashboard</div>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                                    <div style="background: #2d3348; padding: 12px; border-radius: 6px; font-size: 11px;">
+                                        <div style="color: #a1a1aa; margin-bottom: 4px;">Repository A</div>
+                                        <div style="font-weight: 600;">2.3 GB</div>
+                                    </div>
+                                    <div style="background: #2d3348; padding: 12px; border-radius: 6px; font-size: 11px;">
+                                        <div style="color: #a1a1aa; margin-bottom: 4px;">Repository B</div>
+                                        <div style="font-weight: 600;">8.1 GB</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tablet View -->
+                <div class="device-frame">
+                    <div class="device-label">📱 Tablet (768px - 1200px)</div>
+                    <div class="device-screen" style="height: 400px;">
+                        <div style="height: 100%;">
+                            <div style="background: #2d3348; padding: 12px; border-bottom: 1px solid #3e4457; display: flex; justify-content: space-between; align-items: center;">
+                                <button class="mobile-menu-btn">☰</button>
+                                <div style="font-size: 14px; font-weight: 600;">Dashboard</div>
+                                <div style="width: 24px;"></div>
+                            </div>
+                            <div style="padding: 16px;">
+                                <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+                                    <div style="background: #2d3348; padding: 12px; border-radius: 6px; font-size: 11px;">
+                                        <div style="color: #a1a1aa; margin-bottom: 4px;">Repository A</div>
+                                        <div style="font-weight: 600;">2.3 GB • workstation</div>
+                                    </div>
+                                    <div style="background: #2d3348; padding: 12px; border-radius: 6px; font-size: 11px;">
+                                        <div style="color: #a1a1aa; margin-bottom: 4px;">Repository B</div>
+                                        <div style="font-weight: 600;">8.1 GB • server-01</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile View -->
+                <div class="device-frame">
+                    <div class="device-label">📱 Mobile (&lt;768px)</div>
+                    <div class="device-screen" style="height: 400px;">
+                        <div class="mobile-header">
+                            <button class="mobile-menu-btn">☰</button>
+                            <span style="font-size: 16px; font-weight: 600;">Snapshots</span>
+                            <button class="mobile-menu-btn">⋮</button>
+                        </div>
+                        
+                        <div class="mobile-card">
+                            <div class="mobile-card-header">
+                                <span class="mobile-card-title">2025-10-26 02:00</span>
+                                <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-size: 11px;">daily</span>
+                            </div>
+                            <div class="mobile-card-meta">
+                                <span>📂 2.3 GB</span>
+                                <span>•</span>
+                                <span>💻 workstation</span>
+                                <span>•</span>
+                                <span>📁 /documents</span>
+                            </div>
+                        </div>
+
+                        <div class="mobile-card">
+                            <div class="mobile-card-header">
+                                <span class="mobile-card-title">2025-10-25 02:00</span>
+                                <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-size: 11px;">daily</span>
+                            </div>
+                            <div class="mobile-card-meta">
+                                <span>📂 2.2 GB</span>
+                                <span>•</span>
+                                <span>💻 workstation</span>
+                                <span>•</span>
+                                <span>📁 /documents</span>
+                            </div>
+                        </div>
+
+                        <div class="mobile-card">
+                            <div class="mobile-card-header">
+                                <span class="mobile-card-title">2025-10-24 02:00</span>
+                                <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-size: 11px;">daily</span>
+                            </div>
+                            <div class="mobile-card-meta">
+                                <span>📂 2.1 GB</span>
+                                <span>•</span>
+                                <span>💻 workstation</span>
+                                <span>•</span>
+                                <span>📁 /documents</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 16px;">
+                <div style="font-weight: 600; margin-bottom: 8px;">Responsive Breakpoints</div>
+                <div style="font-size: 13px; color: #a1a1aa; line-height: 1.6;">
+                    • <strong>Mobile:</strong> &lt;768px - Stacked Cards, Burger Menu<br>
+                    • <strong>Tablet:</strong> 768px - 1200px - Collapsed Sidebar, Grid angepasst<br>
+                    • <strong>Desktop:</strong> &gt;1200px - Volle Sidebar, Multi-Column Grid
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Section switching
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            document.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Context Menu
+        function showContextMenu(event) {
+            event.preventDefault();
+            const menu = document.getElementById('contextMenu');
+            menu.style.left = event.pageX + 'px';
+            menu.style.top = event.pageY + 'px';
+            menu.classList.add('active');
+        }
+
+        // Close context menu on click outside
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('contextMenu');
+            if (!e.target.closest('.context-menu')) {
+                menu.classList.remove('active');
+            }
+        });
+
+        // Context menu item clicks
+        document.querySelectorAll('.context-menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const action = item.textContent.trim();
+                console.log('Context menu action:', action);
+                document.getElementById('contextMenu').classList.remove('active');
+                
+                // Show feedback
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #22273a;
+                    border: 1px solid #2d3348;
+                    border-left: 4px solid #3b82f6;
+                    border-radius: 8px;
+                    padding: 16px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                    z-index: 10000;
+                    animation: slideIn 0.3s ease;
+                `;
+                notification.innerHTML = `
+                    <div style="font-weight: 600; margin-bottom: 4px;">Aktion ausgeführt</div>
+                    <div style="font-size: 13px; color: #a1a1aa;">${action}</div>
+                `;
+                document.body.appendChild(notification);
+                setTimeout(() => notification.remove(), 3000);
+            });
+        });
+
+        // Toggle all rows
+        function toggleAllRows(checkbox) {
+            const checkboxes = document.querySelectorAll('.table tbody .table-checkbox');
+            const rows = document.querySelectorAll('.table tbody tr');
+            
+            checkboxes.forEach((cb, index) => {
+                cb.checked = checkbox.checked;
+                if (checkbox.checked) {
+                    rows[index].classList.add('selected');
+                } else {
+                    rows[index].classList.remove('selected');
+                }
+            });
+            
+            updateSelectionInfo();
+        }
+
+        // Individual row selection
+        document.querySelectorAll('.table tbody .table-checkbox').forEach((checkbox, index) => {
+            checkbox.addEventListener('change', () => {
+                const row = checkbox.closest('tr');
+                if (checkbox.checked) {
+                    row.classList.add('selected');
+                } else {
+                    row.classList.remove('selected');
+                }
+                updateSelectionInfo();
+            });
+        });
+
+        function updateSelectionInfo() {
+            const selectedCount = document.querySelectorAll('.table tbody .table-checkbox:checked').length;
+            const selectionInfo = document.querySelector('.selection-info');
+            if (selectionInfo) {
+                selectionInfo.textContent = selectedCount > 0 
+                    ? `${selectedCount} Snapshot${selectedCount > 1 ? 's' : ''} ausgewählt`
+                    : 'Keine Auswahl';
+            }
+        }
+
+        // Tag filter chips
+        document.querySelectorAll('.tag-chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('tag-chip-remove')) {
+                    chip.classList.toggle('active');
+                }
+            });
+            
+            const removeBtn = chip.querySelector('.tag-chip-remove');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    chip.remove();
+                });
+            }
+        });
+
+        // Pagination buttons
+        document.querySelectorAll('.pagination-btn:not(:disabled)').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.pagination-btn').forEach(b => b.classList.remove('active'));
+                if (!isNaN(btn.textContent)) {
+                    btn.classList.add('active');
+                }
+                console.log('Page changed:', btn.textContent);
+            });
+        });
+
+        // Page size change
+        document.querySelector('.page-size-select select')?.addEventListener('change', (e) => {
+            console.log('Page size changed:', e.target.value);
+        });
+    </script>
+</body>
+</html>

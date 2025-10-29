@@ -9,6 +9,16 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+#### 2025-10-29
+
+- **Snapshots Page (Frontend) abgeschlossen:**
+  - Snapshots-Ansicht mit FilterBar, ContextMenu, Pagination, CompareSnapshotsDialog gemäß Mockup
+  - Alle Advanced Features: Tag-Filter, Bulk-Selection, Sortierung, Snapshot-Vergleich, Kontextmenü, Pagination
+  - Utility-Funktionen ausgelagert und getestet (`formatDate`, `formatBytes`)
+  - Unit-Tests für Hilfsfunktionen (Vitest)
+  - Linting und Checks fehlerfrei
+  - ROADMAP.md und CHANGELOG.md aktualisiert
+
 - **Backend Restore-Funktionalität**: Vollständige Restore-Logik mit hierarchischem File-Browser
   - `get_file_tree` Command: Lädt Dateistruktur eines Snapshots als hierarchischen Baum
   - `restore_files` Command: Stellt selektierte Dateien wieder her mit Overwrite-Policy

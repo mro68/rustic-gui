@@ -122,11 +122,11 @@ Diese Instructions sind modular aufgeteilt. Lies die relevanten Dateien je nach 
 
 ### Mockup-Dateien
 
-Die **komplette UI** ist in 4 HTML-Mockup-Dateien definiert:
+Die **komplette UI** ist in 5 HTML-Mockup-Dateien definiert:
 
 ```
 docs/mockups/
-├── rustic_gui_mockup.html              # 🏠 Hauptfenster & Navigation
+├── rustic_gui_mockup.html                # 🏠 Hauptfenster & Navigation
 │   ├── Sidebar mit Navigation
 │   ├── Dashboard (Repository-Cards, Storage-Charts)
 │   ├── Backup-Jobs-Liste
@@ -134,7 +134,7 @@ docs/mockups/
 │   ├── Repository-Details
 │   └── Settings
 │
-├── rustic_backup_dialogs.html          # 💼 Backup-Job-Dialogs
+├── rustic_backup_dialogs.html            # 💼 Backup-Job-Dialogs
 │   ├── Create Backup Job (4-Tab-Wizard)
 │   │   ├── General (Name, Repository, Tags)
 │   │   ├── Paths & Exclusions
@@ -144,20 +144,27 @@ docs/mockups/
 │   ├── Run Backup (Progress-Dialog)
 │   └── Delete Job (Confirmation)
 │
-├── rustic_repo_security_dialogs.html   # 🔐 Repository & Security
+├── rustic_repo_security_dialogs.html     # 🔐 Repository & Security
 │   ├── Add Repository (Type-Selector: Local/SFTP/S3/rclone)
 │   ├── Unlock Repository (Password-Input)
 │   ├── Check Repository (Progress mit Log)
 │   ├── Prune Repository (Stats & Confirmation)
 │   └── Change Password (mit Strength-Indicator)
 │
-└── rustic_restore_dialogs.html         # 🔄 Restore & Vergleich
-    ├── Restore Files (File-Browser mit Checkboxes)
-    ├── Restore Options (Target, Overwrite-Behavior)
-    ├── Compare Snapshots (Side-by-Side Diff)
-    │   ├── Filter-Bar (Added/Removed/Modified)
-    │   └── Diff-Statistics
-    └── Snapshot Info (Details-Ansicht)
+├── rustic_restore_dialogs.html           # 🔄 Restore & Vergleich
+│   ├── Restore Files (File-Browser mit Checkboxes)
+│   ├── Restore Options (Target, Overwrite-Behavior)
+│   ├── Compare Snapshots (Side-by-Side Diff)
+│   │   ├── Filter-Bar (Added/Removed/Modified)
+│   │   └── Diff-Statistics
+│   └── Snapshot Info (Details-Ansicht)
+│
+└── rustic_advanced_ui_mockup.html        # ⭐ Erweiterte UI-Features für Snapshots
+  ├── Advanced Filter-Bar (Tags, Hostname, Zeitraum, Größe)
+  ├── Kontextmenü für Snapshots (Rechtsklick, Bulk)
+  ├── Pagination-Controls
+  ├── Snapshot-Vergleichs-UI (Side-by-Side)
+  └── Responsive Layouts (Desktop/Tablet/Mobile)
 ```
 
 ### Mockup-Nutzung
@@ -182,13 +189,19 @@ docs/mockups/
 **Beispiel-Mapping:**
 
 ```
-Mockup-Datei                          → Svelte-Komponente
-─────────────────────────────────────────────────────────
-rustic_gui_mockup.html (Sidebar)     → src/lib/components/layout/Sidebar.svelte
-rustic_gui_mockup.html (Dashboard)   → src/lib/components/pages/Dashboard.svelte
-rustic_backup_dialogs.html (Create)  → src/lib/components/dialogs/CreateJobDialog.svelte
-rustic_repo_security_dialogs.html    → src/lib/components/dialogs/AddRepositoryDialog.svelte
-rustic_restore_dialogs.html          → src/lib/components/dialogs/RestoreDialog.svelte
+Mockup-Datei                              → Svelte-Komponente
+───────────────────────────────────────────────────────────────────────────────
+rustic_gui_mockup.html (Sidebar)         → src/lib/components/layout/Sidebar.svelte
+rustic_gui_mockup.html (Dashboard)       → src/lib/components/pages/Dashboard.svelte
+rustic_backup_dialogs.html (Create)      → src/lib/components/dialogs/CreateJobDialog.svelte
+rustic_repo_security_dialogs.html        → src/lib/components/dialogs/AddRepositoryDialog.svelte
+rustic_restore_dialogs.html              → src/lib/components/dialogs/RestoreDialog.svelte
+rustic_advanced_ui_mockup.html (Snapshots Advanced)
+                                         → src/lib/components/pages/Snapshots.svelte
+                                         → src/lib/components/dialogs/CompareSnapshotsDialog.svelte
+                                         → src/lib/components/shared/ContextMenu.svelte
+                                         → src/lib/components/shared/Pagination.svelte
+                                         → src/lib/components/shared/FilterBar.svelte
 ```
 
 **CSS-Variablen aus Mockups:**

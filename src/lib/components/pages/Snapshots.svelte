@@ -8,9 +8,35 @@
   import { onMount } from 'svelte';
 
   import { deleteSnapshot, getSnapshotInfo } from '$lib/api/snapshots';
+  import CompareSnapshotsDialog from '$lib/components/dialogs/CompareSnapshotsDialog.svelte';
+  import ContextMenu from '$lib/components/shared/ContextMenu.svelte';
+  import FilterBar from '$lib/components/shared/FilterBar.svelte';
+  import Pagination from '$lib/components/shared/Pagination.svelte';
   import type { SnapshotDto } from '$lib/types/index';
 
-  let searchQuery = $state('');
+  type ContextMenuAction =
+    | { label: string; icon: string; danger?: boolean; action: () => void }
+    | 'divider';
+
+  // Filter State
+  let filterSearch = $state('');
+  let filterHostname = $state('');
+  let filterDateRange = $state('');
+  let filterSize = $state('');
+  let filterTags: string[] = $state([]);
+  let allTags: string[] = [];
+
+  $effect(() => {
+    // Alle Tags aus allen Snapshots extrahieren (unique)
+    const tags = new Set<string>();
+    $snapshots.forEach((s) => s.tags?.forEach((t) => tags.add(t)));
+    allTags = Array.from(tags).sort();
+  });
+
+  // Pagination State
+  let page = $state(1);
+  let pageSize = $state(25);
+
   let selectedSnapshots = $state(new Set<string>());
   let sortColumn = $state('date');
   let sortDirection = $state('desc');
@@ -21,19 +47,28 @@
 
   let isLoading = $state(false);
   let isDeleting = $state(false);
-  // Workaround für TypeScript-Issues mit derived values
-  let snapshotsArray: SnapshotDto[] = $state([]);
-  $effect(() => {
-    snapshotsArray = filteredSnapshots();
-  });
 
-  // Filter and sort snapshots
+  // Context Menu State
+  let contextMenuX = $state(0);
+  let contextMenuY = $state(0);
+  let contextMenuVisible = $state(false);
+  let contextMenuSnapshot = $state<SnapshotDto | null>(null);
+
+  // Compare Dialog State
+  let compareDialogOpen = $state(false);
+  let compareSnapshotA = $state<SnapshotDto | null>(null);
+  let compareSnapshotB = $state<SnapshotDto | null>(null);
+  let compareDiff = $state<any>(null);
+  let compareStatsA = $state<any>(null);
+  let compareStatsB = $state<any>(null);
+
+  // Filter, Sort und Paging
   let filteredSnapshots = $derived(() => {
     let filtered = [...$snapshots];
 
-    // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    // Filter anwenden
+    if (filterSearch) {
+      const query = filterSearch.toLowerCase();
       filtered = filtered.filter(
         (snapshot) =>
           snapshot.tags?.some((tag) => tag.toLowerCase().includes(query)) ||
@@ -42,11 +77,18 @@
           new Date(snapshot.time).toLocaleDateString().toLowerCase().includes(query)
       );
     }
+    if (filterHostname) {
+      filtered = filtered.filter((s) => s.hostname === filterHostname);
+    }
+    if (filterTags.length > 0) {
+      filtered = filtered.filter((s) => s.tags?.some((t) => filterTags.includes(t)));
+    }
+    // TODO: Zeitraum/Größe Filter (vereinfachte Platzhalter-Logik)
+    // ...
 
-    // Apply sorting
+    // Sortierung
     filtered.sort((a, b) => {
       let aVal, bVal;
-
       switch (sortColumn) {
         case 'date':
           aVal = new Date(a.time).getTime();
@@ -67,52 +109,43 @@
         default:
           return 0;
       }
-
       if (sortDirection === 'asc') {
         return aVal > bVal ? 1 : -1;
       } else {
         return aVal < bVal ? 1 : -1;
       }
     });
-
     return filtered;
   });
 
-  function handleSort(column: string) {
-    if (sortColumn === column) {
-      sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-      sortColumn = column;
-      sortDirection = 'desc';
-    }
-  }
+  // Paging
+  let pagedSnapshots = $derived(() => {
+    const start = (page - 1) * pageSize;
+    return filteredSnapshots().slice(start, start + pageSize);
+  });
 
-  function formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleString('de-DE', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  }
+  $effect(() => {
+    // Wenn Filter/Snapshots sich ändern, Seite zurücksetzen
+    page = 1;
+  });
 
-  function formatBytes(bytes: number): string {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  }
+  import { formatBytes, formatDate } from '$lib/utils/format';
 
   async function refreshSnapshots() {
     try {
-      await refreshSnapshots();
+      isLoading = true;
+      // Lade Snapshots für alle entsperrten Repositories
+      for (const repo of $repositories) {
+        if (repo.status !== 'Locked') {
+          await loadSnapshots(repo.id);
+        }
+      }
       toastStore.success('Snapshots wurden erfolgreich aktualisiert');
     } catch (error) {
       console.error('Failed to refresh snapshots:', error);
       toastStore.error('Fehler beim Aktualisieren der Snapshots');
+    } finally {
+      isLoading = false;
     }
   }
 
@@ -145,6 +178,15 @@
     }
   }
 
+  function handleSort(column: string) {
+    if (sortColumn === column) {
+      sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortColumn = column;
+      sortDirection = 'desc';
+    }
+  }
+
   function toggleSelection(snapshotId: string) {
     if (selectedSnapshots.has(snapshotId)) {
       selectedSnapshots.delete(snapshotId);
@@ -154,11 +196,75 @@
   }
 
   function selectAll() {
-    if (selectedSnapshots.size === snapshotsArray.length) {
+    const currentPageSnapshots = pagedSnapshots();
+    if (selectedSnapshots.size === currentPageSnapshots.length) {
       selectedSnapshots = new Set();
     } else {
-      selectedSnapshots = new Set(snapshotsArray.map((s) => s.id));
+      selectedSnapshots = new Set(currentPageSnapshots.map((s) => s.id));
     }
+  }
+
+  function openContextMenu(event: MouseEvent, snapshot: SnapshotDto) {
+    event.preventDefault();
+    contextMenuX = event.clientX;
+    contextMenuY = event.clientY;
+    contextMenuSnapshot = snapshot;
+    contextMenuVisible = true;
+  }
+
+  function closeContextMenu() {
+    contextMenuVisible = false;
+    contextMenuSnapshot = null;
+  }
+
+  function contextMenuActions(): ContextMenuAction[] {
+    if (!contextMenuSnapshot) return [];
+
+    return [
+      {
+        label: 'Details anzeigen',
+        icon: 'ℹ️',
+        action: () => {
+          showSnapshotDetails(contextMenuSnapshot!.id);
+          closeContextMenu();
+        },
+      },
+      {
+        label: 'Vergleichen',
+        icon: '⚖️',
+        action: () => {
+          // TODO: Vergleichslogik implementieren
+          closeContextMenu();
+        },
+      },
+      {
+        label: 'Wiederherstellen',
+        icon: '📂',
+        action: () => {
+          // TODO: Restore-Dialog öffnen
+          closeContextMenu();
+        },
+      },
+      'divider' as const,
+      {
+        label: 'Löschen',
+        icon: '🗑️',
+        danger: true,
+        action: () => {
+          handleDeleteSnapshot(contextMenuSnapshot!.id);
+          closeContextMenu();
+        },
+      },
+    ];
+  }
+
+  function closeCompareDialog() {
+    compareDialogOpen = false;
+    compareSnapshotA = null;
+    compareSnapshotB = null;
+    compareDiff = null;
+    compareStatsA = null;
+    compareStatsB = null;
   }
 
   onMount(async () => {
@@ -172,23 +278,30 @@
 </script>
 
 <div class="snapshots-page">
-  <!-- Toolbar -->
+  <!-- Toolbar + FilterBar -->
   <div class="toolbar">
     <h1 class="page-title">Alle Snapshots</h1>
     <div class="toolbar-actions">
-      <div class="search-container">
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Nach Tags, Hostname oder Datum filtern..."
-          bind:value={searchQuery}
-        />
-      </div>
       <Button variant="secondary" size="sm" disabled={isLoading} onclick={refreshSnapshots}>
         {isLoading ? '↻' : '↻'} Aktualisieren
       </Button>
     </div>
   </div>
+  <FilterBar
+    bind:search={filterSearch}
+    bind:hostname={filterHostname}
+    bind:dateRange={filterDateRange}
+    bind:size={filterSize}
+    bind:tags={filterTags}
+    {allTags}
+    on:change={(e) => {
+      filterSearch = e.detail.search;
+      filterHostname = e.detail.hostname;
+      filterDateRange = e.detail.dateRange;
+      filterSize = e.detail.size;
+      filterTags = e.detail.tags;
+    }}
+  />
 
   <!-- Bulk Actions (when items selected) -->
   {#if selectedSnapshots.size > 0}
@@ -205,7 +318,7 @@
     </div>
   {/if}
 
-  <!-- Snapshots Table -->
+  <!-- Snapshots Table + Pagination -->
   <div class="table-container">
     <table class="snapshots-table">
       <thead>
@@ -213,10 +326,10 @@
           <th class="checkbox-column">
             <input
               type="checkbox"
-              checked={selectedSnapshots.size === snapshotsArray.length &&
-                snapshotsArray.length > 0}
+              checked={selectedSnapshots.size === pagedSnapshots().length &&
+                pagedSnapshots().length > 0}
               indeterminate={selectedSnapshots.size > 0 &&
-                selectedSnapshots.size < snapshotsArray.length}
+                selectedSnapshots.size < pagedSnapshots().length}
               onclick={selectAll}
             />
           </th>
@@ -241,8 +354,12 @@
         </tr>
       </thead>
       <tbody>
-        {#each snapshotsArray as snapshot (snapshot.id)}
-          <tr class="snapshot-row" class:selected={selectedSnapshots.has(snapshot.id)}>
+        {#each pagedSnapshots() as snapshot (snapshot.id)}
+          <tr
+            class="snapshot-row"
+            class:selected={selectedSnapshots.has(snapshot.id)}
+            oncontextmenu={(e) => openContextMenu(e, snapshot)}
+          >
             <td class="checkbox-column">
               <input
                 type="checkbox"
@@ -295,18 +412,49 @@
       </tbody>
     </table>
 
-    {#if snapshotsArray.length === 0}
+    <!-- Kontextmenü -->
+    <ContextMenu
+      x={contextMenuX}
+      y={contextMenuY}
+      visible={contextMenuVisible}
+      actions={contextMenuActions()}
+      on:close={closeContextMenu}
+    />
+
+    <!-- Vergleichs-Dialog -->
+    <CompareSnapshotsDialog
+      snapshots={$snapshots}
+      open={compareDialogOpen}
+      snapshotA={compareSnapshotA}
+      snapshotB={compareSnapshotB}
+      diff={compareDiff}
+      statsA={compareStatsA}
+      statsB={compareStatsB}
+      on:close={closeCompareDialog}
+    />
+
+    {#if pagedSnapshots().length === 0}
       <div class="empty-state">
         {#if $snapshots.length === 0}
           <p>Keine Snapshots gefunden. Erstellen Sie zuerst ein Backup.</p>
-        {:else if searchQuery}
-          <p>Keine Snapshots entsprechen dem Suchbegriff "{searchQuery}".</p>
-          <Button variant="secondary" size="sm" onclick={() => (searchQuery = '')}>
+        {:else if filterSearch}
+          <p>Keine Snapshots entsprechen dem Filter.</p>
+          <Button variant="secondary" size="sm" onclick={() => (filterSearch = '')}>
             Filter zurücksetzen
           </Button>
         {/if}
       </div>
     {/if}
+    <Pagination
+      {page}
+      {pageSize}
+      total={filteredSnapshots().length}
+      on:page={(e) => (page = e.detail)}
+      on:pageSize={(e) => {
+        pageSize = e.detail;
+        page = 1;
+      }}
+    />
   </div>
 </div>
 

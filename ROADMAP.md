@@ -613,25 +613,27 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 #### Tasks
 
-- [ ] **Snapshots Page Layout** (6h)
-  - [ ] `src/lib/pages/Snapshots.svelte`
-  - [ ] Toolbar (Search, Filter, Refresh)
-  - [ ] Snapshot-Table
-- [ ] **Snapshot Table Component** (8h)
-  - [ ] Sortable Columns
-  - [ ] Tag-Display
-  - [ ] Action-Buttons
-  - [ ] Context-Menu
-  - [ ] Selection (Multi-Select)
-- [ ] **Filter/Search** (6h)
-  - [ ] Search-Box
-  - [ ] Tag-Filter
-  - [ ] Date-Range-Filter
-  - [ ] Hostname-Filter
-- [ ] **Snapshot Details Dialog** (6h)
-  - [ ] Modal mit Snapshot-Info
-  - [ ] Stats anzeigen
-  - [ ] Actions (Browse, Restore, Delete)
+- [x] **Snapshots Page Layout** (6h)
+  - [x] `src/lib/pages/Snapshots.svelte`
+  - [x] Toolbar (Search, Filter, Refresh)
+  - [x] Snapshot-Table
+- [x] **Snapshot Table Component** (8h)
+  - [x] Sortable Columns
+  - [x] Tag-Display
+  - [x] Action-Buttons
+  - [x] Context-Menu
+  - [x] Selection (Multi-Select)
+- [x] **Filter/Search** (6h)
+  - [x] Search-Box
+  - [x] Tag-Filter
+  - [x] Date-Range-Filter
+  - [x] Hostname-Filter
+- [x] **Snapshot Details Dialog** (6h)
+  - [x] Modal mit Snapshot-Info
+  - [x] Stats anzeigen
+  - [x] Actions (Browse, Restore, Delete)
+
+> **29.10.2025: Snapshots Page inkl. Advanced Features, Tests, Linting, Docs abgeschlossen.**
 
 **Subtotal:** 26 Stunden
 
