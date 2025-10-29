@@ -16,33 +16,54 @@
   import type { RepositoryDto } from '../../types';
   import ActivityLog from './ActivityLog.svelte';
   import RepositoryCard from './RepositoryCard.svelte';
+  // Test Tauri API (Tauri 2.x: ES-Module-Import)
+  import { getVersion } from '@tauri-apps/api/app';
+  // State-Variablen
+  let loading = $state(false);
+  let repoList: RepositoryDto[] = $state([]);
+  let error: string | null = $state(null);
+  type LogEntry = { time: string; type: 'error' | 'warning' | 'info'; message: string };
+  let logEntries: LogEntry[] = $state([]);
 
-  let repoList: RepositoryDto[] = [];
-  let loading = false;
-  let error: string | null = null;
-  let logEntries: { time: string; type: 'info' | 'warning' | 'error'; message: string }[] = [
-    { time: '12:01', type: 'info', message: 'Backup erfolgreich abgeschlossen' },
-    { time: '11:45', type: 'warning', message: 'Warnung: Verbindung langsam' },
-    { time: '11:30', type: 'error', message: 'Fehler: Passwort falsch' },
-  ];
-
+  // Lädt die Repository-Liste
   async function refreshRepos() {
     loading = true;
     error = null;
     try {
       const repos = await listRepositories();
-      setRepositories(repos);
       repoList = repos;
-    } catch (_e) {
-      // eslint-disable-line no-unused-vars
-      error = 'Fehler beim Laden der Repositories';
+      setRepositories(repos);
+      logEntries = [
+        {
+          time: new Date().toLocaleTimeString(),
+          type: 'info',
+          message: `Repositories geladen: ${repos.length} gefunden`,
+        },
+        ...logEntries,
+      ];
+    } catch (e) {
+      error = 'Fehler beim Laden der Repositories.';
+      logEntries = [
+        {
+          time: new Date().toLocaleTimeString(),
+          type: 'error',
+          message: `Fehler beim Laden: ${(e as Error).message || e}`,
+        },
+        ...logEntries,
+      ];
     } finally {
       loading = false;
     }
   }
 
-  onMount(() => {
-    refreshRepos();
+  onMount(async () => {
+    await refreshRepos();
+    try {
+      const version = await getVersion();
+      console.log('Tauri API funktioniert! App-Version:', version);
+    } catch (e) {
+      console.warn('Tauri API nicht verfügbar:', e);
+    }
   });
 </script>
 
