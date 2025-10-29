@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rustic - Advanced Dialogs</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Arial, sans-serif;
+        background: #1a1d2e;
+        color: #e4e4e7;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .demo-container {
+        width: 100%;
+        max-width: 1200px;
+      }
+
+      .demo-nav {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+      }
+
+      .demo-btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        background: #22273a;
+        color: #e4e4e7;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+      }
+
+      .demo-btn:hover {
+        background: #2d3348;
+      }
+
+      .demo-btn.active {
+        background: #3b82f6;
+        border-color: #3b82f6;
+      }
+
+      /* Modal Overlay */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal {
+        background: #22273a;
+        border-radius: 16px;
+        border: 1px solid #2d3348;
+        max-width: 700px;
+        width: 100%;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-header {
+        padding: 24px;
+        border-bottom: 1px solid #2d3348;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #f4f4f5;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        color: #71717a;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-close:hover {
+        background: #2d3348;
+        color: #e4e4e7;
+      }
+
+      .modal-body {
+        padding: 24px;
+        overflow-y: auto;
+        flex: 1;
+      }
+
+      .modal-footer {
+        padding: 20px 24px;
+        border-top: 1px solid #2d3348;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+
+      /* Form Elements */
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #e4e4e7;
+        margin-bottom: 8px;
+      }
+
+      .form-help {
+        font-size: 12px;
+        color: #71717a;
+        margin-top: 4px;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 10px 12px;
+        background: #1a1d2e;
+        border: 1px solid #2d3348;
+        border-radius: 6px;
+        color: #e4e4e7;
+        font-size: 14px;
+        font-family: inherit;
+      }
+
+      .form-input.monospace {
+        font-family: 'Courier New', monospace;
+      }
+
+      .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+      }
+
+      .form-select {
+        width: 100%;
+        padding: 10px 12px;
+        background: #1a1d2e;
+        border: 1px solid #2d3348;
+        border-radius: 6px;
+        color: #e4e4e7;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      /* Buttons */
+      .btn {
+        padding: 10px 20px;
+        border-radius: 6px;
+        border: none;
+        font-size: 14px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #2563eb;
+      }
+
+      .btn-secondary {
+        background: #2d3348;
+        color: #e4e4e7;
+        border: 1px solid #3e4457;
+      }
+
+      .btn-secondary:hover {
+        background: #3e4457;
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #dc2626;
+      }
+
+      .input-with-button {
+        display: flex;
+        gap: 8px;
+      }
+
+      .input-with-button.form-input {
+        flex: 1;
+      }
+
+      .btn-browse {
+        padding: 10px 16px;
+        background: #2d3348;
+        border: 1px solid #3e4457;
+        color: #e4e4e7;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      /* Info Box */
+      .info-box {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 13px;
+        color: #93c5fd;
+        margin-bottom: 20px;
+      }
+
+      .info-box.warning {
+        background: rgba(251, 191, 36, 0.1);
+        border-color: rgba(251, 191, 36, 0.3);
+        color: #fbbf24;
+      }
+
+      /* Table */
+      .table-container {
+        border: 1px solid #2d3348;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .table thead {
+        background: #2d3348;
+      }
+      .table th,
+      .table td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #2d3348;
+      }
+      .table th {
+        font-size: 12px;
+        font-weight: 500;
+        color: #a1a1aa;
+        text-transform: uppercase;
+      }
+      .table td {
+        font-size: 13px;
+      }
+      .table tbody tr:hover {
+        background: #2d3348;
+      }
+      .table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      /* Tabs */
+      .tabs {
+        display: flex;
+        gap: 4px;
+        border-bottom: 1px solid #2d3348;
+        margin-bottom: 24px;
+      }
+      .tab {
+        padding: 10px 16px;
+        cursor: pointer;
+        color: #71717a;
+        font-size: 14px;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+      }
+      .tab:hover {
+        color: #e4e4e7;
+      }
+      .tab.active {
+        color: #e4e4e7;
+        border-bottom-color: #3b82f6;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-container">
+      <div class="demo-nav">
+        <button class="demo-btn active" onclick="showDialog('repo-config')">Repo Config</button>
+        <button class="demo-btn" onclick="showDialog('prune-advanced')">Advanced Prune</button>
+        <button class="demo-btn" onclick="showDialog('copy-snapshots')">Copy Snapshots</button>
+        <button class="demo-btn" onclick="showDialog('merge-snapshots')">Merge Snapshots</button>
+        <button class="demo-btn" onclick="showDialog('mount-repo')">Mount Repo</button>
+        <button class="demo-btn" onclick="showDialog('key-management')">Key Management</button>
+      </div>
+
+      <div class="modal-overlay active" id="repo-config">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 class="modal-title">Edit Repository Configuration</h2>
+            <button class="modal-close" onclick="closeDialog('repo-config')">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="tabs">
+              <div class="tab active" onclick="switchTab(event, 'repo-general')">General</div>
+              <div class="tab" onclick="switchTab(event, 'repo-advanced')">Advanced</div>
+            </div>
+
+            <div class="tab-content active" id="repo-general">
+              <div class="form-group">
+                <label class="form-label">Repository Name</label>
+                <input type="text" class="form-input" value="Documents Backup" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Repository Path</label>
+                <input
+                  type="text"
+                  class="form-input monospace"
+                  value="/mnt/backup/documents"
+                  readonly
+                />
+              </div>
+            </div>
+
+            <div class="tab-content" id="repo-advanced">
+              <div class="info-box warning">
+                ⚠️ Changing these settings can impact performance and storage efficiency. Only
+                change if you know what you are doing.
+              </div>
+              <div class="form-group">
+                <label class="form-label">Compression Level</label>
+                <select class="form-select">
+                  <option value="auto">Auto (default)</option>
+                  <option value="0">None</option>
+                  <option value="1">Level 1 (Fastest)</option>
+                  <option value="11">Level 11 (Balanced)</option>
+                  <option value="22">Level 22 (Best)</option>
+                </select>
+                <div class="form-help">
+                  Maps to `config` command. Affects all future backups to this repository.
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Data Pack Size (MB)</label>
+                  <input type="number" class="form-input" value="32" />
+                  <div class="form-help">`--set-datapack-size`</div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Data Pack Grow Factor</label>
+                  <input type="number" step="0.1" class="form-input" value="1.2" />
+                  <div class="form-help">`--set-datapack-growfactor`</div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Tree Pack Size (MB)</label>
+                  <input type="number" class="form-input" value="4" />
+                  <div class="form-help">`--set-treepack-size`</div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tree Pack Grow Factor</label>
+                  <input type="number" step="0.1" class="form-input" value="1.4" />
+                  <div class="form-help">`--set-treepack-growfactor`</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeDialog('repo-config')">Cancel</button>
+            <button class="btn btn-primary">Save Configuration</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="prune-advanced">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 class="modal-title">Advanced Prune Options</h2>
+            <button class="modal-close" onclick="closeDialog('prune-advanced')">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="info-box">
+              ⚙️ Fine-tune the prune process to balance speed, storage costs, and efficiency.
+            </div>
+            <div class="form-group">
+              <label class="form-label">Max Unused Data</label>
+              <input type="text" class="form-input" value="5%" />
+              <div class="form-help">
+                Tolerated unused data. Use '%' for relative size, 'MB'/'GB' for absolute, or
+                'unlimited'. Maps to `--max-unused`.
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Max Repack Size</label>
+              <input type="text" class="form-input" placeholder="e.g., 10GB (optional)" />
+              <div class="form-help">
+                Limits the amount of data to repack in a single run. Useful for low-space
+                environments. Maps to `--max-repack-size`.
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="display: inline-flex; align-items: center; gap: 8px">
+                <input type="checkbox" style="width: 18px; height: 18px" />
+                <span>Repack Cacheable Data Only</span>
+              </label>
+              <div class="form-help">
+                If checked, only repacks metadata packs. Much faster and cheaper for cloud backends.
+                Maps to `--repack-cacheable-only`.
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeDialog('prune-advanced')">
+              Cancel
+            </button>
+            <button class="btn btn-primary">Run Prune with Options</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="copy-snapshots">
+        <div class="modal" style="max-width: 800px">
+          <div class="modal-header">
+            <h2 class="modal-title">Copy Snapshots</h2>
+            <button class="modal-close" onclick="closeDialog('copy-snapshots')">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Source Repository</label>
+              <input
+                type="text"
+                class="form-input"
+                value="Documents Backup (/mnt/backup/documents)"
+                readonly
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Target Repository</label>
+              <select class="form-select">
+                <option>Cloud Backup (s3://my-bucket)</option>
+                <option>Offsite Server (sftp://offsite/backup)</option>
+              </select>
+              <div class="form-help">Select a pre-configured repository as the destination.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Snapshots to Copy</label>
+              <div class="table-container" style="max-height: 250px; overflow-y: auto">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th><input type="checkbox" checked /></th>
+                      <th>Date</th>
+                      <th>Hostname</th>
+                      <th>Tags</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><input type="checkbox" checked /></td>
+                      <td>2025-10-28 02:00</td>
+                      <td>workstation</td>
+                      <td>daily</td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" checked /></td>
+                      <td>2025-10-27 02:00</td>
+                      <td>workstation</td>
+                      <td>daily</td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" /></td>
+                      <td>2025-10-26 02:00</td>
+                      <td>workstation</td>
+                      <td>daily</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="display: inline-flex; align-items: center; gap: 8px">
+                <input type="checkbox" style="width: 18px; height: 18px" />
+                <span>Initialize target repository if it doesn't exist</span>
+              </label>
+              <div class="form-help">Ensures compatible chunker parameters. Maps to `--init`.</div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeDialog('copy-snapshots')">
+              Cancel
+            </button>
+            <button class="btn btn-primary">Start Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="merge-snapshots">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 class="modal-title">Merge Snapshots</h2>
+            <button class="modal-close" onclick="closeDialog('merge-snapshots')">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="info-box">
+              You are about to merge <strong>3 snapshots</strong> into a single new snapshot.
+            </div>
+            <div class="form-group">
+              <label class="form-label">Snapshots to be Merged</label>
+              <ul style="font-size: 13px; color: #a1a1aa; padding-left: 20px">
+                <li><span style="font-family: monospace">a1b2c3d4</span> - 2025-10-28 02:00</li>
+                <li><span style="font-family: monospace">e5f6g7h8</span> - 2025-10-27 14:30</li>
+                <li><span style="font-family: monospace">i9j0k1l2</span> - 2025-10-27 02:00</li>
+              </ul>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tags for new Snapshot</label>
+              <input type="text" class="form-input" placeholder="e.g., merged, weekly-archive" />
+              <div class="form-help">Comma-separated tags for the resulting snapshot.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="display: inline-flex; align-items: center; gap: 8px">
+                <input type="checkbox" style="width: 18px; height: 18px" />
+                <span>Delete original snapshots after merging</span>
+              </label>
+              <div class="form-help">Maps to the `--delete` flag of the `merge` command.</div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeDialog('merge-snapshots')">
+              Cancel
+            </button>
+            <button class="btn btn-primary">Merge Snapshots</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="mount-repo">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 class="modal-title">Mount Repository</h2>
+            <button class="modal-close" onclick="closeDialog('mount-repo')">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="info-box">
+              Browse your repository as a local drive. This is only available on Linux.
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mount Point</label>
+              <div class="input-with-button">
+                <input type="text" class="form-input monospace" placeholder="/mnt/rustic-backup" />
+                <button class="btn-browse">📁 Browse</button>
+              </div>
+              <div class="form-help">The local directory where the repository will be mounted.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">File Access Permissions</label>
+              <select class="form-select">
+                <option>Default</option>
+                <option>Allow full file access</option>
+                <option>Forbid file access (metadata only)</option>
+              </select>
+              <div class="form-help">
+                Controls access to file contents, useful for cold storage. Maps to `--file-access`.
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeDialog('mount-repo')">Cancel</button>
+            <button class="btn btn-primary">Mount</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="key-management">
+        <div class="modal" style="max-width: 800px">
+          <div class="modal-header">
+            <h2 class="modal-title">Manage Repository Keys</h2>
+            <button class="modal-close" onclick="closeDialog('key-management')">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="info-box">
+              Manage multiple passwords for the repository "Documents Backup". The active key is
+              marked with *.
+            </div>
+            <div class="table-container">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Host</th>
+                    <th>Created</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>* eb78040b</td>
+                    <td>admin</td>
+                    <td>workstation</td>
+                    <td>2025-01-12 13:29:57</td>
+                  </tr>
+                  <tr>
+                    <td>&nbsp;&nbsp;a1b2c3d4</td>
+                    <td>backup-script</td>
+                    <td>server-01</td>
+                    <td>2025-08-20 10:00:00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeDialog('key-management')">Close</button>
+            <button class="btn btn-danger">Remove Selected Key</button>
+            <button class="btn btn-primary">Add New Key</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function showDialog(id) {
+        document.querySelectorAll('.modal-overlay').forEach((overlay) => {
+          overlay.classList.remove('active');
+        });
+        document.getElementById(id).classList.add('active');
+
+        document.querySelectorAll('.demo-btn').forEach((btn) => {
+          btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+      }
+
+      function closeDialog(id) {
+        document.getElementById(id).classList.remove('active');
+      }
+
+      function switchTab(event, tabId) {
+        const modal = event.target.closest('.modal');
+        modal.querySelectorAll('.tab').forEach((tab) => {
+          tab.classList.remove('active');
+        });
+        modal.querySelectorAll('.tab-content').forEach((content) => {
+          content.classList.remove('active');
+        });
+        event.target.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.modal-overlay').forEach((overlay) => {
+            overlay.classList.remove('active');
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

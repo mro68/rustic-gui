@@ -506,6 +506,13 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
   - [x] Load Repos on Mount
   - [x] Refresh-Logic
 
+<!-- Ergänzung: Wichtige UI-Buttons -->
+
+- [ ] **Repository hinzufügen/öffnen Button** (4h)
+  - [ ] Prominenter '+ Repository hinzufügen'-Button im Dashboard/Sidebar
+  - [ ] Öffnet AddRepositoryDialog (Dialog für Init/Open)
+  - [ ] UI-Integration gemäß Mockup
+
 **Subtotal:** 19 Stunden
 
 ### 2.6 CSS/Styling Setup
@@ -661,26 +668,39 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 **Subtotal:** 32 Stunden
 
-### 3.6 Backup-Job Execution (Frontend)
+### 3.6a Backup- und Repository-Quick-Actions (Frontend)
 
 #### Tasks
 
-- [ ] **Run-Backup UI** (6h)
-  - [ ] Backup-Button mit Loading
-  - [ ] Progress-Modal
-  - [ ] Real-Time Updates
-  - [ ] Cancel-Button
-- [ ] **Progress-Updates via Events** (4h)
-  - [ ] Event-Listener
-  - [ ] Store-Updates
-  - [ ] UI-Refresh
-- [ ] **Error-Handling** (4h)
-  - [ ] Toast bei Fehler
-  - [ ] Error-Details anzeigen
-  - [ ] Retry-Option
-- [ ] **Success-Notification** (2h)
-  - [ ] Toast mit Summary
-  - [ ] Link zu Snapshot
+- [ ] **Backup starten Button** (3h)
+  - [ ] Backup-Button in jeder RepositoryCard sichtbar
+  - [ ] Öffnet RunBackupDialog für das gewählte Repository
+  - [ ] UI-Integration gemäß Mockup
+
+> **29.10.2025: Ergänzung: Die wichtigsten Quick-Actions (Repo anlegen/öffnen, Backup starten) werden als eigene Tasks geführt, um die User-Experience zu verbessern und Mockup-Konformität sicherzustellen.**
+
+### 3.6 Backup-Job Execution (Frontend) ✅
+
+#### Tasks
+
+- [x] **Run-Backup UI** (6h)
+  - [x] Backup-Button mit Loading
+  - [x] Progress-Modal
+  - [x] Real-Time Updates
+  - [x] Cancel-Button
+- [x] **Progress-Updates via Events** (4h)
+  - [x] Event-Listener
+  - [x] Store-Updates
+  - [x] UI-Refresh
+- [x] **Error-Handling** (4h)
+  - [x] Toast bei Fehler
+  - [x] Error-Details anzeigen
+  - [x] Retry-Option
+- [x] **Success-Notification** (2h)
+  - [x] Toast mit Summary
+  - [x] Link zu Snapshot (UI vorbereitet)
+
+> **29.10.2025: Backup-Job Execution (Frontend) abgeschlossen: RunBackupDialog mit Progress, Fehlerbehandlung, Retry und Success-Toast gemäß Mockup und Instructions.**
 
 **Subtotal:** 16 Stunden
 

@@ -92,6 +92,7 @@ export interface ProgressInfo {
 export interface BackupProgress extends ProgressInfo {
   files_processed: number;
   bytes_processed: number;
+  total_bytes?: number; // Optional: Gesamt-Bytes für Upload-Fortschritt
   current_file?: string;
   estimated_time_remaining?: number; // in Sekunden
 }

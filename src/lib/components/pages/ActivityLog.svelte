@@ -30,5 +30,39 @@
 </div>
 
 <style>
-  /* Styles gemäß Mockup werden in app.css und Komponenten-CSS gepflegt */
+  .log-container {
+    background: #22273a;
+    border-radius: 12px;
+    border: 1px solid #2d3348;
+    padding: 16px;
+    margin-top: 24px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .log-line {
+    margin-bottom: 6px;
+    display: flex;
+    gap: 10px;
+    line-height: 1.5;
+  }
+
+  .log-time {
+    color: #71717a;
+    flex-shrink: 0;
+  }
+
+  .log-info {
+    color: #4ade80;
+  }
+
+  .log-warning {
+    color: #fbbf24;
+  }
+
+  .log-error {
+    color: #f87171;
+  }
 </style>
