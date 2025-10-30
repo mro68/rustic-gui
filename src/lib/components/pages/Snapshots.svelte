@@ -24,7 +24,7 @@
   let filterDateRange = $state('');
   let filterSize = $state('');
   let filterTags: string[] = $state([]);
-  let allTags: string[] = [];
+  let allTags: string[] = $state([]);
 
   $effect(() => {
     // Alle Tags aus allen Snapshots extrahieren (unique)
@@ -467,15 +467,15 @@
     <div class="snapshot-details">
       <div class="details-grid">
         <div class="detail-item">
-          <label>ID:</label>
+          <div class="detail-label">ID:</div>
           <span class="mono">{selectedSnapshot?.id || '-'}</span>
         </div>
         <div class="detail-item">
-          <label>Zeit:</label>
+          <div class="detail-label">Zeit:</div>
           <span>{selectedSnapshot ? formatDate(selectedSnapshot.time) : '-'}</span>
         </div>
         <div class="detail-item">
-          <label>Repository:</label>
+          <div class="detail-label">Repository:</div>
           <span>
             {#if selectedSnapshot}
               {$repositories.find((r) => r.id === selectedSnapshot?.repository_id)?.name ||
@@ -486,11 +486,11 @@
           </span>
         </div>
         <div class="detail-item">
-          <label>Hostname:</label>
+          <div class="detail-label">Hostname:</div>
           <span>{selectedSnapshot?.hostname || '-'}</span>
         </div>
         <div class="detail-item">
-          <label>Tags:</label>
+          <div class="detail-label">Tags:</div>
           <span>
             {#if selectedSnapshot?.tags && selectedSnapshot.tags.length > 0}
               {selectedSnapshot.tags.join(', ')}
@@ -500,7 +500,7 @@
           </span>
         </div>
         <div class="detail-item">
-          <label>Größe:</label>
+          <div class="detail-label">Größe:</div>
           <span>
             {#if selectedSnapshot?.total_size !== undefined}
               {formatBytes(selectedSnapshot.total_size)}
@@ -510,11 +510,11 @@
           </span>
         </div>
         <div class="detail-item">
-          <label>Pfad:</label>
+          <div class="detail-label">Pfad:</div>
           <span class="mono">{selectedSnapshot?.paths?.join(', ') || '-'}</span>
         </div>
         <div class="detail-item">
-          <label>Username:</label>
+          <div class="detail-label">Username:</div>
           <span>{selectedSnapshot?.username || '-'}</span>
         </div>
       </div>
@@ -760,7 +760,7 @@
     gap: 0.25rem;
   }
 
-  .detail-item label {
+  .detail-item .detail-label {
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-secondary);

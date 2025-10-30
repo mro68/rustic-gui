@@ -25,6 +25,9 @@
 
   const dispatch = createEventDispatcher();
   let modalRef: HTMLDivElement | null = null;
+  let modalDialogRef: HTMLDivElement | null = null;
+  // generate stable-ish id for aria
+  const dialogId = `modal-${Math.random().toString(36).slice(2, 9)}`;
 
   function close() {
     dispatch('close');
@@ -58,22 +61,38 @@
   } else {
     document.body.style.overflow = '';
   }
+
+  // focus dialog when opened (reactive statement)
+  $: if (open && modalDialogRef) {
+    // small timeout to ensure it's in DOM
+    setTimeout(() => modalDialogRef && modalDialogRef.focus(), 0);
+  }
 </script>
 
 /* eslint-env browser */
 {#if open}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="modal-backdrop"
     bind:this={modalRef}
-    aria-modal="true"
     role="presentation"
-    aria-label={ariaLabel}
-    on:click={handleBackdropClick}
+    aria-hidden="true"
+    onclick={handleBackdropClick}
   >
-    <div class="modal-dialog" tabindex="0">
+    <div
+      class="modal-dialog"
+      bind:this={modalDialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={ariaLabel}
+      aria-labelledby={ariaLabel ? undefined : dialogId + '-title'}
+      tabindex="-1"
+      id={dialogId}
+    >
       <header class="modal-header">
         <slot name="header" />
-        <button class="modal-close" aria-label="Schließen" on:click={close}>
+        <button class="modal-close" aria-label="Schließen" onclick={close}>
           <span aria-hidden="true">&times;</span>
         </button>
       </header>

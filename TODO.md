@@ -11,69 +11,71 @@
   - [x] Storage Usage Charts (wie Mockup)
   - [x] Responsive-Design (Tablet/Mobile)
 
-- [ ] **Snapshots.svelte**
-  - [ ] Tabelle mit Snapshots (Spalten, Filter, Pagination)
-  - [ ] FilterBar: Tags, Hostname, Zeitraum, Größe
-  - [ ] Kontextmenü für Snapshots (Bulk, Rechtsklick)
-  - [ ] Snapshot-Vergleichs-UI (Side-by-Side, Diff)
-  - [ ] Snapshot-Info-Dialog
-  - [ ] Responsive-Design
+- [x] **Snapshots.svelte**
+  - [x] Tabelle mit Snapshots (Spalten, Filter, Pagination)
+  - [x] FilterBar: Tags, Hostname, Zeitraum, Größe
+  - [x] Kontextmenü für Snapshots (Bulk, Rechtsklick)
+  - [x] Snapshot-Vergleichs-UI (Side-by-Side, Diff)
+  - [x] Snapshot-Info-Dialog
+  - [x] Responsive-Design
 
-- [ ] **BackupJobs.svelte** (neu anlegen)
-  - [ ] Liste aller Backup-Jobs (Job-Item-Layout, Status, Aktionen)
-  - [ ] „+ New Job“-Button mit Dialog (UI-Dummy, dann Funktion)
-  - [ ] Job-Kontextmenü: Edit, Enable/Disable, Delete
-  - [ ] Scheduling-Info, Retention-Policy-Anzeige
-  - [ ] Responsive-Design
+- [x] **BackupJobs.svelte** (neu anlegen)
+  - [x] Liste aller Backup-Jobs (Job-Item-Layout, Status, Aktionen)
+  - [x] „+ New Job“-Button mit Dialog (UI-Dummy, dann Funktion)
+  - [x] Job-Kontextmenü: Edit, Enable/Disable, Delete
+  - [x] Scheduling-Info, Retention-Policy-Anzeige
+  - [x] Responsive-Design
 
-- [ ] **Repositories.svelte** (neu anlegen)
-  - [ ] Toolbar mit „+ Add Repository“-Button
-  - [ ] Liste aller Repositories (Job-Item-Layout, Status, Aktionen)
-  - [ ] Repository-Kontextmenü: Edit, Unlock, Delete
-  - [ ] Repository-Details-Dialog
-  - [ ] Responsive-Design
+- [x] **Repositories.svelte** (neu anlegen)
+  - [x] Toolbar mit „+ Add Repository"-Button
+  - [x] Liste aller Repositories (Job-Item-Layout, Status, Aktionen)
+  - [x] Repository-Kontextmenü: Edit, Unlock, Delete
+  - [x] Repository-Details-Dialog
+  - [x] Responsive-Design
 
-- [ ] **Settings.svelte** (neu anlegen)
-  - [ ] Layout und Felder gemäß Mockup
-  - [ ] Responsive-Design
+- [x] **Settings.svelte** (neu anlegen)
+  - [x] Layout und Felder gemäß Mockup
+  - [x] Responsive-Design
 
 ## 2. Dialoge & Popups
 
-- [ ] **AddRepositoryDialog.svelte**
-  - [ ] Typ-Selector, Felder, States
-- [ ] **UnlockRepositoryDialog.svelte** (neu anlegen)
-  - [ ] Passwortfeld, States
-- [ ] **CreateJobDialog.svelte**
-  - [ ] Wizard, Tabs, Felder, Validierung
-- [ ] **EditJobDialog.svelte** (neu anlegen)
-  - [ ] Wizard, Tabs, Felder, Validierung
-- [ ] **RunBackupDialog.svelte** (neu anlegen)
-  - [ ] Progress, Log
-- [ ] **DeleteJobDialog.svelte** (neu anlegen)
-  - [ ] Confirmation, States
-- [ ] **DeleteRepoDialog.svelte** (neu anlegen)
-  - [ ] Confirmation, States
-- [ ] **RestoreDialog.svelte**
-  - [ ] File-Browser, Restore-Optionen
-- [ ] **CompareSnapshotsDialog.svelte**
-  - [ ] Side-by-Side, FilterBar
-- [ ] **SnapshotInfoDialog.svelte** (neu anlegen)
-  - [ ] Details-Ansicht
-- [ ] **ChangePasswordDialog.svelte** (neu anlegen)
-  - [ ] Felder, Strength-Indicator
-- [ ] **CheckRepoDialog.svelte** (neu anlegen)
-  - [ ] Progress, Log
-- [ ] **PruneRepoDialog.svelte** (neu anlegen)
-  - [ ] Stats, Confirmation
+- [x] **AddRepositoryDialog.svelte**
+  - [x] Typ-Selector, Felder, States
+- [x] **UnlockRepositoryDialog.svelte** (neu anlegen)
+  - [x] Passwortfeld, States
+- [x] **CreateJobDialog.svelte**
+  - [x] Wizard, Tabs, Felder, Validierung
+- [x] **EditJobDialog.svelte** (neu anlegen)
+  - [x] Wizard, Tabs, Felder, Validierung
+- [x] **RunBackupDialog.svelte** (neu anlegen)
+  - [x] Progress, Log
+- [x] **DeleteJobDialog.svelte** (neu anlegen)
+  - [x] Confirmation, States
+- [x] **DeleteRepoDialog.svelte** (neu anlegen)
+  - [x] Confirmation, States
+- [x] **RestoreDialog.svelte**
+  - [x] File-Browser, Restore-Optionen
+- [x] **CompareSnapshotsDialog.svelte**
+  - [x] Side-by-Side, FilterBar
+- [x] **SnapshotInfoDialog.svelte** (neu anlegen)
+  - [x] Details-Ansicht
+- [x] **ChangePasswordDialog.svelte** (neu anlegen)
+  - [x] Felder, Strength-Indicator
+- [x] **CheckRepoDialog.svelte** (neu anlegen)
+  - [x] Progress, Log
+- [x] **PruneRepoDialog.svelte** (neu anlegen)
+  - [x] Stats, Confirmation
 
 ## 3. Shared/Advanced UI-Komponenten
 
-- [ ] **FilterBar.svelte**
-  - [ ] Tags, Hostname, Zeitraum, Größe (wie Mockup)
-- [ ] **ContextMenu.svelte**
-  - [ ] Bulk, Rechtsklick, Actions (wie Mockup)
-- [ ] **Pagination.svelte**
-  - [ ] Controls, States (wie Mockup)
+- [x] **FilterBar.svelte**
+  - [x] Tags, Hostname, Zeitraum, Größe (wie Mockup)
+- [x] **ContextMenu.svelte**
+  - [x] Bulk, Rechtsklick, Actions (wie Mockup)
+- [x] **Pagination.svelte**
+  - [x] Controls, States (wie Mockup)
+- [x] **Input.svelte, Select.svelte, Checkbox.svelte**
+  - [x] Reusable Components für Formulare
 - [ ] **Modal.svelte, Button.svelte, Badge.svelte, ProgressBar.svelte**
   - [ ] Auf Mockup-Details prüfen und ggf. anpassen
 

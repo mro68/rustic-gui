@@ -67,6 +67,7 @@ async fn run_backup_command(
         .map_err(|e| e.to_string())
 }
 // Hauptmodul für rustic-gui
+pub mod commands;
 pub mod config;
 pub mod error;
 pub mod keychain;
@@ -255,7 +256,13 @@ pub fn run() {
             delete_snapshot_command,
             forget_snapshots_command,
             get_file_tree_command,
-            restore_files_command
+            restore_files_command,
+            // Job CRUD Commands
+            commands::backup::create_backup_job,
+            commands::backup::update_backup_job,
+            commands::backup::delete_backup_job,
+            commands::backup::get_backup_job,
+            commands::backup::list_backup_jobs
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
