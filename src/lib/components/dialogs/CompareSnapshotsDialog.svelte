@@ -17,7 +17,7 @@
   import { toastStore } from '$lib/stores/toast';
   import { compareSnapshots } from '$lib/api/snapshots';
   import type { DiffResultDto } from '$lib/types';
-  
+
   export let snapshots: any[] = [];
   export let open = false;
   export let snapshotA: any = null;
@@ -25,35 +25,35 @@
   export let diff: any[] = [];
   export let statsA: any = {};
   export let statsB: any = {};
-  
+
   const dispatch = createEventDispatcher();
-  
+
   let isComparing = false;
-  
+
   async function handleCompare() {
     if (!snapshotA || !snapshotB) {
       toastStore.error('Bitte beide Snapshots auswählen');
       return;
     }
-    
+
     if (snapshotA === snapshotB) {
       toastStore.error('Bitte unterschiedliche Snapshots auswählen');
       return;
     }
-    
+
     isComparing = true;
-    
+
     try {
       // ✅ API-Integration (TODO.md Phase 2 Zeile 261)
       const result: DiffResultDto = await compareSnapshots(snapshotA, snapshotB);
-      
+
       // Update diff data
       diff = result.changes || [];
       statsA = result.statsA || {};
       statsB = result.statsB || {};
-      
+
       toastStore.success('Snapshot-Vergleich abgeschlossen');
-      
+
       dispatch('comparison-complete', { result });
     } catch (error: any) {
       const errorMessage = error?.message || 'Unbekannter Fehler';
@@ -63,7 +63,7 @@
       isComparing = false;
     }
   }
-  
+
   function close() {
     dispatch('close');
   }
@@ -178,8 +178,8 @@
       </div>
       <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
         <button class="btn btn-secondary" on:click={close}>Schließen</button>
-        <button 
-          class="btn btn-primary" 
+        <button
+          class="btn btn-primary"
           on:click={handleCompare}
           disabled={isComparing || !snapshotA || !snapshotB}
         >

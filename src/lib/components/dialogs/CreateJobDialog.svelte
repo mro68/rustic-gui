@@ -163,7 +163,7 @@ Verwendung:
 
     try {
       const { createBackupJob } = await import('$lib/api/backup-jobs');
-      
+
       // Konvertiere Schedule in Cron-Expression (vereinfacht)
       let cronSchedule: string | undefined;
       if (scheduleType !== 'manual') {

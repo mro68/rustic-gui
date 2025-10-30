@@ -42,7 +42,7 @@
   let toastMessage = '';
   let toastType: 'success' | 'error' | 'info' = 'info';
   let showLocationPicker = false;
-  
+
   // ✅ Enhanced location picker (TODO.md Zeile 246, uses LocationPickerDialog.svelte)
   function openLocationPicker() {
     showLocationPicker = true;
@@ -90,7 +90,7 @@
     try {
       const { initRepository } = await import('$lib/api/repositories');
       const { store_repository_password } = await import('@tauri-apps/api/core');
-      
+
       // Initialize repository
       const backendOpts = backendOptions.trim() ? JSON.parse(backendOptions.trim()) : undefined;
       const repo = await initRepository(
@@ -181,9 +181,7 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label" for="repo-path">
-        Repository-Speicherort
-      </label>
+      <label class="form-label" for="repo-path"> Repository-Speicherort </label>
       <div class="input-with-button">
         <Input
           id="repo-path"
@@ -192,11 +190,7 @@
           required
           readonly
         />
-        <Button
-          variant="secondary"
-          size="sm"
-          on:click={openLocationPicker}
-        >
+        <Button variant="secondary" size="sm" on:click={openLocationPicker}>
           📁 Speicherort wählen
         </Button>
       </div>

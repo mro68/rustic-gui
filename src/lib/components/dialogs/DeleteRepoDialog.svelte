@@ -24,9 +24,9 @@
     try {
       const { deleteRepository } = await import('$lib/api/repositories');
       await deleteRepository(repository.id, deleteData);
-      
+
       toastStore.success('Repository erfolgreich gelöscht');
-      
+
       dispatch('delete-repo', {
         repositoryId: repository.id,
         deleteData,

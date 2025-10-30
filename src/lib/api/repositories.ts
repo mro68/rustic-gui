@@ -12,11 +12,11 @@ import { invoke } from '@tauri-apps/api/core';
  * - deleteRepository
  * - pruneRepository
  * - changePassword
- * 
- * Backend-Commands: 
+ *
+ * Backend-Commands:
  * - lib.rs (init, open, check_repository_v1)
  * - commands/repository.rs (list, delete, check, prune, change_password)
- * 
+ *
  * ⚠️ Hinweis: Viele Backend-Implementations sind Stubs (siehe TODO-Kommentare in Rust-Code)
  */
 
@@ -26,11 +26,11 @@ export async function initRepository(
   backendType: string,
   backendOptions?: Record<string, unknown>
 ): Promise<RepositoryDto> {
-  return await invoke<RepositoryDto>('init_repository', { 
-    path, 
-    password, 
+  return await invoke<RepositoryDto>('init_repository', {
+    path,
+    password,
     backendType,
-    backendOptions
+    backendOptions,
   });
 }
 
@@ -60,10 +60,6 @@ export async function pruneRepository(id: string): Promise<string> {
   return await invoke<string>('prune_repository', { id });
 }
 
-export async function changePassword(
-  id: string,
-  oldPass: string,
-  newPass: string
-): Promise<void> {
+export async function changePassword(id: string, oldPass: string, newPass: string): Promise<void> {
   await invoke('change_password', { id, oldPass, newPass });
 }

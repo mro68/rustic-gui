@@ -253,9 +253,7 @@
     <!-- Local Tab -->
     {#if activeTab === 'local'}
       <div class="tab-panel">
-        <div class="info-box">
-          💾 Wählen Sie ein lokales Verzeichnis für Ihr Repository
-        </div>
+        <div class="info-box">💾 Wählen Sie ein lokales Verzeichnis für Ihr Repository</div>
 
         <div class="browser-toolbar">
           <Button variant="secondary" size="small" on:click={browseLocalDirectory}>
@@ -278,10 +276,7 @@
         {#if mode === 'init'}
           <div class="form-group">
             <label class="form-label">Neuer Ordner-Name (optional)</label>
-            <Input
-              bind:value={newFolderName}
-              placeholder="z.B. mein-neues-repo"
-            />
+            <Input bind:value={newFolderName} placeholder="z.B. mein-neues-repo" />
             <div class="form-help">
               Leer lassen um ausgewähltes Verzeichnis zu verwenden, oder Namen eingeben um neuen
               Ordner zu erstellen
@@ -422,9 +417,7 @@
     <!-- Recent Tab -->
     {#if activeTab === 'recent'}
       <div class="tab-panel">
-        <div class="info-box">
-          🕐 Zuletzt verwendete Repository-Speicherorte
-        </div>
+        <div class="info-box">🕐 Zuletzt verwendete Repository-Speicherorte</div>
 
         <div class="recent-list">
           {#each recentLocations as location}

@@ -8,7 +8,7 @@ import { invoke } from '@tauri-apps/api/core';
  * Commands:
  * - runBackup (TODO.md Zeile 190-192) ✅ IMPLEMENTIERT (simuliert in lib.rs:121)
  * - cancelBackup (TODO.md Zeile 193-194) ✅ IMPLEMENTIERT (lib.rs:37)
- * 
+ *
  * Backend-Events:
  * - backup-progress (BackupEvent in lib.rs:111-117)
  * - backup-completed

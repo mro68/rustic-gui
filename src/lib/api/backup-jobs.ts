@@ -10,7 +10,7 @@ import { invoke } from '@tauri-apps/api/core';
  * - createBackupJob
  * - updateBackupJob
  * - deleteBackupJob
- * 
+ *
  * Backend-Commands: commands/backup.rs (alle implementiert)
  */
 
