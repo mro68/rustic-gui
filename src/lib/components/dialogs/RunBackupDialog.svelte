@@ -4,12 +4,33 @@
   Fortschritts-Dialog für laufende Backups (gemäß Mockup)
 -->
 <script lang="ts">
+  import { runBackup } from '$lib/api/backup';
   import { onBackupCompleted, onBackupFailed, onBackupProgress } from '$lib/api/events';
+  import { setError, setLoading, setRunningJobId } from '$lib/stores/backup-jobs';
   import { toastStore } from '$lib/stores/toast';
   import type { BackupProgress } from '$lib/types';
+  import { formatBytes } from '$lib/utils/format';
   import { onDestroy, onMount } from 'svelte';
   import Modal from '../shared/Modal.svelte';
   import ProgressBar from '../shared/ProgressBar.svelte';
+  // Retry-Handler
+  async function handleRetry() {
+    error = null;
+    completed = false;
+    progress = null;
+    logLines = [];
+    await setupListeners();
+    try {
+      await runBackup(jobId);
+      // Wenn kein Fehler geworfen wurde und completed true ist, Toast anzeigen
+      if (completed) {
+        toastStore.success(`Backup für "${jobName}" erfolgreich wiederholt!`);
+      }
+    } catch (err) {
+      error = err instanceof Error ? err.message : String(err);
+      toastStore.error(`Backup-Retry fehlgeschlagen: ${error}`);
+    }
+  }
 
   export let open: boolean = false;
   export let jobName: string = '';
@@ -19,6 +40,7 @@
   let progress: BackupProgress | null = null;
   let error: string | null = null;
   let completed = false;
+  let logLines: string[] = [];
   let unlistenProgress: (() => void) | null = null;
   let unlistenCompleted: (() => void) | null = null;
   let unlistenFailed: (() => void) | null = null;
@@ -30,22 +52,45 @@
       progress = null;
       error = null;
       completed = false;
+      logLines = [];
+      setRunningJobId(null);
+      setLoading(false);
+      setError(null);
     }
   }
 
+  function addLogLine(line: string) {
+    logLines = [...logLines.slice(-49), line]; // max 50 Zeilen
+  }
+
   async function setupListeners() {
+    setRunningJobId(jobId);
+    setLoading(true);
+    setError(null);
     unlistenProgress = await onBackupProgress((data) => {
       progress = data;
+      setRunningJobId(jobId);
+      setLoading(true);
+      setError(null);
+      if (data.message) addLogLine(`[${new Date().toLocaleTimeString()}] ${data.message}`);
     });
     unlistenCompleted = await onBackupCompleted((data) => {
       if (data.jobId === jobId && data.success) {
         completed = true;
+        setRunningJobId(null);
+        setLoading(false);
+        setError(null);
+        addLogLine(`[${new Date().toLocaleTimeString()}] Backup abgeschlossen!`);
         toastStore.success(`Backup für "${jobName}" abgeschlossen!`);
       }
     });
     unlistenFailed = await onBackupFailed((data) => {
       if (data.jobId === jobId) {
         error = data.error;
+        setRunningJobId(null);
+        setLoading(false);
+        setError(data.error);
+        addLogLine(`[${new Date().toLocaleTimeString()}] Fehler: ${data.error}`);
         toastStore.error(`Backup fehlgeschlagen: ${data.error}`);
       }
     });
@@ -79,10 +124,49 @@
       🔄 Backup-Job "{jobName}" läuft...
     </div>
     {#if progress}
-      <ProgressBar value={progress.percentage} label={`Fortschritt: ${progress.percentage}%`} />
+      <!-- Dateien-Fortschritt -->
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 13px; color: #e4e4e7;">Dateien</span>
+          <span style="font-size: 13px; color: #71717a;"
+            >{progress.files_processed?.toLocaleString()} / {progress.total?.toLocaleString()} ({progress.percentage}%)</span
+          >
+        </div>
+        <ProgressBar value={progress.percentage} label={undefined} />
+      </div>
+      <!-- Upload-Fortschritt -->
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 13px; color: #e4e4e7;">Upload</span>
+          <span style="font-size: 13px; color: #71717a;"
+            >{formatBytes(progress.bytes_processed)} / {formatBytes(
+              progress.total_bytes ?? 0
+            )}</span
+          >
+        </div>
+        <ProgressBar
+          value={progress.total_bytes
+            ? Math.round((progress.bytes_processed / progress.total_bytes) * 100)
+            : 0}
+          label={undefined}
+        />
+      </div>
+      <div
+        style="background: #1a1d2e; border: 1px solid #2d3348; border-radius: 8px; padding: 16px; font-family: 'Courier New', monospace; font-size: 12px; max-height: 200px; overflow-y: auto; margin-bottom: 8px;"
+      >
+        {#each logLines as line}
+          <div
+            style="margin-bottom: 6px; color: {line.includes('Fehler')
+              ? '#ef4444'
+              : line.includes('abgeschlossen')
+                ? '#22c55e'
+                : '#4ade80'}"
+          >
+            {line}
+          </div>
+        {/each}
+      </div>
       <div class="progress-details" style="margin-top: 12px; font-size: 14px;">
-        <div>Dateien verarbeitet: {progress.files_processed}</div>
-        <div>Bytes verarbeitet: {progress.bytes_processed}</div>
         {#if progress.current_file}
           <div>Aktuelle Datei: {progress.current_file}</div>
         {/if}
@@ -107,6 +191,9 @@
   <div slot="footer">
     {#if !completed && !error}
       <button class="btn btn-secondary" on:click={onCancel}>Backup abbrechen</button>
+    {:else if error}
+      <button class="btn btn-primary" on:click={handleRetry}>Erneut versuchen</button>
+      <button class="btn btn-secondary" on:click={close}>Schließen</button>
     {:else}
       <button class="btn btn-primary" on:click={close}>Schließen</button>
     {/if}

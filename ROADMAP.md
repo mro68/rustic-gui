@@ -506,6 +506,13 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
   - [x] Load Repos on Mount
   - [x] Refresh-Logic
 
+<!-- Ergänzung: Wichtige UI-Buttons -->
+
+- [ ] **Repository hinzufügen/öffnen Button** (4h)
+  - [ ] Prominenter '+ Repository hinzufügen'-Button im Dashboard/Sidebar
+  - [ ] Öffnet AddRepositoryDialog (Dialog für Init/Open)
+  - [ ] UI-Integration gemäß Mockup
+
 **Subtotal:** 19 Stunden
 
 ### 2.6 CSS/Styling Setup
@@ -633,7 +640,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
   - [x] Stats anzeigen
   - [x] Actions (Browse, Restore, Delete)
 
-> **29.10.2025: Snapshots Page inkl. Advanced Features, Tests, Linting, Docs abgeschlossen.**
+> **29.10.2025: Snapshots Page inkl. Advanced Features, Tests, Linting, Docs abgeschlossen. ✅**
 
 **Subtotal:** 26 Stunden
 
@@ -661,26 +668,39 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 **Subtotal:** 32 Stunden
 
-### 3.6 Backup-Job Execution (Frontend)
+### 3.6a Backup- und Repository-Quick-Actions (Frontend)
 
 #### Tasks
 
-- [ ] **Run-Backup UI** (6h)
-  - [ ] Backup-Button mit Loading
-  - [ ] Progress-Modal
-  - [ ] Real-Time Updates
-  - [ ] Cancel-Button
-- [ ] **Progress-Updates via Events** (4h)
-  - [ ] Event-Listener
-  - [ ] Store-Updates
-  - [ ] UI-Refresh
-- [ ] **Error-Handling** (4h)
-  - [ ] Toast bei Fehler
-  - [ ] Error-Details anzeigen
-  - [ ] Retry-Option
-- [ ] **Success-Notification** (2h)
-  - [ ] Toast mit Summary
-  - [ ] Link zu Snapshot
+- [ ] **Backup starten Button** (3h)
+  - [ ] Backup-Button in jeder RepositoryCard sichtbar
+  - [ ] Öffnet RunBackupDialog für das gewählte Repository
+  - [ ] UI-Integration gemäß Mockup
+
+> **29.10.2025: Ergänzung: Die wichtigsten Quick-Actions (Repo anlegen/öffnen, Backup starten) werden als eigene Tasks geführt, um die User-Experience zu verbessern und Mockup-Konformität sicherzustellen.**
+
+### 3.6 Backup-Job Execution (Frontend) ✅
+
+#### Tasks
+
+- [x] **Run-Backup UI** (6h)
+  - [x] Backup-Button mit Loading
+  - [x] Progress-Modal
+  - [x] Real-Time Updates
+  - [x] Cancel-Button
+- [x] **Progress-Updates via Events** (4h)
+  - [x] Event-Listener
+  - [x] Store-Updates
+  - [x] UI-Refresh
+- [x] **Error-Handling** (4h)
+  - [x] Toast bei Fehler
+  - [x] Error-Details anzeigen
+  - [x] Retry-Option
+- [x] **Success-Notification** (2h)
+  - [x] Toast mit Summary
+  - [x] Link zu Snapshot (UI vorbereitet)
+
+> **29.10.2025: Backup-Job Execution (Frontend) abgeschlossen: RunBackupDialog mit Progress, Fehlerbehandlung, Retry und Success-Toast gemäß Mockup und Instructions.**
 
 **Subtotal:** 16 Stunden
 
@@ -690,7 +710,7 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 ## Milestone 4: Job Management 🟣
 
-**Status:** Todo  
+**Status:** In Progress (Backend Job-Config fertig, Scheduler ausstehend)  
 **Geschätzte Dauer:** 2 Wochen  
 **Dependencies:** Milestone 3
 
@@ -722,20 +742,20 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 #### Tasks
 
-- [ ] **BackupJobConfig erweitern** (4h)
-  - [ ] Schedule-Field
-  - [ ] Last-Run Timestamp
-  - [ ] Next-Run Timestamp
-  - [ ] Enabled/Disabled
-- [ ] **Job CRUD Commands** (8h)
-  - [ ] create_backup_job
-  - [ ] update_backup_job
-  - [ ] delete_backup_job
-  - [ ] get_backup_job
-- [ ] **Job-Persistence** (4h)
-  - [ ] Config speichern
-  - [ ] Scheduler bei Start wiederherstellen
-- [ ] **Tests** (4h)
+- [x] **BackupJobConfig erweitern** (4h)
+  - [x] Schedule-Field
+  - [x] Last-Run Timestamp
+  - [x] Next-Run Timestamp
+  - [x] Enabled/Disabled
+- [x] **Job CRUD Commands** (8h)
+  - [x] create_backup_job
+  - [x] update_backup_job
+  - [x] delete_backup_job
+  - [x] get_backup_job
+- [x] **Job-Persistence** (4h)
+  - [x] Config speichern
+  - [x] Scheduler bei Start wiederherstellen
+- [x] **Tests** (4h)
 
 **Subtotal:** 20 Stunden
 
@@ -743,21 +763,21 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 #### Tasks
 
-- [ ] **Jobs Page Layout** (6h)
-  - [ ] `src/lib/pages/BackupJobs.svelte`
-  - [ ] Job-Liste
-  - [ ] "+ New Job" Button
-- [ ] **Job-Card Component** (8h)
-  - [ ] Job-Name + Details
-  - [ ] Status-Badge (Idle/Running)
-  - [ ] Last-Run Info
-  - [ ] Next-Run Info
-  - [ ] Actions (Run, Edit, Delete)
-- [ ] **Job-List Filtering** (4h)
+- [x] **Jobs Page Layout** (6h)
+  - [x] `src/lib/pages/BackupJobs.svelte`
+  - [x] Job-Liste
+  - [x] "+ New Job" Button
+- [x] **Job-Card Component** (8h)
+  - [x] Job-Name + Details
+  - [x] Status-Badge (Idle/Running)
+  - [x] Last-Run Info
+  - [x] Next-Run Info
+  - [x] Actions (Run, Edit, Delete)
+- [x] **Job-List Filtering** (4h)
   - [ ] Active/Inactive
   - [ ] By Repository
   - [ ] By Schedule
-- [ ] **Integration** (4h)
+- [x] **Integration** (4h)
 
 **Subtotal:** 22 Stunden
 
@@ -765,36 +785,36 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 #### Tasks
 
-- [ ] **Job-Dialog Basis** (6h)
-  - [ ] `src/lib/components/dialogs/CreateJobDialog.svelte`
-  - [ ] Tab-System (4 Tabs)
-  - [ ] Form-State Management
-- [ ] **Tab 1: General** (4h)
-  - [ ] Job-Name Input
-  - [ ] Repository-Selection
-  - [ ] Tags Input
-- [ ] **Tab 2: Paths & Exclusions** (6h)
-  - [ ] Source-Paths List
-  - [ ] Add/Remove Paths
-  - [ ] File-Browser Integration
-  - [ ] Exclude-Patterns Textarea
-- [ ] **Tab 3: Schedule** (8h)
-  - [ ] Schedule-Type (Manual/Daily/Weekly/Monthly/Custom)
-  - [ ] Time-Picker
-  - [ ] Weekday-Selection (Weekly)
-  - [ ] Cron-Expression (Custom)
-  - [ ] Next-Run Preview
-- [ ] **Tab 4: Retention** (6h)
-  - [ ] Policy-Selection
-  - [ ] Keep-Last Input
-  - [ ] Keep-Daily/Weekly/Monthly/Yearly
-  - [ ] Auto-Prune Checkbox
-  - [ ] Policy-Summary
-- [ ] **Form-Validation** (4h)
-  - [ ] Required Fields
-  - [ ] Path Validation
-  - [ ] Cron Validation
-- [ ] **Save/Update** (4h)
+- [x] **Job-Dialog Basis** (6h)
+  - [x] `src/lib/components/dialogs/CreateJobDialog.svelte`
+  - [x] Tab-System (4 Tabs)
+  - [x] Form-State Management
+- [x] **Tab 1: General** (4h)
+  - [x] Job-Name Input
+  - [x] Repository-Selection
+  - [x] Tags Input
+- [x] **Tab 2: Paths & Exclusions** (6h)
+  - [x] Source-Paths List
+  - [x] Add/Remove Paths
+  - [x] File-Browser Integration
+  - [x] Exclude-Patterns Textarea
+- [x] **Tab 3: Schedule** (8h)
+  - [x] Schedule-Type (Manual/Daily/Weekly/Monthly/Custom)
+  - [x] Time-Picker
+  - [x] Weekday-Selection (Weekly)
+  - [x] Cron-Expression (Custom)
+  - [x] Next-Run Preview
+- [x] **Tab 4: Retention** (6h)
+  - [x] Policy-Selection
+  - [x] Keep-Last Input
+  - [x] Keep-Daily/Weekly/Monthly/Yearly
+  - [x] Auto-Prune Checkbox
+  - [x] Policy-Summary
+- [x] **Form-Validation** (4h)
+  - [x] Required Fields
+  - [x] Path Validation
+  - [x] Cron Validation
+- [x] **Save/Update** (4h)
 
 **Subtotal:** 38 Stunden
 

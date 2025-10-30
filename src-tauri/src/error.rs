@@ -1,3 +1,29 @@
+use crate::types::ErrorDto;
+// Konvertierung von RusticGuiError zu ErrorDto
+impl From<&RusticGuiError> for ErrorDto {
+    fn from(error: &RusticGuiError) -> Self {
+        use RusticGuiError::*;
+        let (code, message, details) = match error {
+            RepositoryNotFound { path } => ("RepositoryNotFound", error.to_string(), Some(format!("path: {}", path))),
+            RepositoryLocked => ("RepositoryLocked", error.to_string(), None),
+            AuthenticationFailed => ("AuthenticationFailed", error.to_string(), None),
+            SnapshotNotFound { id } => ("SnapshotNotFound", error.to_string(), Some(format!("id: {}", id))),
+            BackupFailed { reason } => ("BackupFailed", error.to_string(), Some(reason.clone())),
+            RestoreFailed { reason } => ("RestoreFailed", error.to_string(), Some(reason.clone())),
+            InvalidConfig { field } => ("InvalidConfig", error.to_string(), Some(format!("field: {}", field))),
+            ConfigError { message } => ("ConfigError", error.to_string(), Some(message.clone())),
+            IoError(e) => ("IoError", error.to_string(), Some(e.to_string())),
+            JsonError(e) => ("JsonError", error.to_string(), Some(e.to_string())),
+            TomlError(msg) => ("TomlError", error.to_string(), Some(msg.clone())),
+            Internal(msg) => ("Internal", error.to_string(), Some(msg.clone())),
+        };
+        ErrorDto {
+            code: code.to_string(),
+            message,
+            details,
+        }
+    }
+}
 use thiserror::Error;
 
 /// Haupt-Fehlertypen für rustic-gui

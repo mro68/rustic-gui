@@ -1,5 +1,5 @@
 <!-- src/lib/components/shared/FileTree.svelte -->
-<script lang="ts" context="module">
+<script lang="ts" module>
   /**
    * FileTree-Komponente für hierarchische Datei-Anzeige.
    *
@@ -17,6 +17,7 @@
 
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import Self from './FileTree.svelte';
 
   interface Props {
     nodes: TreeNode[];
@@ -85,7 +86,7 @@
         class:directory={node.isDir}
       >
         {#if node.isDir}
-          <button class="expand-btn" on:click={() => toggleExpand(node)}>
+          <button class="expand-btn" onclick={() => toggleExpand(node)}>
             {#if loadingPaths.has(node.path)}
               ⟳
             {:else if expandedPaths.has(node.path)}
@@ -98,7 +99,7 @@
           <span class="expand-placeholder"></span>
         {/if}
 
-        <button class="node-label" on:click={() => handleSelect(node)}>
+        <button class="node-label" onclick={() => handleSelect(node)}>
           <span class="icon">
             {node.isDir ? '📁' : '📄'}
           </span>
@@ -110,7 +111,7 @@
       </div>
 
       {#if node.isDir && expandedPaths.has(node.path) && node.children}
-        <svelte:self nodes={node.children} {selectedPaths} {onSelect} {onExpand} />
+        <Self nodes={node.children} {selectedPaths} {onSelect} {onExpand} />
       {/if}
     </li>
   {/each}
@@ -169,9 +170,5 @@
     margin-left: auto;
     font-size: 0.875rem;
     opacity: 0.7;
-  }
-
-  ul ul {
-    padding-left: 1.5rem;
   }
 </style>

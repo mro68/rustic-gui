@@ -11,15 +11,25 @@
   export let actions: ContextMenuAction[] = [];
 
   const dispatch = createEventDispatcher();
+  let containerRef: HTMLDivElement | null = null;
 
   function handleAction(action: () => void) {
     action();
     dispatch('close');
   }
+
+  // focus first item when menu opens for accessibility
+  $: if (visible) {
+    // wait for DOM update
+    setTimeout(() => {
+      const first = containerRef?.querySelector('.context-menu-item') as HTMLElement | null;
+      first?.focus();
+    }, 0);
+  }
 </script>
 
 {#if visible}
-  <div class="context-menu active" style="left: {x}px; top: {y}px;">
+  <div class="context-menu active" style="left: {x}px; top: {y}px;" bind:this={containerRef}>
     {#each actions as item}
       {#if item === 'divider'}
         <div class="context-menu-divider"></div>
@@ -31,6 +41,15 @@
           on:click={() => handleAction(item.action)}
           on:keydown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') handleAction(item.action);
+            else if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              const next = (e.target as HTMLElement).nextElementSibling as HTMLElement | null;
+              next?.focus();
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              const prev = (e.target as HTMLElement).previousElementSibling as HTMLElement | null;
+              prev?.focus();
+            }
           }}
         >
           <span class="context-menu-icon">{item.icon}</span>
@@ -67,6 +86,11 @@
   }
   .context-menu-item:hover {
     background: #2d3348;
+  }
+  .context-menu-item:focus {
+    outline: none;
+    background: #2d3348;
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.08);
   }
   .context-menu-item.danger {
     color: #f87171;

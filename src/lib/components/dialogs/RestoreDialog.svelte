@@ -254,7 +254,7 @@
             <div class="breadcrumb">
               <button
                 class="breadcrumb-item"
-                on:click={() => navigateToPath('/')}
+                onclick={() => navigateToPath('/')}
                 disabled={currentPath === '/'}
               >
                 home
@@ -263,7 +263,7 @@
                 <span>/</span>
                 <button
                   class="breadcrumb-item"
-                  on:click={() => {
+                  onclick={() => {
                     const pathParts = breadcrumb.slice(0, index + 1);
                     navigateToPath('/' + pathParts.join('/'));
                   }}
@@ -295,11 +295,23 @@
                 <div
                   class="file-item"
                   class:selected={selectedFiles.has(node.path)}
-                  on:click={() => {
+                  role="button"
+                  tabindex="0"
+                  onclick={() => {
                     if (node.is_directory) {
                       navigateToPath(node.path);
                     } else {
                       toggleFileSelection(node.path);
+                    }
+                  }}
+                  onkeydown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      if (node.is_directory) {
+                        navigateToPath(node.path);
+                      } else {
+                        toggleFileSelection(node.path);
+                      }
                     }
                   }}
                 >
@@ -307,8 +319,10 @@
                     type="checkbox"
                     class="file-checkbox"
                     checked={selectedFiles.has(node.path)}
-                    on:change={() => toggleFileSelection(node.path)}
-                    on:click|stopPropagation
+                    onchange={(e) => {
+                      e.stopPropagation();
+                      toggleFileSelection(node.path);
+                    }}
                   />
                   <span class="file-icon">
                     {node.is_directory ? '📁' : '📄'}
@@ -590,5 +604,25 @@
     padding: 40px;
     text-align: center;
     color: var(--text-secondary);
+  }
+
+  @media (max-width: 768px) {
+    .restore-options {
+      grid-template-columns: 1fr;
+    }
+
+    .file-browser {
+      max-height: 300px;
+    }
+
+    .input-with-button {
+      flex-direction: column;
+    }
+
+    .checkbox-group {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
   }
 </style>

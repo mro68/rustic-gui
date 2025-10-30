@@ -15,6 +15,7 @@ type BackupScheduler = (); // TODO: Ersetze mit richtiger Scheduler-Implementier
 ///
 /// Wird über Tauri's `.manage()` geteilt und ist in allen Commands verfügbar.
 /// Verwaltet das aktuell geöffnete Repository, laufende Backups und den Scheduler.
+#[derive(Clone)]
 pub struct AppState {
     /// Aktuell geöffnetes Repository
     pub current_repo: Arc<Mutex<Option<Repository>>>,

@@ -41,18 +41,19 @@
 <div class="filter-bar">
   <div class="filter-row">
     <div class="filter-group">
-      <label class="filter-label">Suchbegriff</label>
+      <label class="filter-label" for="filter-search">Suchbegriff</label>
       <input
+        id="filter-search"
         class="filter-input"
         type="text"
         bind:value={search}
-        on:input={update}
+        oninput={update}
         placeholder="Nach Snapshot suchen..."
       />
     </div>
     <div class="filter-group">
-      <label class="filter-label">Hostname</label>
-      <select class="filter-select" bind:value={hostname} on:change={update}>
+      <label class="filter-label" for="filter-hostname">Hostname</label>
+      <select id="filter-hostname" class="filter-select" bind:value={hostname} onchange={update}>
         <option value="">Alle Hosts</option>
         <option value="workstation">workstation</option>
         <option value="server-01">server-01</option>
@@ -60,8 +61,8 @@
       </select>
     </div>
     <div class="filter-group">
-      <label class="filter-label">Zeitraum</label>
-      <select class="filter-select" bind:value={dateRange} on:change={update}>
+      <label class="filter-label" for="filter-dateRange">Zeitraum</label>
+      <select id="filter-dateRange" class="filter-select" bind:value={dateRange} onchange={update}>
         <option value="">Alle</option>
         <option value="today">Heute</option>
         <option value="week">Letzte 7 Tage</option>
@@ -71,8 +72,8 @@
       </select>
     </div>
     <div class="filter-group">
-      <label class="filter-label">Größe</label>
-      <select class="filter-select" bind:value={size} on:change={update}>
+      <label class="filter-label" for="filter-size">Größe</label>
+      <select id="filter-size" class="filter-select" bind:value={size} onchange={update}>
         <option value="">Alle</option>
         <option value="small">&lt; 100 MB</option>
         <option value="medium">100 MB - 1 GB</option>
@@ -82,20 +83,45 @@
     </div>
   </div>
   <div class="filter-group">
-    <label class="filter-label">Tags</label>
-    <div class="tag-filter">
-      {#each allTags as tag}
-        <div class="tag-chip {tags.includes(tag) ? 'active' : ''}" on:click={() => toggleTag(tag)}>
-          {tag}
-          <span class="tag-chip-remove" on:click|stopPropagation={() => removeTag(tag)}>×</span>
-        </div>
-      {/each}
-      <button class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px;">+ Tag</button>
-    </div>
+    <fieldset style="border:0;padding:0;margin:0;">
+      <legend class="filter-label">Tags</legend>
+      <div class="tag-filter" aria-label="Tags">
+        {#each allTags as tag}
+          <div
+            role="button"
+            tabindex="0"
+            class="tag-chip {tags.includes(tag) ? 'active' : ''}"
+            onclick={() => toggleTag(tag)}
+            onkeydown={(e) =>
+              (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), toggleTag(tag))}
+            aria-pressed={tags.includes(tag)}
+          >
+            <span>{tag}</span>
+            <button
+              type="button"
+              class="tag-chip-remove"
+              onclick={(e) => {
+                e.stopPropagation();
+                removeTag(tag);
+              }}
+              aria-label={`Remove ${tag}`}>×</button
+            >
+          </div>
+        {/each}
+        <button
+          class="btn btn-secondary"
+          type="button"
+          style="padding: 4px 12px; font-size: 12px;"
+          onclick={() => {
+            /* TODO: add tag */
+          }}>+ Tag</button
+        >
+      </div>
+    </fieldset>
   </div>
   <div class="filter-actions">
-    <button class="btn btn-secondary" on:click={reset}>Reset</button>
-    <button class="btn btn-primary" on:click={update}>Filter anwenden</button>
+    <button class="btn btn-secondary" onclick={reset}>Reset</button>
+    <button class="btn btn-primary" onclick={update}>Filter anwenden</button>
   </div>
 </div>
 

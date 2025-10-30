@@ -7,6 +7,7 @@
    */
 
   import MainLayout from '$lib/components/layout/MainLayout.svelte';
+  import BackupJobs from '$lib/components/pages/BackupJobs.svelte';
   import DashboardPage from '$lib/components/pages/DashboardPage.svelte';
   import Snapshots from '$lib/components/pages/Snapshots.svelte';
   import { currentPage } from '$lib/stores/router';
@@ -36,11 +37,7 @@
     {:else if page === 'snapshots'}
       <Snapshots />
     {:else if page === 'backup-jobs'}
-      <div class="section-title">Backup Jobs</div>
-      <div class="card">
-        <p>Hier werden Backup-Jobs erstellt und überwacht.</p>
-        <p>Features: Job-Erstellung, Scheduling, Monitoring.</p>
-      </div>
+      <BackupJobs />
     {:else if page === 'settings'}
       <div class="section-title">Einstellungen</div>
       <div class="card">

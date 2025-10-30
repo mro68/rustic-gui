@@ -2,6 +2,7 @@
 <script lang="ts">
   import Button from '$lib/components/shared/Button.svelte';
   import Modal from '$lib/components/shared/Modal.svelte';
+  import Tooltip from '$lib/components/shared/Tooltip.svelte';
   import { repositories } from '$lib/stores/repositories';
   import { loadSnapshots, snapshots } from '$lib/stores/snapshots';
   import { toastStore } from '$lib/stores/toast';
@@ -24,7 +25,7 @@
   let filterDateRange = $state('');
   let filterSize = $state('');
   let filterTags: string[] = $state([]);
-  let allTags: string[] = [];
+  let allTags: string[] = $state([]);
 
   $effect(() => {
     // Alle Tags aus allen Snapshots extrahieren (unique)
@@ -282,9 +283,11 @@
   <div class="toolbar">
     <h1 class="page-title">Alle Snapshots</h1>
     <div class="toolbar-actions">
-      <Button variant="secondary" size="sm" disabled={isLoading} onclick={refreshSnapshots}>
-        {isLoading ? '↻' : '↻'} Aktualisieren
-      </Button>
+      <Tooltip text="Snapshots aktualisieren">
+        <Button variant="secondary" size="sm" disabled={isLoading} onclick={refreshSnapshots}>
+          {isLoading ? '↻' : '↻'} Aktualisieren
+        </Button>
+      </Tooltip>
     </div>
   </div>
   <FilterBar
@@ -308,12 +311,16 @@
     <div class="bulk-actions">
       <span class="selection-count">{selectedSnapshots.size} Snapshots ausgewählt</span>
       <div class="bulk-buttons">
-        <Button variant="secondary" size="sm" onclick={() => (selectedSnapshots = new Set())}>
-          Auswahl aufheben
-        </Button>
-        <Button variant="danger" size="sm" disabled={isDeleting}>
-          {isDeleting ? '...' : '🗑️'} Löschen
-        </Button>
+        <Tooltip text="Auswahl aufheben">
+          <Button variant="secondary" size="sm" onclick={() => (selectedSnapshots = new Set())}>
+            Auswahl aufheben
+          </Button>
+        </Tooltip>
+        <Tooltip text="Snapshots löschen">
+          <Button variant="danger" size="sm" disabled={isDeleting}>
+            {isDeleting ? '...' : '🗑️'} Löschen
+          </Button>
+        </Tooltip>
       </div>
     </div>
   {/if}
@@ -390,22 +397,26 @@
               {/if}
             </td>
             <td class="actions-column">
-              <Button
-                variant="secondary"
-                size="sm"
-                onclick={() => {
-                  /* TODO: Open restore dialog */
-                }}
-              >
-                📂
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onclick={() => showSnapshotDetails(snapshot.id)}
-              >
-                ℹ️
-              </Button>
+              <Tooltip text="Wiederherstellen">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onclick={() => {
+                    /* TODO: Open restore dialog */
+                  }}
+                >
+                  📂
+                </Button>
+              </Tooltip>
+              <Tooltip text="Details anzeigen">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onclick={() => showSnapshotDetails(snapshot.id)}
+                >
+                  ℹ️
+                </Button>
+              </Tooltip>
             </td>
           </tr>
         {/each}
@@ -437,11 +448,13 @@
       <div class="empty-state">
         {#if $snapshots.length === 0}
           <p>Keine Snapshots gefunden. Erstellen Sie zuerst ein Backup.</p>
-        {:else if filterSearch}
+        {#if filterSearch}
           <p>Keine Snapshots entsprechen dem Filter.</p>
-          <Button variant="secondary" size="sm" onclick={() => (filterSearch = '')}>
-            Filter zurücksetzen
-          </Button>
+          <Tooltip text="Filter zurücksetzen">
+            <Button variant="secondary" size="sm" onclick={() => (filterSearch = '')}>
+              Filter zurücksetzen
+            </Button>
+          </Tooltip>
         {/if}
       </div>
     {/if}
@@ -467,15 +480,15 @@
     <div class="snapshot-details">
       <div class="details-grid">
         <div class="detail-item">
-          <label>ID:</label>
+          <div class="detail-label">ID:</div>
           <span class="mono">{selectedSnapshot?.id || '-'}</span>
         </div>
         <div class="detail-item">
-          <label>Zeit:</label>
+          <div class="detail-label">Zeit:</div>
           <span>{selectedSnapshot ? formatDate(selectedSnapshot.time) : '-'}</span>
         </div>
         <div class="detail-item">
-          <label>Repository:</label>
+          <div class="detail-label">Repository:</div>
           <span>
             {#if selectedSnapshot}
               {$repositories.find((r) => r.id === selectedSnapshot?.repository_id)?.name ||
@@ -486,11 +499,11 @@
           </span>
         </div>
         <div class="detail-item">
-          <label>Hostname:</label>
+          <div class="detail-label">Hostname:</div>
           <span>{selectedSnapshot?.hostname || '-'}</span>
         </div>
         <div class="detail-item">
-          <label>Tags:</label>
+          <div class="detail-label">Tags:</div>
           <span>
             {#if selectedSnapshot?.tags && selectedSnapshot.tags.length > 0}
               {selectedSnapshot.tags.join(', ')}
@@ -500,7 +513,7 @@
           </span>
         </div>
         <div class="detail-item">
-          <label>Größe:</label>
+          <div class="detail-label">Größe:</div>
           <span>
             {#if selectedSnapshot?.total_size !== undefined}
               {formatBytes(selectedSnapshot.total_size)}
@@ -510,11 +523,11 @@
           </span>
         </div>
         <div class="detail-item">
-          <label>Pfad:</label>
+          <div class="detail-label">Pfad:</div>
           <span class="mono">{selectedSnapshot?.paths?.join(', ') || '-'}</span>
         </div>
         <div class="detail-item">
-          <label>Username:</label>
+          <div class="detail-label">Username:</div>
           <span>{selectedSnapshot?.username || '-'}</span>
         </div>
       </div>
@@ -552,16 +565,20 @@
   {/if}
 
   <div slot="footer">
-    <Button variant="secondary" onclick={() => (showDetailsModal = false)}>Schließen</Button>
+    <Tooltip text="Schließen">
+      <Button variant="secondary" onclick={() => (showDetailsModal = false)}>Schließen</Button>
+    </Tooltip>
     {#if selectedSnapshot}
-      <Button
-        variant="primary"
-        onclick={() => {
-          /* TODO: Open restore dialog */
-        }}
-      >
-        📂 Wiederherstellen
-      </Button>
+      <Tooltip text="Wiederherstellen">
+        <Button
+          variant="primary"
+          onclick={() => {
+            /* TODO: Open restore dialog */
+          }}
+        >
+          📂 Wiederherstellen
+        </Button>
+      </Tooltip>
     {/if}
   </div>
 </Modal>
@@ -591,24 +608,6 @@
     display: flex;
     gap: 0.75rem;
     align-items: center;
-  }
-
-  .search-container {
-    position: relative;
-  }
-
-  .search-input {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 0.375rem;
-    padding: 0.5rem 0.75rem;
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    width: 300px;
-  }
-
-  .search-input::placeholder {
-    color: var(--text-secondary);
   }
 
   .bulk-actions {
@@ -760,7 +759,7 @@
     gap: 0.25rem;
   }
 
-  .detail-item label {
+  .detail-item .detail-label {
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-secondary);
@@ -829,8 +828,12 @@
       justify-content: space-between;
     }
 
-    .search-input {
-      width: 100%;
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .snapshots-table {
+      min-width: 600px;
     }
 
     .details-grid {

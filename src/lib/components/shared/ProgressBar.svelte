@@ -1,4 +1,3 @@
-/* eslint-env browser */
 <script lang="ts">
   /**
    * ProgressBar-Komponente für Fortschrittsanzeigen
@@ -11,8 +10,18 @@
   export let label: string = '';
 </script>
 
-<div class="progress-bar" role="progressbar" aria-valuenow={value ?? undefined} aria-valuemin={value !== undefined ? 0 : undefined} aria-valuemax={value !== undefined ? 100 : undefined}>
-  <div class="progress-fill {value === undefined ? 'indeterminate' : ''}" style={value !== undefined ? `width: ${value}%` : ''}></div>
+/* eslint-env browser */
+<div
+  class="progress-bar"
+  role="progressbar"
+  aria-valuenow={value ?? undefined}
+  aria-valuemin={value !== undefined ? 0 : undefined}
+  aria-valuemax={value !== undefined ? 100 : undefined}
+>
+  <div
+    class="progress-fill {value === undefined ? 'indeterminate' : ''}"
+    style={value !== undefined ? `width: ${value}%` : ''}
+  ></div>
 </div>
 {#if label}
   <div class="progress-label">{label}</div>
@@ -22,7 +31,7 @@
   .progress-bar {
     width: 100%;
     height: 8px;
-    background: var(--bg-tertiary);
+    background: #2d3348;
     border-radius: 4px;
     overflow: hidden;
     margin-top: 12px;
@@ -42,13 +51,18 @@
     animation: indeterminate 1.2s infinite linear;
   }
   @keyframes indeterminate {
-    0% { left: -40%; }
-    100% { left: 100%; }
+    0% {
+      left: -40%;
+    }
+    100% {
+      left: 100%;
+    }
   }
   .progress-label {
-    margin-top: 4px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    text-align: right;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #71717a;
+    margin-top: 8px;
   }
 </style>

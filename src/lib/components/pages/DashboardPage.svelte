@@ -16,7 +16,9 @@
   import type { RepositoryDto } from '../../types';
   import ActivityLog from './ActivityLog.svelte';
   import RepositoryCard from './RepositoryCard.svelte';
+  import StorageChart from './StorageChart.svelte';
   // Test Tauri API (Tauri 2.x: ES-Module-Import)
+  import Tooltip from '$lib/components/shared/Tooltip.svelte';
   import { getVersion } from '@tauri-apps/api/app';
   // State-Variablen
   let loading = $state(false);
@@ -67,11 +69,35 @@
   });
 </script>
 
-<div class="toolbar">
-  <h2 class="section-title">Repositories</h2>
-  <button class="btn btn-secondary" on:click={refreshRepos} disabled={loading}>
-    {loading ? 'Lädt...' : 'Refresh'}
-  </button>
+<div class="toolbar dashboard-toolbar" role="region" aria-label="Repository Aktionen">
+  <div class="section-title">Repositories</div>
+  <div class="toolbar-actions">
+    <Tooltip text="Neues Repository öffnen">
+      <button
+        class="btn btn-primary"
+        aria-label="Repository öffnen"
+        title="Neues Repository öffnen"
+        onclick={() => {
+          /* TODO: Dialog öffnen */
+        }}
+      >
+        <span class="btn-icon" aria-hidden="true">➕</span>
+        <span class="btn-text">Repository öffnen</span>
+      </button>
+    </Tooltip>
+    <Tooltip text="Repositories neu laden">
+      <button
+        class="btn btn-secondary"
+        aria-label="Repositories neu laden"
+        title="Repositories neu laden"
+        onclick={refreshRepos}
+        disabled={loading}
+      >
+        <span class="btn-icon" aria-hidden="true">{loading ? '⏳' : '🔄'}</span>
+        <span class="btn-text">{loading ? 'Lädt...' : 'Refresh'}</span>
+      </button>
+    </Tooltip>
+  </div>
 </div>
 
 {#if error}
@@ -84,8 +110,108 @@
   {/each}
 </div>
 
+<div class="section-title">Storage Usage</div>
+<div class="dashboard-grid">
+  <div class="card">
+    <div class="chart-container">
+      <StorageChart totalSpace={100} usedSpace={30} label="Total Space" sublabel="30 of 100 GB" />
+      <StorageChart totalSpace={60} usedSpace={30} label="Available Space" sublabel="30 of 60 GB" />
+    </div>
+  </div>
+</div>
+
+<div class="section-title">Recent Activity</div>
 <ActivityLog {logEntries} />
 
 <style>
-  /* Styles gemäß Mockup werden in app.css und Komponenten-CSS gepflegt */
+  .dashboard-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg-primary, #1a1d2e);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 0 12px 0;
+    border-bottom: 1px solid var(--border-color, #2d3348);
+  }
+  .toolbar-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--color-primary, #3b82f6);
+    color: white;
+  }
+  .btn-primary:hover {
+    background: var(--color-primary-dark, #2563eb);
+  }
+  .btn-secondary {
+    background: var(--bg-secondary, #2d3348);
+    color: var(--text-primary, #e4e4e7);
+    border: 1px solid #3e4457;
+  }
+  .btn-secondary:hover {
+    background: #3e4457;
+  }
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .btn-icon {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+  }
+  .btn-text {
+    display: inline;
+  }
+  @media (max-width: 768px) {
+    .dashboard-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 0 0 8px 0;
+    }
+    .toolbar-actions {
+      margin-top: 8px;
+      justify-content: flex-start;
+    }
+  }
+  @media (max-width: 1024px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .chart-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 20px;
+  }
+  .section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #f4f4f5;
+  }
 </style>
