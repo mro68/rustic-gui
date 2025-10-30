@@ -19,20 +19,39 @@
   export let onClose: (() => void) | undefined = undefined;
 
   let timer: any;
+  let closing = false;
 
-  onMount(() => {
+  function startTimer() {
     if (duration > 0) {
       // eslint-disable-next-line no-undef
       timer = setTimeout(() => {
         close();
       }, duration);
     }
-    // eslint-disable-next-line no-undef
-    return () => clearTimeout(timer);
+  }
+
+  function clearTimer() {
+    if (timer) {
+      clearTimeout(timer);
+      // eslint-disable-next-line no-undef
+      timer = undefined;
+    }
+  }
+
+  onMount(() => {
+    startTimer();
+    // cleanup
+    return () => clearTimer();
   });
 
   function close() {
-    if (onClose) onClose();
+    // play exit animation, then call onClose
+    if (closing) return;
+    closing = true;
+    // wait for animation (200ms) then invoke onClose
+    setTimeout(() => {
+      if (onClose) onClose();
+    }, 200);
   }
 
   $: icon =
@@ -42,7 +61,13 @@
     : 'ℹ️';
 </script>
 
-<div class="toast toast-{type}" role="status" aria-live="polite">
+<div
+  class="toast toast-{type} {closing ? 'toast-closing' : ''}"
+  role="status"
+  aria-live="polite"
+  on:mouseenter={() => { clearTimer(); }}
+  on:mouseleave={() => { startTimer(); }}
+>
   <span class="toast-icon" aria-hidden="true">{icon}</span>
   <span class="toast-message">
     <slot>{message}</slot>
@@ -101,5 +126,12 @@
   @keyframes toastIn {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes toastOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(12px); }
+  }
+  .toast-closing {
+    animation: toastOut 0.18s forwards;
   }
 </style>

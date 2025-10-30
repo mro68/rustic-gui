@@ -57,7 +57,7 @@
     border-radius: 6px;
     border: none;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.15s, color 0.15s, box-shadow 0.12s, transform 0.08s;
     outline: none;
     padding: 10px 20px;
     height: 40px;
@@ -75,6 +75,12 @@
   }
   .btn-secondary:hover {
     background: #3e4457;
+  }
+  .btn:active {
+    transform: translateY(1px) scale(0.997);
+  }
+  .btn:focus-visible {
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12), 0 0 0 4px rgba(59,130,246,0.12);
   }
   .btn-danger {
     background: var(--color-error);
