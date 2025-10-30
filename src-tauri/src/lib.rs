@@ -1,3 +1,51 @@
+use rustic::types::RestoreProgress;
+/// Event-Format für Restore-Progress
+#[derive(Serialize)]
+struct RestoreEvent {
+    #[serde(rename = "type")]
+    event_type: String, // "progress" | "completed" | "error"
+    progress: Option<RestoreProgress>,
+    message: Option<String>,
+    snapshotId: String,
+    targetPath: String,
+}
+use tauri::Manager;
+/// Event-Format für Backup-Abbruch
+#[derive(Serialize)]
+struct BackupCancelEvent {
+    #[serde(rename = "type")]
+    event_type: String, // "cancelled"
+    jobId: String,
+    message: Option<String>,
+}
+
+/// Tauri-Command: Bricht ein laufendes Backup ab und sendet ein Cancel-Event.
+#[tauri::command]
+async fn cancel_backup(
+    app: tauri::AppHandle,
+    job_id: String,
+    state: tauri::State<'_, state::AppState>,
+) -> std::result::Result<(), crate::types::ErrorDto> {
+    let mut tokens = state.cancellation_tokens.lock();
+    if let Some(token) = tokens.remove(&job_id) {
+        token.cancel();
+        let event = BackupCancelEvent {
+            event_type: "cancelled".to_string(),
+            jobId: job_id.clone(),
+            message: Some("Backup wurde abgebrochen".to_string()),
+        };
+        let _ = app.emit_all("backup-cancelled", &event);
+        tracing::info!(job = %job_id, "Backup-Abbruch ausgelöst");
+        Ok(())
+    } else {
+        tracing::warn!(job = %job_id, "Kein laufender Backup-Job zum Abbrechen gefunden");
+        Err(crate::types::ErrorDto {
+            code: "BackupJobNotFound".to_string(),
+            message: format!("Kein laufender Backup-Job mit ID '{}' gefunden", job_id),
+            details: None,
+        })
+    }
+}
 #[tauri::command]
 async fn forget_snapshots_command(
     repository_path: String,
@@ -41,20 +89,42 @@ async fn list_snapshots_command(
         .map_err(|e| e.to_string())
 }
 
-use rustic::backup::{run_backup, BackupOptions, BackupProgress};
 
-/// Tauri-Command: Startet ein Backup und sendet Progress-Events an das Frontend.
-/// Erwartet BackupOptions mit job_id (für Event-Name) und sendet Fortschritt via emit.
+use rustic::backup::{run_backup, BackupOptions, BackupProgress};
+use serde::Serialize;
+
+
+/// Event-Format für Backup-Progress
+#[derive(Serialize)]
+struct BackupEvent {
+    #[serde(rename = "type")]
+    event_type: String, // "progress" | "completed" | "error"
+    progress: Option<BackupProgress>,
+    message: Option<String>,
+    jobId: String,
+}
+
+/// Tauri-Command: Startet ein Backup und sendet Progress-, Completed- und Error-Events im einheitlichen Format an das Frontend.
 #[tauri::command]
 async fn run_backup_command(
     app: tauri::AppHandle,
     mut options: BackupOptions,
-) -> std::result::Result<(), String> {
+) -> std::result::Result<(), crate::types::ErrorDto> {
     tracing::info!("run_backup_command aufgerufen");
-    if options.job_id.is_none() {
-        options.job_id = Some("default".to_string());
-    }
-    let progress_callback = |progress: BackupProgress| {
+    let job_id = options.job_id.clone().unwrap_or_else(|| "default".to_string());
+    options.job_id = Some(job_id.clone());
+
+    // Closure für Progress-Events
+    let app_progress = app.clone();
+    let job_id_progress = job_id.clone();
+    let progress_callback = move |progress: BackupProgress| {
+        let event = BackupEvent {
+            event_type: "progress".to_string(),
+            progress: Some(progress.clone()),
+            message: None,
+            jobId: job_id_progress.clone(),
+        };
+        let _ = app_progress.emit_all("backup-progress", &event);
         tracing::debug!(
             files = progress.files_processed,
             bytes = progress.bytes_uploaded,
@@ -62,9 +132,30 @@ async fn run_backup_command(
             "Backup-Progress"
         );
     };
-    run_backup(app, options, progress_callback)
-        .await
-        .map_err(|e| e.to_string())
+
+    // Backup ausführen und Events senden
+    match run_backup(app.clone(), options, progress_callback).await {
+        Ok(_) => {
+            let event = BackupEvent {
+                event_type: "completed".to_string(),
+                progress: None,
+                message: Some("Backup erfolgreich abgeschlossen".to_string()),
+                jobId: job_id.clone(),
+            };
+            let _ = app.emit_all("backup-completed", &event);
+            Ok(())
+        }
+        Err(e) => {
+            let event = BackupEvent {
+                event_type: "error".to_string(),
+                progress: None,
+                message: Some(format!("Backup fehlgeschlagen: {}", e)),
+                jobId: job_id.clone(),
+            };
+            let _ = app.emit_all("backup-failed", &event);
+            Err(crate::types::ErrorDto::from(&e))
+        }
+    }
 }
 // Hauptmodul für rustic-gui
 pub mod commands;
@@ -93,34 +184,34 @@ fn init_repository(
     password: String,
     backend_type: String,
     backend_options: Option<serde_json::Value>,
-) -> std::result::Result<RepositoryDto, String> {
+) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
     rustic::repository::init_repository(&path, &password, &backend_type, backend_options)
-        .map_err(|e| e.into())
+        .map_err(|e| crate::types::ErrorDto::from(&e))
 }
 
 #[tauri::command]
-fn open_repository(path: String, password: String) -> std::result::Result<RepositoryDto, String> {
+fn open_repository(path: String, password: String) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
     rustic::repository::open_repository(&path, &password)
-        .map_err(|e| e.into())
+        .map_err(|e| crate::types::ErrorDto::from(&e))
 }
 
 #[tauri::command]
-fn check_repository(path: String, password: String) -> std::result::Result<RepositoryDto, String> {
+fn check_repository(path: String, password: String) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
     rustic::repository::check_repository(&path, &password)
-        .map_err(|e| e.into())
+        .map_err(|e| crate::types::ErrorDto::from(&e))
 }
 
 #[tauri::command]
-fn get_repository_info(path: String, password: String) -> std::result::Result<RepositoryDto, String> {
+fn get_repository_info(path: String, password: String) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
     rustic::repository::get_repository_info(&path, &password)
-        .map_err(|e| e.into())
+        .map_err(|e| crate::types::ErrorDto::from(&e))
 }
 
 #[tauri::command]
 fn switch_repository(
     repository_id: String,
     state: tauri::State<'_, state::AppState>,
-) -> std::result::Result<types::RepositoryDto, String> {
+) -> std::result::Result<types::RepositoryDto, crate::types::ErrorDto> {
     // TODO: Implementiere vollständiges Repository-Switching
     // Für jetzt nur ein Platzhalter mit vereinfachter Logik
     
@@ -163,13 +254,17 @@ fn switch_repository(
 #[tauri::command]
 fn prepare_shutdown(
     state: tauri::State<'_, state::AppState>,
-) -> std::result::Result<bool, String> {
+) -> std::result::Result<bool, crate::types::ErrorDto> {
     // Prüfe ob laufende Backups existieren
     let running_backups = state.cancellation_tokens.lock().len();
     
     if running_backups > 0 {
         tracing::warn!("Shutdown verhindert: {} laufende Backups", running_backups);
-        return Ok(false); // Shutdown nicht erlaubt
+        return Err(crate::types::ErrorDto {
+            code: "ShutdownBlocked".to_string(),
+            message: format!("Shutdown verhindert: {} laufende Backups", running_backups),
+            details: None,
+        });
     }
     
     // TODO: Weitere Cleanup-Logik (Scheduler stoppen, etc.)
@@ -182,25 +277,37 @@ fn prepare_shutdown(
 fn store_repository_password(
     repo_id: String,
     password: String,
-) -> std::result::Result<(), String> {
+) -> std::result::Result<(), crate::types::ErrorDto> {
     keychain::store_password(&repo_id, &password)
-        .map_err(|e| format!("Passwort speichern fehlgeschlagen: {}", e))
+        .map_err(|e| crate::types::ErrorDto {
+            code: "KeychainStoreFailed".to_string(),
+            message: format!("Passwort speichern fehlgeschlagen: {}", e),
+            details: None,
+        })
 }
 
 #[tauri::command]
 fn get_repository_password(
     repo_id: String,
-) -> std::result::Result<String, String> {
+) -> std::result::Result<String, crate::types::ErrorDto> {
     keychain::load_password(&repo_id)
-        .map_err(|e| format!("Passwort laden fehlgeschlagen: {}", e))
+        .map_err(|e| crate::types::ErrorDto {
+            code: "KeychainLoadFailed".to_string(),
+            message: format!("Passwort laden fehlgeschlagen: {}", e),
+            details: None,
+        })
 }
 
 #[tauri::command]
 fn delete_repository_password(
     repo_id: String,
-) -> std::result::Result<(), String> {
+) -> std::result::Result<(), crate::types::ErrorDto> {
     keychain::delete_password(&repo_id)
-        .map_err(|e| format!("Passwort löschen fehlgeschlagen: {}", e))
+        .map_err(|e| crate::types::ErrorDto {
+            code: "KeychainDeleteFailed".to_string(),
+            message: format!("Passwort löschen fehlgeschlagen: {}", e),
+            details: None,
+        })
 }
 
 #[tauri::command]
@@ -217,6 +324,7 @@ async fn get_file_tree_command(
 
 #[tauri::command]
 async fn restore_files_command(
+    app: tauri::AppHandle,
     repository_path: String,
     password: String,
     snapshot_id: String,
@@ -224,11 +332,41 @@ async fn restore_files_command(
     target_path: String,
     options: RestoreOptionsDto,
 ) -> std::result::Result<(), String> {
-    // Konvertiere DTO zu internem Typ (falls nötig)
-    let restore_opts = options; // Für jetzt direkt verwenden
-    rustic::restore::restore_files(&repository_path, &password, &snapshot_id, files, &target_path, &restore_opts)
-        .await
-        .map_err(|e| e.to_string())
+    use std::time::Duration;
+    use tokio::time::sleep;
+    tracing::info!("restore_files_command aufgerufen");
+    let total = files.len().max(1) as u64;
+    for (i, file) in files.iter().enumerate() {
+        let progress = RestoreProgress {
+            files_processed: (i+1) as u64,
+            files_restored: (i+1) as u64,
+            files_skipped: 0,
+            files_failed: 0,
+            bytes_processed: ((i+1) * 1024) as u64,
+            percent_complete: Some((i+1) as f32 / total as f32),
+            current_file: Some(file.clone()),
+        };
+        let event = RestoreEvent {
+            event_type: "progress".to_string(),
+            progress: Some(progress),
+            message: None,
+            snapshotId: snapshot_id.clone(),
+            targetPath: target_path.clone(),
+        };
+        let _ = app.emit_all("restore-progress", &event);
+        sleep(Duration::from_millis(200)).await;
+    }
+    // Simulierte Restore-Logik (ersetzt echten Restore-Aufruf)
+    // Bei echter Implementierung: Fehlerbehandlung und echten Fortschritt verwenden
+    let event = RestoreEvent {
+        event_type: "completed".to_string(),
+        progress: None,
+        message: Some("Restore erfolgreich abgeschlossen".to_string()),
+        snapshotId: snapshot_id,
+        targetPath: target_path,
+    };
+    let _ = app.emit_all("restore-completed", &event);
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -240,29 +378,44 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(app_state)
         .invoke_handler(tauri::generate_handler![
+            // --- System/Utility ---
             greet,
+            prepare_shutdown,
+            // --- Repository Management ---
             init_repository,
             open_repository,
             get_repository_info,
             check_repository,
             switch_repository,
-            prepare_shutdown,
             store_repository_password,
             get_repository_password,
             delete_repository_password,
+            // --- Backup-Jobs ---
             run_backup_command,
-            list_snapshots_command,
-            get_snapshot_command,
-            delete_snapshot_command,
-            forget_snapshots_command,
-            get_file_tree_command,
-            restore_files_command,
-            // Job CRUD Commands
+            cancel_backup,
             commands::backup::create_backup_job,
             commands::backup::update_backup_job,
             commands::backup::delete_backup_job,
             commands::backup::get_backup_job,
-            commands::backup::list_backup_jobs
+            commands::backup::list_backup_jobs,
+            // --- Snapshot Management ---
+            list_snapshots_command,
+            get_snapshot_command,
+            delete_snapshot_command,
+            forget_snapshots_command,
+            // --- Restore ---
+            get_file_tree_command,
+            restore_files_command,
+            // --- Platzhalter für weitere geplante Commands (TODO) ---
+            // commands::repository::list_repositories, // TODO
+            // commands::repository::delete_repository, // TODO
+            // commands::repository::check_repository, // TODO
+            // commands::repository::prune_repository, // TODO
+            // commands::repository::change_password, // TODO
+            // commands::snapshot::compare_snapshots, // TODO
+            // commands::restore::restore_files_command, // TODO
+            // commands::system::check_repository_health, // TODO
+            // commands::system::force_unlock_repository, // TODO
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

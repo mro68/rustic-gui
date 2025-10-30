@@ -1,109 +1,151 @@
-# ToDo-Liste: 1:1-Umsetzung aller Mockups (Rustic GUI)
+Hier ist die ausführlich ergänzte TODO-Liste für die Integration von Svelte 5 und Tauri 2, inklusive Best-Practice-Hinweisen und konkreten Ergänzungen:
 
-## 1. Seiten (Pages)
+---
 
-- [x] **DashboardPage.svelte**
-  - [x] Toolbar exakt nach Mockup (Sticky, Buttons, Icons)
-  - [x] „+ Repository öffnen“-Button mit Dialog (UI-Dummy, dann Funktion)
-  - [x] Grid-Layout für RepositoryCards (Spacing, Responsive)
-  - [x] Section-Titel, Abstände, Farben exakt wie im Mockup
-  - [x] ActivityLog: Styling, Icons, Farben, States (info/warning/error)
-  - [x] Storage Usage Charts (wie Mockup)
-  - [x] Responsive-Design (Tablet/Mobile)
+## Phase 1: Rust-Backend (Tauri 2-Befehle & Events)
 
-- [x] **Snapshots.svelte**
-  - [x] Tabelle mit Snapshots (Spalten, Filter, Pagination)
-  - [x] FilterBar: Tags, Hostname, Zeitraum, Größe
-  - [x] Kontextmenü für Snapshots (Bulk, Rechtsklick)
-  - [x] Snapshot-Vergleichs-UI (Side-by-Side, Diff)
-  - [x] Snapshot-Info-Dialog
-  - [x] Responsive-Design
+Der wichtigste Schritt ist die Implementierung der Rust-Seite, die die in `src/lib/api/` definierten Verträge erfüllt.
 
-- [x] **BackupJobs.svelte** (neu anlegen)
-  - [x] Liste aller Backup-Jobs (Job-Item-Layout, Status, Aktionen)
-  - [x] „+ New Job“-Button mit Dialog (UI-Dummy, dann Funktion)
-  - [x] Job-Kontextmenü: Edit, Enable/Disable, Delete
-  - [x] Scheduling-Info, Retention-Policy-Anzeige
-  - [x] Responsive-Design
+- [x] **Grund-Setup (in `src-tauri/src/main.rs`)**
+  - [x] `main`-Funktion mit `tauri::Builder` aufsetzen.
+  - [x] Alle `#[tauri::command]`-Funktionen im `.invoke_handler()` registrieren.
+  - [x] Einen `tauri::State` (z.B. `AppState`) einrichten, um langlebige Objekte wie Repository-Verbindungen oder einen `tokio::Mutex` für den Zugriff auf `rustic_core` zu verwalten.
+  - [x] **Best-Practice:** State thread-sicher gestalten, um parallele Operationen (z.B. mehrere Backups) zu ermöglichen.
 
-- [x] **Repositories.svelte** (neu anlegen)
-  - [x] Toolbar mit „+ Add Repository"-Button
-  - [x] Liste aller Repositories (Job-Item-Layout, Status, Aktionen)
-  - [x] Repository-Kontextmenü: Edit, Unlock, Delete
-  - [x] Repository-Details-Dialog
-  - [x] Responsive-Design
+- [x] **Befehle: Repository-Management (Rust)**
+  - [x] `#[tauri::command] async fn list_repositories() -> Result<Vec<RepositoryDto>, ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn init_repository(path: String, password: String, ...) -> Result<(), ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn open_repository(path: String, password: String) -> Result<RepositoryDto, ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn delete_repository(id: String, delete_data: bool) -> Result<(), ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn check_repository(id: String, read_data: bool, ...) -> Result<CheckResultDto, ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn prune_repository(id: String, ...) -> Result<PruneResultDto, ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn change_password(id: String, old_pass: String, new_pass: String) -> Result<(), ErrorDto>` (Platzhalter vorhanden)
+  - [x] **Ergänzung:** Fehler als strukturierte Objekte (`ErrorDto`) zurückgeben, nicht nur als String.
 
-- [x] **Settings.svelte** (neu anlegen)
-  - [x] Layout und Felder gemäß Mockup
-  - [x] Responsive-Design
+- [x] **Befehle: Backup-Job-Management (Rust)**
+  - [x] `#[tauri::command] async fn list_jobs() -> Result<Vec<BackupJob>, ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn create_job(job: BackupJob) -> Result<(), ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn update_job(job: BackupJob) -> Result<(), ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn delete_job(id: String) -> Result<(), ErrorDto>` (Platzhalter vorhanden)
 
-## 2. Dialoge & Popups
+- [x] **Befehle: Snapshot-Management (Rust)**
+  - [x] `#[tauri::command] async fn list_snapshots(repository_id: String) -> Result<Vec<SnapshotDto>, ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn get_snapshot_info(id: String) -> Result<SnapshotDto, ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn delete_snapshot(id: String) -> Result<(), ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn compare_snapshots(id_a: String, id_b: String) -> Result<DiffResultDto, ErrorDto>` (Platzhalter vorhanden)
 
-- [x] **AddRepositoryDialog.svelte**
-  - [x] Typ-Selector, Felder, States
-- [x] **UnlockRepositoryDialog.svelte** (neu anlegen)
-  - [x] Passwortfeld, States
-- [x] **CreateJobDialog.svelte**
-  - [x] Wizard, Tabs, Felder, Validierung
-- [x] **EditJobDialog.svelte** (neu anlegen)
-  - [x] Wizard, Tabs, Felder, Validierung
-- [x] **RunBackupDialog.svelte** (neu anlegen)
-  - [x] Progress, Log
-- [x] **DeleteJobDialog.svelte** (neu anlegen)
-  - [x] Confirmation, States
-- [x] **DeleteRepoDialog.svelte** (neu anlegen)
-  - [x] Confirmation, States
-- [x] **RestoreDialog.svelte**
-  - [x] File-Browser, Restore-Optionen
-- [x] **CompareSnapshotsDialog.svelte**
-  - [x] Side-by-Side, FilterBar
-- [x] **SnapshotInfoDialog.svelte** (neu anlegen)
-  - [x] Details-Ansicht
-- [x] **ChangePasswordDialog.svelte** (neu anlegen)
-  - [x] Felder, Strength-Indicator
-- [x] **CheckRepoDialog.svelte** (neu anlegen)
-  - [x] Progress, Log
-- [x] **PruneRepoDialog.svelte** (neu anlegen)
-  - [x] Stats, Confirmation
+- [x] **Befehle: Prozess-Steuerung (Rust)**
+  - [x] `#[tauri::command] async fn run_backup(job_id: String, app_handle: tauri::AppHandle)` (Platzhalter vorhanden)
+    - [x] Diese Funktion _muss_ Events für Fortschritt (`backup-progress`), Erfolg (`backup-completed`) und Fehler (`backup-failed`) an das Frontend senden (siehe `src/lib/api/events.ts`).
+    - [x] **Best-Practice:** Einheitliches Event-Format verwenden: `{ type, progress, message, jobId, ... }`
+  - [x] `#[tauri::command] async fn cancel_backup(job_id: String)` (implementiert)
+    - [x] Implementieren Sie eine Logik (z.B. über `tokio::sync::watch`), um laufende Backups abzubrechen.
+  - [x] `#[tauri::command] async fn restore_files_command(..., app_handle: tauri::AppHandle)` (Platzhalter vorhanden)
+    - [x] Diese Funktion _muss_ Events für den Wiederherstellungs-Fortschritt senden (siehe `src/lib/api/restore.ts`, Event: `restore-progress`).
+    - [x] **Best-Practice:** Auch hier einheitliches Event-Format.
+  - [x] `#[tauri::command] async fn get_file_tree_command(...) -> Result<FileTreeNode, ErrorDto>` (Platzhalter vorhanden)
 
-## 3. Shared/Advanced UI-Komponenten
+- [ ] **Typen & DTOs (Rust)**
+  - [x] Sicherstellen, dass alle `...Dto`-Typen (wie `RepositoryDto`, `SnapshotDto`, `FileTreeNode`, `ErrorDto`) in Rust definiert sind, `serde::Serialize` implementieren und den TypeScript-Typen in `src/lib/types/` entsprechen. (Hinweis: Optionale Felder wie `username`/`summary` in `SnapshotDto` können bei Bedarf ergänzt werden.)
+  - [ ] **Best-Practice:** Automatisierte Synchronisation der DTOs mit TypeScript-Typen (z.B. via `ts-rs` oder `typeshare`), Build-Workflow anpassen.
 
-- [x] **FilterBar.svelte**
-  - [x] Tags, Hostname, Zeitraum, Größe (wie Mockup)
-- [x] **ContextMenu.svelte**
-  - [x] Bulk, Rechtsklick, Actions (wie Mockup)
-- [x] **Pagination.svelte**
-  - [x] Controls, States (wie Mockup)
-- [x] **Input.svelte, Select.svelte, Checkbox.svelte**
-  - [x] Reusable Components für Formulare
-- [x] **Modal.svelte, Button.svelte, Badge.svelte, ProgressBar.svelte**
-  - [x] Auf Mockup-Details prüfen und ggf. anpassen
+---
 
-## 4. Responsive Design & Accessibility
+## Phase 2: Svelte 5-Frontend (API-Anbindung & Logik)
 
-- [x] Alle Seiten und Dialoge auf Responsive-Design prüfen und anpassen (Breakpoints, Mobile-Ansicht)
-- [x] Sidebar als Overlay auf Mobile/Tablet
-- [x] Grid/Tabelle einspaltig auf kleinen Screens
-- [x] Buttons und Touch-Flächen vergrößern
-- [x] ARIA-Labels, Keyboard-Navigation, Fokus-Management
-- [x] Tooltips für alle wichtigen Aktionen
-- [ ] Visuelle Rückmeldungen für alle Interaktionen
+- [ ] **Fehlende API-Wrapper (TypeScript)**
+  - [ ] `src/lib/api/backup-jobs.ts` (oder ähnlich) erstellen für `list_jobs`, `create_job`, `update_job`, `delete_job`.
+  - [ ] `src/lib/api/repositories.ts` ergänzen um `delete_repository`, `check_repository`, `prune_repository`, `change_password`.
+  - [ ] `src/lib/api/snapshots.ts` ergänzen um `compare_snapshots`.
+  - [ ] **Ergänzung:** Alle API-Wrapper müssen strukturierte Fehlerobjekte (`ErrorDto`) korrekt behandeln.
 
-## 5. UI-Details & States
+- [ ] **Daten-Initialisierung (Stores & Pages)**
+  - [ ] `DashboardPage.svelte`: `refreshRepos` (in `onMount`) implementieren, um `api.listRepositories` aufzurufen und den `$repositories`-Store zu füllen.
+  - [ ] `Repositories.svelte`: `loadRepositories` (in `onMount`) implementieren, um `api.listRepositories` aufzurufen.
+  - [ ] `Snapshots.svelte`: `refreshSnapshots` (in `onMount`) implementieren, um `api.listSnapshots` für alle entsperrten Repos aufzurufen.
+  - [ ] `BackupJobs.svelte`: `loadJobs` (in `onMount`) implementieren, um den neuen `api.listJobs` aufzurufen.
+  - [ ] **Best-Practice:** Lade- und Fehlerzustände in den jeweiligen Stores abbilden.
 
-- [x] Alle Buttons: Icons, Tooltips, ARIA-Labels, Disabled/Loading-States
-- [x] Badges, Tags, Status-Anzeigen
-- [x] Hover-, Active-, Disabled-, Empty-, Success-States
-- [x] Animationen (Transitions, Progress, Dialoge)
-- [x] User-Avatar im Header (Platzhalter, später Funktion)
+- [ ] **Fehlerbehandlung (Global)**
+  - [ ] Alle `invoke`-Aufrufe in `src/lib/api/` und in den Komponenten mit `try...catch`-Blöcken versehen.
+  - [ ] Fehler einheitlich über `toastStore.error(error.message)` dem Benutzer anzeigen.
+  - [ ] **Ergänzung:** Fehlerobjekte auswerten und ggf. spezifische UI-Reaktionen (z.B. Passwort falsch, Netzwerkfehler) ermöglichen.
 
-## 6. Testing & Review
+- [ ] **Dialog-Workflow: Repository**
+  - [ ] `AddRepositoryDialog.svelte`: `handleSubmit` an `api.initRepository` anbinden.
+  - [ ] `AddRepositoryDialog.svelte`: "Durchsuchen"-Button mit `@tauri-apps/api/dialog` (`open({ directory: true })`) implementieren.
+  - [ ] `DeleteRepoDialog.svelte`: `handleDelete` an `api.deleteRepository` anbinden.
+  - [ ] `UnlockRepositoryDialog.svelte`: `handleUnlock` an `api.openRepository` anbinden.
+  - [ ] `CheckRepoDialog.svelte`: `startCheck` an `api.checkRepository` anbinden (Fortschritts-Events verarbeiten).
+  - [ ] `PruneRepoDialog.svelte`: `startPruning` an `api.pruneRepository` anbinden (Fortschritts-Events verarbeiten).
+  - [ ] `ChangePasswordDialog.svelte`: `handleSubmit` an `api.changePassword` anbinden.
+  - [ ] **Best-Practice:** Fortschritts- und Ergebnis-Events einheitlich und wiederverwendbar im UI behandeln.
 
-- [ ] UI-Tests für alle Hauptzustände (Vitest, Playwright o.ä.)
-- [ ] Visuelle Regressionstests (Pixel-Perfect)
-- [ ] Review mit Mockup-Vergleich (Screenshot-Review)
+- [ ] **Dialog-Workflow: Backup & Restore**
+  - [ ] `CreateJobDialog.svelte`: `createJob` an `api.createJob` anbinden.
+  - [ ] `EditJobDialog.svelte`: `handleSubmit` an `api.updateJob` anbinden.
+  - [ ] `DeleteJobDialog.svelte`: `handleDelete` an `api.deleteJob` anbinden.
+  - [ ] `RunBackupDialog.svelte`: Sicherstellen, dass das Starten des Backups (z.B. von `RepositoryCard.svelte`) korrekt funktioniert.
+  - [ ] `RestoreDialog.svelte`: `loadFileTree` an `api.getFileTreeCommand` anbinden.
+  - [ ] `RestoreDialog.svelte`: `handleRestore` an `api.restoreFilesCommand` anbinden und die `onRestoreProgress`-Events verarbeiten.
+  - [ ] `CompareSnapshotsDialog.svelte`: Logik implementieren, um `api.compareSnapshots` aufzurufen und die `diff`-Daten anzuzeigen.
+  - [ ] **Best-Practice:** Dialoge auf Fokusmanagement und Accessibility prüfen.
+
+- [ ] **State-Management & Parallelität**
+  - [ ] Globales Loading/Error-Handling in den Stores (`backup-jobs.ts`, `repositories.ts`) konsistent nutzen.
+  - [ ] Parallele Prozesse (z.B. mehrere Backups) mit eindeutigen Job-IDs und thread-sicherem State verwalten.
+  - [ ] **Ergänzung:** UI muss mehrere gleichzeitige Prozesse klar visualisieren.
+
+- [ ] **UI-Konsistenz**
+  - [ ] Alle Svelte-Komponenten exakt nach den HTML-Mockups in `docs/mockups/` umsetzen.
+  - [ ] Abweichungen dokumentieren und begründen (im Code und PR-Text).
+
+---
+
+## Phase 3: Teststrategie (Vitest & E2E)
+
+- [ ] **Unit-Tests (Vitest)**
+  - [ ] Tests für alle Shared-Komponenten und zentrale Store-Logik schreiben.
+  - [ ] **Best-Practice:** Möglichst viele kleine, isolierte Tests.
+
+- [ ] **Integrations-Tests (Vitest + Mocked API)**
+  - [ ] `test-setup.ts`: Die Mock-Implementierung von `invoke` erweitern, um verschiedene Szenarien (Erfolg, Fehler, Events) für die neuen Befehle zu simulieren.
+  - [ ] Typische Workflows (z.B. Snapshots laden, Dialog-Interaktion, Event-Handling) als Integrationstests abdecken.
+  - [ ] **Ergänzung:** Auch Fehlerfälle (z.B. Netzwerkfehler, falsches Passwort) abdecken.
+
+- [ ] **End-to-End-Tests (Tauri Driver)**
+  - [ ] E2E-Framework (z.B. `tauri-driver` + WebdriverIO) aufsetzen.
+  - [ ] "Happy Path" und Fehlerfälle mit echten temporären Repositories/Snapshots testen.
+  - [ ] **Best-Practice:** Echte Daten für E2E, Mock-Daten für Unit/Integration.
+
+---
+
+## Phase 4: Refinement & Polishing
+
+- [ ] **Globales State Management**
+  - [ ] Sicherstellen, dass alle Aktionen, die Ladezeiten verursachen (Prüfen, Prunen, Backup), den globalen `$loading`-Store in `backup-jobs.ts` oder `repositories.ts` konsistent nutzen.
+  - [ ] Sicherstellen, dass alle Fehler in den globalen `$error`-Store geschrieben werden.
+
+- [ ] **Barrierefreiheit (a11y)**
+  - [ ] Alle interaktiven Elemente (Buttons, Tabs, Dialoge) auf vollständige Tastatur-Bedienbarkeit prüfen.
+  - [ ] Sicherstellen, dass alle Dialoge (`Modal.svelte`) den Fokus korrekt verwalten (Fokusfalle).
+
+- [ ] **Responsive Design**
+  - [ ] Die in `rustic_advanced_ui_mockup.html` gezeigten mobilen und Tablet-Ansichten (z.B. für Snapshots, Responsive Grid) im Svelte-Code final implementieren und testen.
+
+- [ ] **Code-Qualität & Aufräumen**
+  - [ ] Alle `// TODO:`-Kommentare im Code entfernen oder abarbeiten.
+  - [ ] `npm run lint:fix` und `npm run format` ausführen, um Konsistenz sicherzustellen.
+  - [ ] **Best-Practice:** Security-Audits (`npm audit`, `cargo audit`) regelmäßig durchführen.
+  - [ ] Alle Abhängigkeiten auf die finalen Versionen aktualisieren.
+
+- [ ] **Dokumentation**
+  - [ ] README, ROADMAP, CHANGELOG und ggf. Instructions nach jedem Feature/Bugfix aktualisieren.
+  - [ ] **Ergänzung:** Neue Patterns in `patterns.instructions.md` dokumentieren.
 
 ---
 
 **Hinweis:**
-Diese Liste ist direkt aus der Feature-Matrix abgeleitet. Jeder Punkt kann in weitere Subtasks aufgeteilt werden, sobald die Detailplanung für die jeweilige Komponente/Seite erfolgt.
+
+- Automatisierte DTO-Synchronisation, einheitliche Events, strukturierte Fehler, thread-sicheres State-Handling, realistische E2E-Tests und Mockup-Treue sind verbindliche Best-Practices.
+- Offene Punkte (z.B. Toolauswahl für DTO-Sync, Detaillierungsgrad Fehlerobjekte, parallele Prozesse) vor Umsetzung final klären!

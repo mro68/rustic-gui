@@ -1,3 +1,13 @@
+/// Fehlerobjekt für strukturierte Fehlerkommunikation (API)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorDto {
+    /// Fehlercode (z.B. "RepositoryNotFound", "InvalidConfig", ...)
+    pub code: String,
+    /// Menschlich lesbare Fehlermeldung (Deutsch)
+    pub message: String,
+    /// Optionale technische Details (z.B. Stacktrace, Felder)
+    pub details: Option<String>,
+}
 use serde::{Deserialize, Serialize};
 
 /// DTO für Repository-Informationen
@@ -41,9 +51,12 @@ pub enum RepositoryStatus {
     /// Repository ist verfügbar aber hat Warnungen
     Warning,
     /// Repository ist nicht verfügbar
+    use ts_rs::TS;
     Unavailable,
     /// Repository ist gesperrt
     Locked,
+    #[derive(TS)]
+    #[ts(export)]
 }
 
 /// DTO für Snapshot-Informationen
@@ -56,6 +69,8 @@ pub struct SnapshotDto {
     /// Hostname wo der Snapshot erstellt wurde
     pub hostname: String,
     /// Tags des Snapshots
+    #[derive(TS)]
+    #[ts(export)]
     pub tags: Vec<String>,
     /// Pfade die gesichert wurden
     pub paths: Vec<String>,
@@ -65,8 +80,22 @@ pub struct SnapshotDto {
     pub total_size: u64,
     /// Repository ID
     pub repository_id: String,
+    /// Optional: User who created the snapshot
+    pub username: Option<String>,
+    /// Optional: Additional summary info
+    pub summary: Option<SnapshotSummary>,
 }
 
+/// Zusatzinfos für Snapshots (Summary)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SnapshotSummary {
+    pub files_count: Option<u64>,
+    pub dirs_count: Option<u64>,
+    pub data_size: Option<u64>,
+}
+
+    #[derive(TS)]
+    #[ts(export)]
 /// DTO für Backup-Job-Konfiguration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BackupJobDto {
@@ -77,6 +106,8 @@ pub struct BackupJobDto {
     /// Repository ID
     pub repository_id: String,
     /// Pfade die gesichert werden sollen
+    #[derive(TS)]
+    #[ts(export)]
     pub source_paths: Vec<String>,
     /// Tags für den Snapshot
     pub tags: Vec<String>,
@@ -90,6 +121,8 @@ pub struct BackupJobDto {
     pub next_run: Option<String>, // ISO 8601
     /// Retention-Policy
     pub retention: Option<RetentionPolicy>,
+    #[derive(TS)]
+    #[ts(export)]
 }
 
 /// Retention-Policy für Snapshots
@@ -123,6 +156,8 @@ impl Default for RetentionPolicy {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RestoreOptionsDto {
     /// Snapshot ID zum Wiederherstellen
+    #[derive(TS)]
+    #[ts(export)]
     pub snapshot_id: String,
     /// Zielpfad für die Wiederherstellung
     pub target_path: String,
@@ -147,30 +182,46 @@ pub struct FileTreeNode {
     pub path: String,
     /// Ist es ein Verzeichnis?
     pub is_directory: bool,
-    /// Größe in Bytes (0 für Verzeichnisse)
-    pub size: u64,
+    /// Größe in Bytes (optional, None für Verzeichnisse)
+    #[derive(TS)]
+    #[ts(export)]
+    pub size: Option<u64>,
     /// Änderungszeit (ISO 8601)
     pub modified: Option<String>,
     /// Kinder (None für Dateien, Some(vec![]) für leere Verzeichnisse)
     pub children: Option<Vec<FileTreeNode>>,
 }
 
-/// Progress-Informationen für Restore-Operationen
+/// Basis-Progress-Info für langlaufende Operationen
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProgressInfo {
+    pub current: u64,
+    pub total: u64,
+    pub message: Option<String>,
+    pub percentage: Option<f32>,
+}
+
+/// Fortschritt für Backup
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupProgress {
+    #[serde(flatten)]
+    pub base: ProgressInfo,
+    pub files_processed: u64,
+    pub bytes_processed: u64,
+    pub total_bytes: Option<u64>,
+    pub current_file: Option<String>,
+    pub estimated_time_remaining: Option<u64>,
+}
+    #[derive(TS)]
+    #[ts(export)]
+
+/// Fortschritt für Restore
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RestoreProgress {
-    /// Anzahl verarbeiteter Dateien
-    pub files_processed: u64,
-    /// Anzahl wiederhergestellter Dateien
+    #[serde(flatten)]
+    pub base: ProgressInfo,
     pub files_restored: u64,
-    /// Anzahl übersprungener Dateien
-    pub files_skipped: u64,
-    /// Anzahl fehlgeschlagener Dateien
-    pub files_failed: u64,
-    /// Verarbeitete Bytes
-    pub bytes_processed: u64,
-    /// Geschätzter Fortschritt in Prozent (0-100)
-    pub percent_complete: Option<f32>,
-    /// Aktuell verarbeitete Datei
+    pub bytes_restored: u64,
     pub current_file: Option<String>,
 }
 
@@ -182,6 +233,8 @@ mod tests {
     fn test_repository_dto_serialization() {
         let repo = RepositoryDto {
             id: "repo-1".to_string(),
+    #[derive(TS)]
+    #[ts(export)]
             name: "My Local Repo".to_string(),
             path: "/home/user/backup".to_string(),
             repository_type: RepositoryType::Local,
