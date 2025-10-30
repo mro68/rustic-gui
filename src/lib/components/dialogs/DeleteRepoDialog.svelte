@@ -3,6 +3,7 @@
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
   import Modal from '../shared/Modal.svelte';
+  import { toastStore } from '$lib/stores/toast';
 
   const dispatch = createEventDispatcher();
 
@@ -24,13 +25,17 @@
       const { deleteRepository } = await import('$lib/api/repositories');
       await deleteRepository(repository.id, deleteData);
       
+      toastStore.success('Repository erfolgreich gelöscht');
+      
       dispatch('delete-repo', {
         repositoryId: repository.id,
         deleteData,
       });
-    } catch (error) {
+    } catch (error: any) {
+      // ✅ Error-Toast hinzugefügt (TODO.md Zeile 247)
+      const errorMessage = error?.message || 'Unbekannter Fehler';
+      toastStore.error('Repository löschen fehlgeschlagen: ' + errorMessage);
       console.error('Failed to delete repository:', error);
-      // TODO: Show error toast
     } finally {
       isDeleting = false;
     }
