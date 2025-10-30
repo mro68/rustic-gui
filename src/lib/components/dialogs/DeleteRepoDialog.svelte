@@ -6,7 +6,9 @@
 
   const dispatch = createEventDispatcher();
 
-  export let repository: any = null; // TODO: Use proper RepositoryDto type
+  import type { RepositoryDto } from '$lib/types';
+
+  export let repository: RepositoryDto | null = null;
 
   let confirmName = '';
   let deleteData = false;
@@ -15,14 +17,20 @@
   $: isValid = confirmName === (repository?.name || '');
 
   async function handleDelete() {
-    if (!isValid) return;
+    if (!isValid || !repository) return;
 
     isDeleting = true;
     try {
+      const { deleteRepository } = await import('$lib/api/repositories');
+      await deleteRepository(repository.id, deleteData);
+      
       dispatch('delete-repo', {
-        repositoryId: repository?.id,
+        repositoryId: repository.id,
         deleteData,
       });
+    } catch (error) {
+      console.error('Failed to delete repository:', error);
+      // TODO: Show error toast
     } finally {
       isDeleting = false;
     }

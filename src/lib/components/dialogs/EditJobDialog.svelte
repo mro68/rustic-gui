@@ -201,13 +201,65 @@
         },
       };
 
-      // TODO: API-Call zum Aktualisieren des Jobs
-      console.log('Updating job:', updatedJob);
+      try {
+        const { updateBackupJob } = await import('$lib/api/backup-jobs');
+        
+        // Konvertiere Schedule in Cron-Expression
+        let cronSchedule: string | undefined;
+        if (scheduleType !== 'manual') {
+          if (scheduleType === 'custom' && cronExpression) {
+            cronSchedule = cronExpression;
+          } else if (scheduleTime) {
+            const [hours, minutes] = scheduleTime.split(':');
+            switch (scheduleType) {
+              case 'daily':
+                cronSchedule = `${minutes} ${hours} * * *`;
+                break;
+              case 'weekly':
+                cronSchedule = `${minutes} ${hours} * * ${scheduleDays.join(',')}`;
+                break;
+              case 'monthly':
+                cronSchedule = `${minutes} ${hours} 1 * *`;
+                break;
+            }
+          }
+        }
 
-      dispatch('updated', updatedJob);
-      open = false;
-      resetForm();
-      toastStore.success('Backup-Job wurde erfolgreich aktualisiert');
+        await updateBackupJob({
+          id: job.id,
+          name: jobName,
+          repository_id: selectedRepository,
+          source_paths: sourcePaths
+            .split('\n')
+            .map((p) => p.trim())
+            .filter((p) => p),
+          exclude_patterns: excludePatterns
+            .split('\n')
+            .map((p) => p.trim())
+            .filter((p) => p),
+          tags: jobTags
+            .split(',')
+            .map((t) => t.trim())
+            .filter((t) => t),
+          schedule: cronSchedule,
+          retention: {
+            keep_last: keepLast,
+            keep_daily: keepDaily,
+            keep_weekly: keepWeekly,
+            keep_monthly: keepMonthly,
+            keep_yearly: keepYearly,
+          },
+        });
+
+        console.log('Job updated successfully');
+        dispatch('updated', updatedJob);
+        open = false;
+        resetForm();
+        toastStore.success('Backup-Job wurde erfolgreich aktualisiert');
+      } catch (error) {
+        console.error('Failed to update job:', error);
+        toastStore.error('Fehler beim Aktualisieren des Backup-Jobs');
+      }
     } catch (error) {
       console.error('Failed to update job:', error);
       toastStore.error('Fehler beim Aktualisieren des Backup-Jobs');

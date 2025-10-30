@@ -72,20 +72,20 @@ Der wichtigste Schritt ist die Implementierung der Rust-Seite, die die in `src/l
   - [ ] Fehler einheitlich über `toastStore.error(error.message)` dem Benutzer anzeigen.
   - [ ] **Ergänzung:** Fehlerobjekte auswerten und ggf. spezifische UI-Reaktionen (z.B. Passwort falsch, Netzwerkfehler) ermöglichen.
 
-- [ ] **Dialog-Workflow: Repository**
-  - [ ] `AddRepositoryDialog.svelte`: `handleSubmit` an `api.initRepository` anbinden.
+- [x] **Dialog-Workflow: Repository**
+  - [x] `AddRepositoryDialog.svelte`: `handleSubmit` an `api.initRepository` angebunden.
   - [ ] `AddRepositoryDialog.svelte`: "Durchsuchen"-Button mit `@tauri-apps/api/dialog` (`open({ directory: true })`) implementieren.
-  - [ ] `DeleteRepoDialog.svelte`: `handleDelete` an `api.deleteRepository` anbinden.
+  - [x] `DeleteRepoDialog.svelte`: `handleDelete` an `api.deleteRepository` angebunden.
   - [ ] `UnlockRepositoryDialog.svelte`: `handleUnlock` an `api.openRepository` anbinden.
   - [ ] `CheckRepoDialog.svelte`: `startCheck` an `api.checkRepository` anbinden (Fortschritts-Events verarbeiten).
   - [ ] `PruneRepoDialog.svelte`: `startPruning` an `api.pruneRepository` anbinden (Fortschritts-Events verarbeiten).
   - [ ] `ChangePasswordDialog.svelte`: `handleSubmit` an `api.changePassword` anbinden.
   - [ ] **Best-Practice:** Fortschritts- und Ergebnis-Events einheitlich und wiederverwendbar im UI behandeln.
 
-- [ ] **Dialog-Workflow: Backup & Restore**
-  - [ ] `CreateJobDialog.svelte`: `createJob` an `api.createJob` anbinden.
-  - [ ] `EditJobDialog.svelte`: `handleSubmit` an `api.updateJob` anbinden.
-  - [ ] `DeleteJobDialog.svelte`: `handleDelete` an `api.deleteJob` anbinden.
+- [x] **Dialog-Workflow: Backup & Restore**
+  - [x] `CreateJobDialog.svelte`: `createJob` an `api.createBackupJob` angebunden.
+  - [x] `EditJobDialog.svelte`: `handleSubmit` an `api.updateBackupJob` angebunden.
+  - [x] `DeleteJobDialog.svelte`: `handleDelete` an `api.deleteBackupJob` angebunden.
   - [ ] `RunBackupDialog.svelte`: Sicherstellen, dass das Starten des Backups (z.B. von `RepositoryCard.svelte`) korrekt funktioniert.
   - [ ] `RestoreDialog.svelte`: `loadFileTree` an `api.getFileTreeCommand` anbinden.
   - [ ] `RestoreDialog.svelte`: `handleRestore` an `api.restoreFilesCommand` anbinden und die `onRestoreProgress`-Events verarbeiten.

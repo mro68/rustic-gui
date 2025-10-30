@@ -21,9 +21,10 @@
 
     isDeleting = true;
     try {
-      // TODO: API-Call zum Löschen des Jobs
-      console.log('Deleting job:', job.id);
+      const { deleteBackupJob } = await import('$lib/api/backup-jobs');
+      await deleteBackupJob(job.id);
 
+      console.log('Job deleted:', job.id);
       dispatch('deleted', job);
       open = false;
       confirmText = '';
