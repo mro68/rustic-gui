@@ -105,12 +105,11 @@
     animation: spin 0.7s linear infinite;
     margin-right: 4px;
   }
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
+  @media (max-width: 768px) {
+    .btn {
+      min-height: 48px;
+      padding: 12px 20px;
+      font-size: 16px;
     }
   }
   .btn-content {

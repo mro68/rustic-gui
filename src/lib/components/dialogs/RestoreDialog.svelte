@@ -605,4 +605,24 @@
     text-align: center;
     color: var(--text-secondary);
   }
+
+  @media (max-width: 768px) {
+    .restore-options {
+      grid-template-columns: 1fr;
+    }
+
+    .file-browser {
+      max-height: 300px;
+    }
+
+    .input-with-button {
+      flex-direction: column;
+    }
+
+    .checkbox-group {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
 </style>

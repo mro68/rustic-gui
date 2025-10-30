@@ -5,6 +5,7 @@
     value = $bindable(''),
     required = false,
     disabled = false,
+    ariaLabel = '',
     class: className = '',
     children,
     ...rest
@@ -13,6 +14,7 @@
     value?: string;
     required?: boolean;
     disabled?: boolean;
+    ariaLabel?: string;
     class?: string;
     children?: any;
     [key: string]: any;
@@ -26,7 +28,14 @@
       {#if required}<span class="required">*</span>{/if}
     </label>
   {/if}
-  <select {required} {disabled} bind:value class="select-field" {...rest}>
+  <select
+    {required}
+    {disabled}
+    bind:value
+    class="select-field"
+    aria-label={ariaLabel || undefined}
+    {...rest}
+  >
     {@render children?.()}
   </select>
 </div>

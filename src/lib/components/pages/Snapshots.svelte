@@ -811,6 +811,14 @@
       justify-content: space-between;
     }
 
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .snapshots-table {
+      min-width: 600px;
+    }
+
     .details-grid {
       grid-template-columns: 1fr;
     }

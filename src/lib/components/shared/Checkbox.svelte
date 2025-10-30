@@ -4,19 +4,28 @@
     label = '',
     checked = $bindable(false),
     disabled = false,
+    ariaLabel = '',
     class: className = '',
     ...rest
   }: {
     label?: string;
     checked?: boolean;
     disabled?: boolean;
+    ariaLabel?: string;
     class?: string;
     [key: string]: any;
   } = $props();
 </script>
 
 <label class="checkbox-wrapper {className}">
-  <input type="checkbox" {disabled} bind:checked class="checkbox-input" {...rest} />
+  <input
+    type="checkbox"
+    {disabled}
+    bind:checked
+    class="checkbox-input"
+    aria-label={ariaLabel || undefined}
+    {...rest}
+  />
   <span class="checkbox-checkmark"></span>
   {#if label}
     <span class="checkbox-label">{label}</span>

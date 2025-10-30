@@ -7,6 +7,7 @@
     placeholder = '',
     required = false,
     disabled = false,
+    ariaLabel = '',
     class: className = '',
     ...rest
   }: {
@@ -16,6 +17,7 @@
     placeholder?: string;
     required?: boolean;
     disabled?: boolean;
+    ariaLabel?: string;
     class?: string;
     [key: string]: any;
   } = $props();
@@ -28,7 +30,16 @@
       {#if required}<span class="required">*</span>{/if}
     </label>
   {/if}
-  <input {type} {placeholder} {required} {disabled} bind:value class="input-field" {...rest} />
+  <input
+    {type}
+    {placeholder}
+    {required}
+    {disabled}
+    bind:value
+    class="input-field"
+    aria-label={ariaLabel || undefined}
+    {...rest}
+  />
 </div>
 
 <style>

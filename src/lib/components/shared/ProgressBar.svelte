@@ -1,4 +1,3 @@
-/* eslint-env browser */
 <script lang="ts">
   /**
    * ProgressBar-Komponente für Fortschrittsanzeigen
@@ -11,8 +10,18 @@
   export let label: string = '';
 </script>
 
-<div class="progress-bar" role="progressbar" aria-valuenow={value ?? undefined} aria-valuemin={value !== undefined ? 0 : undefined} aria-valuemax={value !== undefined ? 100 : undefined}>
-  <div class="progress-fill {value === undefined ? 'indeterminate' : ''}" style={value !== undefined ? `width: ${value}%` : ''}></div>
+/* eslint-env browser */
+<div
+  class="progress-bar"
+  role="progressbar"
+  aria-valuenow={value ?? undefined}
+  aria-valuemin={value !== undefined ? 0 : undefined}
+  aria-valuemax={value !== undefined ? 100 : undefined}
+>
+  <div
+    class="progress-fill {value === undefined ? 'indeterminate' : ''}"
+    style={value !== undefined ? `width: ${value}%` : ''}
+  ></div>
 </div>
 {#if label}
   <div class="progress-label">{label}</div>
@@ -42,8 +51,12 @@
     animation: indeterminate 1.2s infinite linear;
   }
   @keyframes indeterminate {
-    0% { left: -40%; }
-    100% { left: 100%; }
+    0% {
+      left: -40%;
+    }
+    100% {
+      left: 100%;
+    }
   }
   .progress-label {
     display: flex;

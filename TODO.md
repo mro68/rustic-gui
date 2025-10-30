@@ -81,12 +81,12 @@
 
 ## 4. Responsive Design & Accessibility
 
-- [ ] Alle Seiten und Dialoge auf Responsive-Design prüfen und anpassen (Breakpoints, Mobile-Ansicht)
-- [ ] Sidebar als Overlay auf Mobile/Tablet
-- [ ] Grid/Tabelle einspaltig auf kleinen Screens
-- [ ] Buttons und Touch-Flächen vergrößern
-- [ ] ARIA-Labels, Keyboard-Navigation, Fokus-Management
-- [ ] Tooltips für alle wichtigen Aktionen
+- [x] Alle Seiten und Dialoge auf Responsive-Design prüfen und anpassen (Breakpoints, Mobile-Ansicht)
+- [x] Sidebar als Overlay auf Mobile/Tablet
+- [x] Grid/Tabelle einspaltig auf kleinen Screens
+- [x] Buttons und Touch-Flächen vergrößern
+- [x] ARIA-Labels, Keyboard-Navigation, Fokus-Management
+- [x] Tooltips für alle wichtigen Aktionen
 - [ ] Visuelle Rückmeldungen für alle Interaktionen
 
 ## 5. UI-Details & States
