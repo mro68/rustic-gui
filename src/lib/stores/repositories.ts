@@ -48,18 +48,18 @@ export function setError(msg: string | null): void {
  * Lädt alle Repositories vom Backend
  */
 export async function loadRepositories(): Promise<void> {
-  _loading.set(true);
-  _error.set(null);
+  setLoading(true);
+  setError(null);
   
   try {
     const repos = await api.listRepositories();
     _repositories.set(repos);
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Fehler beim Laden der Repositories';
-    _error.set(errorMsg);
+    setError(errorMsg);
     console.error('loadRepositories error:', err);
   } finally {
-    _loading.set(false);
+    setLoading(false);
   }
 }
 

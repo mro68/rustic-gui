@@ -41,18 +41,18 @@ export function setError(msg: string | null): void {
  * Lädt alle Backup-Jobs vom Backend
  */
 export async function loadJobs(): Promise<void> {
-  _loading.set(true);
-  _error.set(null);
+  setLoading(true);
+  setError(null);
   
   try {
     const jobList = await api.listBackupJobs();
     _jobs.set(jobList);
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Fehler beim Laden der Backup-Jobs';
-    _error.set(errorMsg);
+    setError(errorMsg);
     console.error('loadJobs error:', err);
   } finally {
-    _loading.set(false);
+    setLoading(false);
   }
 }
 
