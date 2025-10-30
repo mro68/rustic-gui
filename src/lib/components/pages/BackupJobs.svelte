@@ -11,8 +11,6 @@
   import type { BackupJobDto } from '$lib/types';
   import { onMount } from 'svelte';
 
-  import type { BackupJobDto } from '$lib/types';
-
   let showCreateDialog = false;
   let showEditDialog = false;
   let showDeleteDialog = false;

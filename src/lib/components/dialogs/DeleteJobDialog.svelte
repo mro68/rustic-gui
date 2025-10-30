@@ -3,11 +3,11 @@
   import Button from '$lib/components/shared/Button.svelte';
   import Modal from '$lib/components/shared/Modal.svelte';
   import { toastStore } from '$lib/stores/toast';
-  import type { BackupJob } from '$lib/types/backup.types';
+  import type { BackupJobDto } from '$lib/types';
   import { createEventDispatcher } from 'svelte';
 
   export let open: boolean = false;
-  export let job: BackupJob | null = null;
+  export let job: BackupJobDto | null = null;
 
   const dispatch = createEventDispatcher();
 

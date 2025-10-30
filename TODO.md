@@ -1,3 +1,50 @@
+# TODO-Liste: Rustic GUI Integration (Svelte 5 + Tauri 2)
+
+## ✅ IMPLEMENTIERUNGS-STATUS (Stand: 2025-10-30)
+
+### 🟢 Phase 1: Rust-Backend - **KOMPLETT** 
+
+**Alle Backend-Commands implementiert und registriert:**
+
+- ✅ Repository-Management (7 Commands): list, init, open, delete, check, prune, change_password
+- ✅ Backup-Jobs (5 Commands): list, create, update, delete, get
+- ✅ Snapshots (4 Commands): list, get, delete, forget
+- ✅ Backup & Restore (4 Commands): run_backup, cancel, restore, get_file_tree
+- ✅ System & Keychain (4 Commands): shutdown, store/get/delete password
+- ✅ Event-System mit einheitlichem Format
+- ✅ Config-Management (TOML)
+- ✅ State-Management (AppState)
+
+### 🟡 Phase 2: Frontend - **~70% FERTIG**
+
+**Implementiert:**
+- ✅ API-Wrapper vollständig (repositories, backup-jobs, backup, restore, snapshots)
+- ✅ Stores mit Daten-Loading (repositories, backup-jobs)
+- ✅ Type-System synchronisiert (BackupJobDto, RepositoryDto, snake_case)
+- ✅ 5 Dialog-Workflows: Add/Delete Repo, Create/Edit/Delete Job
+- ✅ Cron-Schedule-Konvertierung (daily, weekly, monthly)
+- ✅ Seiten laden Daten: Dashboard, Repositories, BackupJobs
+
+**Noch offen (~30%):**
+- ⏳ 7 Dialog-Workflows: Unlock, Check, Prune, ChangePassword, Restore, Compare, RunBackup
+- ⏳ Snapshots-Seite API-Integration
+- ⏳ File-Browser mit Dialog-Integration
+- ⏳ Error-Handling verbessern (strukturierte ErrorDto)
+
+### 📊 Code-Qualität
+
+**Aktuell:**
+- Type-Check: 19 Errors (von ursprünglich 31)
+- Linter-Warnungen: 58 (Rust)
+- TODO-Kommentare: ~50 (von ursprünglich 84)
+
+**Ziel:**
+- Type-Check: 0 Errors
+- Linter-Warnungen: < 20
+- TODO-Kommentare: < 20 (nur echte TODOs)
+
+---
+
 Hier ist die ausführlich ergänzte TODO-Liste für die Integration von Svelte 5 und Tauri 2, inklusive Best-Practice-Hinweisen und konkreten Ergänzungen:
 
 ---
