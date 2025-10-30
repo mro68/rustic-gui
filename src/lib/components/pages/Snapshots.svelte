@@ -593,24 +593,6 @@
     align-items: center;
   }
 
-  .search-container {
-    position: relative;
-  }
-
-  .search-input {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 0.375rem;
-    padding: 0.5rem 0.75rem;
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    width: 300px;
-  }
-
-  .search-input::placeholder {
-    color: var(--text-secondary);
-  }
-
   .bulk-actions {
     display: flex;
     justify-content: space-between;
@@ -827,10 +809,6 @@
 
     .toolbar-actions {
       justify-content: space-between;
-    }
-
-    .search-input {
-      width: 100%;
     }
 
     .details-grid {

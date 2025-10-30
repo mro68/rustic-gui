@@ -262,16 +262,6 @@
     color: #9ca3af;
   }
 
-  .status-badge.running {
-    background: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
-  }
-
-  .status-badge.error {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
-  }
-
   .job-details {
     display: flex;
     flex-direction: column;

@@ -76,8 +76,8 @@
   - [x] Controls, States (wie Mockup)
 - [x] **Input.svelte, Select.svelte, Checkbox.svelte**
   - [x] Reusable Components für Formulare
-- [ ] **Modal.svelte, Button.svelte, Badge.svelte, ProgressBar.svelte**
-  - [ ] Auf Mockup-Details prüfen und ggf. anpassen
+- [x] **Modal.svelte, Button.svelte, Badge.svelte, ProgressBar.svelte**
+  - [x] Auf Mockup-Details prüfen und ggf. anpassen
 
 ## 4. Responsive Design & Accessibility
 

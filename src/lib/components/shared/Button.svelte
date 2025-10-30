@@ -49,29 +49,27 @@
     align-items: center;
     gap: 8px;
     font-weight: 500;
-    border-radius: var(--radius-md);
+    border-radius: 6px;
     border: none;
     cursor: pointer;
-    transition:
-      background 0.15s,
-      color 0.15s,
-      box-shadow 0.15s;
+    transition: all 0.2s;
     outline: none;
-    padding: 0 18px;
+    padding: 10px 20px;
     height: 40px;
-    font-size: 15px;
-    background: var(--color-primary);
+    font-size: 14px;
+    background: #3b82f6;
     color: #fff;
   }
-  .btn:disabled,
-  .btn[aria-busy='true'] {
-    opacity: 0.6;
-    cursor: not-allowed;
+  .btn-primary:hover {
+    background: #2563eb;
   }
   .btn-secondary {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
+    background: #2d3348;
+    color: #e4e4e7;
+    border: 1px solid #3e4457;
+  }
+  .btn-secondary:hover {
+    background: #3e4457;
   }
   .btn-danger {
     background: var(--color-error);

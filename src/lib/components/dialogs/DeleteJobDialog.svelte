@@ -185,9 +185,5 @@
     .dialog-actions {
       flex-direction: column;
     }
-
-    .dialog-actions > * {
-      width: 100%;
-    }
   }
 </style>

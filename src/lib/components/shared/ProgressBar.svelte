@@ -22,7 +22,7 @@
   .progress-bar {
     width: 100%;
     height: 8px;
-    background: var(--bg-tertiary);
+    background: #2d3348;
     border-radius: 4px;
     overflow: hidden;
     margin-top: 12px;
@@ -46,9 +46,10 @@
     100% { left: 100%; }
   }
   .progress-label {
-    margin-top: 4px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    text-align: right;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #71717a;
+    margin-top: 8px;
   }
 </style>

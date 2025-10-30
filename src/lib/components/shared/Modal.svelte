@@ -112,7 +112,8 @@
   .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(30, 32, 48, 0.75);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
     z-index: 2000;
     display: flex;
     align-items: center;
@@ -120,9 +121,10 @@
     animation: fadeIn 0.2s;
   }
   .modal-dialog {
-    background: var(--bg-primary);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    background: #22273a;
+    border-radius: 16px;
+    border: 1px solid #2d3348;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     min-width: 340px;
     max-width: 96vw;
     min-height: 80px;
@@ -136,36 +138,43 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px 24px 12px 24px;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 18px;
+    padding: 24px;
+    border-bottom: 1px solid #2d3348;
+    font-size: 20px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #f4f4f5;
   }
   .modal-close {
     background: none;
     border: none;
-    color: var(--text-secondary);
-    font-size: 28px;
+    color: #71717a;
+    font-size: 24px;
     cursor: pointer;
-    padding: 0 4px;
+    padding: 0;
+    width: 32px;
+    height: 32px;
     border-radius: 6px;
-    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
   }
   .modal-close:hover {
-    background: var(--bg-tertiary);
-    color: var(--color-error);
+    background: #2d3348;
+    color: #e4e4e7;
   }
   .modal-content {
     padding: 24px;
-    color: var(--text-primary);
+    color: #e4e4e7;
     overflow-y: auto;
+    flex: 1;
   }
   .modal-footer {
-    padding: 16px 24px 18px 24px;
-    border-top: 1px solid var(--border-color);
-    background: var(--bg-secondary);
-    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    padding: 20px 24px;
+    border-top: 1px solid #2d3348;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
   }
   @keyframes fadeIn {
     from {
