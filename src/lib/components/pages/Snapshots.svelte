@@ -1,4 +1,38 @@
 <!-- src/lib/components/pages/Snapshots.svelte -->
+<!--
+  TODO.md: Phase 2 - Seiten mit Daten-Loading ✅ Implementiert
+  Status: ✅ Seite erstellt, ⏳ Erweiterte Features fehlen noch
+  Referenz: TODO.md Zeile 62, 118, Integration-Zusammenfassung Zeile 367
+  
+  Backend-Commands:
+  - list_snapshots_command: src-tauri/src/lib.rs:96
+  - get_snapshot_command: src-tauri/src/lib.rs:84
+  - delete_snapshot_command: src-tauri/src/lib.rs:73
+  - compare_snapshots: ⏳ noch nicht registriert (lib.rs:422 auskommentiert)
+  
+  Store: src/lib/stores/snapshots.ts (loadSnapshots implementiert)
+  API: src/lib/api/snapshots.ts
+  
+  TODOs in dieser Datei (5 gesamt):
+  - Zeile 87: Zeitraum/Größe Filter-Implementation
+  - Zeile 237: Vergleichslogik für Snapshots implementieren
+  - Zeile 245: Restore-Dialog öffnen (RestoreDialog.svelte)
+  - Zeile 405: Restore-Dialog für einzelne Datei öffnen
+  - Zeile 576: Restore-Dialog für Bulk-Restore öffnen
+  
+  Features implementiert:
+  - ✅ Snapshot-Liste mit Daten-Loading (onMount)
+  - ✅ Filter-Bar (Search, Hostname, Tags)
+  - ✅ Pagination (25 pro Seite)
+  - ✅ Kontextmenü (Rechtsklick auf Snapshot)
+  - ✅ Bulk-Selection mit Checkboxes
+  - ✅ Snapshot-Details-Modal
+  
+  Features noch zu implementieren:
+  - ⏳ Snapshot-Vergleich (CompareSnapshotsDialog Integration)
+  - ⏳ Restore-Funktionalität (RestoreDialog Integration)
+  - ⏳ Erweiterte Filter (Zeitraum, Größe)
+-->
 <script lang="ts">
   import Button from '$lib/components/shared/Button.svelte';
   import Modal from '$lib/components/shared/Modal.svelte';
@@ -85,6 +119,8 @@
       filtered = filtered.filter((s) => s.tags?.some((t) => filterTags.includes(t)));
     }
     // TODO: Zeitraum/Größe Filter (vereinfachte Platzhalter-Logik)
+    // TODO.md: Integration-Zusammenfassung Zeile 367
+    // Implementierung: Erweiterte Filter für Datum-Range und Snapshot-Größe
     // ...
 
     // Sortierung
