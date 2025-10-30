@@ -112,3 +112,18 @@ export interface FileTreeNode {
   modified?: string; // ISO 8601
   children?: FileTreeNode[];
 }
+
+// Diff Result Types für Snapshot-Vergleich
+export interface DiffResultDto {
+  added: string[];
+  removed: string[];
+  modified: string[];
+  stats: DiffStats;
+}
+
+export interface DiffStats {
+  added_count: number;
+  removed_count: number;
+  modified_count: number;
+  total_size_change: number; // kann negativ sein
+}

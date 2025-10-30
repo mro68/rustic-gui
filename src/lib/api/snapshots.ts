@@ -1,4 +1,4 @@
-import type { SnapshotDto } from '$lib/types/index';
+import type { SnapshotDto, DiffResultDto } from '$lib/types/index';
 import { invoke } from '@tauri-apps/api/core';
 
 /**
@@ -7,6 +7,7 @@ import { invoke } from '@tauri-apps/api/core';
  * - listSnapshots
  * - getSnapshotInfo
  * - deleteSnapshot
+ * - compareSnapshots
  */
 
 export async function listSnapshots(repositoryId?: string): Promise<SnapshotDto[]> {
@@ -19,4 +20,11 @@ export async function getSnapshotInfo(id: string): Promise<SnapshotDto> {
 
 export async function deleteSnapshot(id: string): Promise<void> {
   await invoke('delete_snapshot', { id });
+}
+
+/**
+ * Vergleicht zwei Snapshots und gibt die Unterschiede zurück
+ */
+export async function compareSnapshots(idA: string, idB: string): Promise<DiffResultDto> {
+  return await invoke<DiffResultDto>('compare_snapshots', { idA, idB });
 }
