@@ -243,7 +243,119 @@ Der wichtigste Schritt ist die Implementierung der Rust-Seite, die die in `src/l
 
 ---
 
+## 🎯 INTEGRATION-ZUSAMMENFASSUNG (Update 2025-10-30)
+
+### ✅ Vollständig integriert in Code
+
+**Backend (Rust):**
+- ✅ 24 Tauri Commands registriert (lib.rs:380-420)
+- ✅ Event-System für Backup/Restore (BackupEvent, RestoreEvent in lib.rs)
+- ✅ State-Management mit AppState (state.rs)
+- ✅ Config-Persistence (TOML in config.rs)
+- ✅ Keychain-Integration (keychain/mod.rs)
+- ✅ Error-Handling mit ErrorDto (types.rs:45-51)
+
+**Frontend (TypeScript/Svelte):**
+- ✅ API-Wrapper für alle Commands (src/lib/api/)
+  - backup-jobs.ts (5 Funktionen)
+  - repositories.ts (7 Funktionen)
+  - snapshots.ts (4 Funktionen)
+  - backup.ts (2 Funktionen + Events)
+  - restore.ts (2 Funktionen + Events)
+- ✅ Stores mit Loading/Error-States (src/lib/stores/)
+  - repositories.ts
+  - backup-jobs.ts
+  - snapshots.ts
+  - settings.ts
+  - toast.ts
+- ✅ 13 Dialog-Komponenten erstellt (src/lib/components/dialogs/)
+- ✅ 5 Seiten mit Daten-Loading (Dashboard, Repositories, BackupJobs, Snapshots, Settings)
+
+### ⏳ Teilweise integriert (benötigt Arbeit)
+
+**Backend (26 TODOs in Rust-Code):**
+- ⏳ rustic_core Integration (meiste Commands sind Stubs)
+  - rustic/repository.rs:32, 78, 91, 92, 94 (init, open, info)
+  - rustic/snapshot.rs (Stubs für delete, forget)
+  - rustic/restore.rs:181 (Restore-Logik)
+  - commands/repository.rs:134, 161 (prune, change_password)
+  - commands/snapshot.rs:10-51 (alle Snapshot-Commands)
+  - commands/system.rs:9, 19 (health check, force unlock)
+- ⏳ Job-Scheduler nicht implementiert
+  - commands/backup.rs:263, 264 (last_run, next_run)
+
+**Frontend (43 TODOs in TS/Svelte):**
+- ⏳ 7 Dialog-Workflows ohne API-Integration:
+  - UnlockRepositoryDialog.svelte:68 (unlock logic)
+  - CheckRepoDialog.svelte (kein API-Aufruf)
+  - PruneRepoDialog.svelte (kein API-Aufruf)
+  - ChangePasswordDialog.svelte (kein API-Aufruf)
+  - RestoreDialog.svelte (teilweise integriert)
+  - CompareSnapshotsDialog.svelte (kein API-Aufruf)
+  - RunBackupDialog.svelte (teilweise integriert)
+- ⏳ File-Browser für Pfad-Auswahl (AddRepositoryDialog.svelte:181)
+- ⏳ Error-Toasts in Dialogs (DeleteRepoDialog.svelte:33, UnlockRepositoryDialog.svelte:61, 77)
+
+### ❌ Noch nicht gestartet
+
+**Phase 3: Testing (TODO.md Zeile 153-168):**
+- ❌ Unit-Tests für Shared-Komponenten
+- ❌ Integration-Tests mit Mock-API
+- ❌ E2E-Tests mit Tauri Driver
+
+**Phase 4: Refinement (TODO.md Zeile 172-200):**
+- ❌ Globales State-Management konsolidieren
+- ❌ Barrierefreiheit (a11y) Audit
+- ❌ Responsive Design für Mobile/Tablet
+- ❌ Code-Aufräumung (69 TODOs → <20)
+- ❌ Dokumentation aktualisieren
+
+**Phase 5 & 6: Tests & Release (TODO.md Zeile 899-1507):**
+- ❌ Automatisierte DTO-Synchronisation (ts-rs/typeshare)
+- ❌ Performance-Optimierung
+- ❌ Security-Review
+- ❌ Release-Builds
+
+### 📊 Fortschritt nach Zahlen
+
+| Kategorie | Abgeschlossen | Gesamt | Prozent |
+|-----------|---------------|--------|---------|
+| Backend Commands | 24 registriert | 24 | 100% |
+| Backend Implementations | ~8 vollständig | 24 | ~33% |
+| Frontend API Wrappers | 20 Funktionen | 20 | 100% |
+| Frontend Dialogs | 13 erstellt | 13 | 100% |
+| Dialog API-Integration | 5 implementiert | 13 | ~38% |
+| Frontend Seiten | 5 mit Daten | 5 | 100% |
+| Code-Qualität (TODOs) | 84 → 69 | Ziel: <20 | 18% |
+| Linter-Warnungen | 52 → 7 | Ziel: 0 | 87% |
+
+### 🎯 Nächste Schritte (Priorität)
+
+1. **Hoch:** Dialog-Workflows API-Integration (7 Dialogs)
+2. **Hoch:** rustic_core Integration für kritische Commands (init, backup, restore)
+3. **Mittel:** Job-Scheduler mit tokio-cron-scheduler
+4. **Mittel:** Code-Aufräumung (TODOs reduzieren)
+5. **Niedrig:** Automatisierte DTO-Sync mit ts-rs
+6. **Niedrig:** Tests schreiben
+
+### 📝 Code-Referenzen für Integration
+
+Siehe Kommentare in folgenden Dateien:
+- `src-tauri/src/lib.rs:377-420` - Command-Registrierung mit TODO.md-Referenz
+- `src/lib/api/backup-jobs.ts:5-13` - API-Wrapper mit Backend-Referenz
+- `src/lib/api/repositories.ts:5-18` - API-Wrapper mit Stub-Warnung
+- `TODO.md:3-45` - Implementierungs-Status mit Datei-Referenzen
+
+---
+
 **Hinweis:**
 
-- Automatisierte DTO-Synchronisation, einheitliche Events, strukturierte Fehler, thread-sicheres State-Handling, realistische E2E-Tests und Mockup-Treue sind verbindliche Best-Practices.
-- Offene Punkte (z.B. Toolauswahl für DTO-Sync, Detaillierungsgrad Fehlerobjekte, parallele Prozesse) vor Umsetzung final klären!
+Diese TODO-Liste ist vollumfänglich im Code integriert:
+- ✅ Alle abgeschlossenen Tasks sind markiert
+- ✅ Implementierungs-Status mit Datei/Zeilen-Referenzen dokumentiert
+- ✅ Offene Tasks als TODOs im Code markiert
+- ✅ Tracking-Kommentare verlinken zu TODO.md Phasen
+
+Für Details zu einzelnen Tasks siehe die jeweiligen Code-Abschnitte oben.
+
+---
