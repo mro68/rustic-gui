@@ -8,10 +8,12 @@
    * - loading: boolean (default: false)
    * - disabled: boolean (default: false)
    * - icon: SvelteComponent | string (optional)
+   * - tooltip: string (optional)
    *
    * Slots:
    * - default: Button-Inhalt
    */
+  import Tooltip from '$lib/components/shared/Tooltip.svelte';
   export let variant: 'primary' | 'secondary' | 'danger' = 'primary';
   export let size: 'sm' | 'md' | 'lg' = 'md';
   export let loading: boolean = false;
@@ -19,29 +21,32 @@
   export let icon: any = null;
   export let type: 'button' | 'submit' | 'reset' = 'button';
   export let ariaLabel: string | undefined = undefined;
+  export let tooltip: string | undefined = undefined;
   export let onclick: (() => void) | undefined = undefined;
 
   // Kombinierte Klassen
   $: btnClass = `btn btn-${variant} btn-${size} ${loading ? 'is-loading' : ''}`;
 </script>
 
-<button
-  class={btnClass}
-  {type}
-  disabled={disabled || loading}
-  aria-busy={loading}
-  aria-label={ariaLabel}
-  {onclick}
->
-  {#if loading}
-    <span class="spinner" aria-hidden="true"></span>
-  {:else if icon}
-    <span class="btn-icon" aria-hidden="true"
-      >{#if typeof icon === 'string'}{icon}{:else}<svelte:component this={icon} />{/if}</span
-    >
-  {/if}
-  <span class="btn-content"><slot /></span>
-</button>
+<Tooltip text={tooltip}>
+  <button
+    class={btnClass}
+    {type}
+    disabled={disabled || loading}
+    aria-busy={loading}
+    aria-label={ariaLabel}
+    {onclick}
+  >
+    {#if loading}
+      <span class="spinner" aria-hidden="true"></span>
+    {:else if icon}
+      <span class="btn-icon" aria-hidden="true"
+        >{#if typeof icon === 'string'}{icon}{:else}<svelte:component this={icon} />{/if}</span
+      >
+    {/if}
+    <span class="btn-content"><slot /></span>
+  </button>
+</Tooltip>
 
 <style>
   .btn {

@@ -91,11 +91,11 @@
 
 ## 5. UI-Details & States
 
-- [ ] Alle Buttons: Icons, Tooltips, ARIA-Labels, Disabled/Loading-States
-- [ ] Badges, Tags, Status-Anzeigen
-- [ ] Hover-, Active-, Disabled-, Empty-, Success-States
-- [ ] Animationen (Transitions, Progress, Dialoge)
-- [ ] User-Avatar im Header (Platzhalter, später Funktion)
+- [x] Alle Buttons: Icons, Tooltips, ARIA-Labels, Disabled/Loading-States
+- [x] Badges, Tags, Status-Anzeigen
+- [x] Hover-, Active-, Disabled-, Empty-, Success-States
+- [x] Animationen (Transitions, Progress, Dialoge)
+- [x] User-Avatar im Header (Platzhalter, später Funktion)
 
 ## 6. Testing & Review
 
