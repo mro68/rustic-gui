@@ -448,7 +448,7 @@
       <div class="empty-state">
         {#if $snapshots.length === 0}
           <p>Keine Snapshots gefunden. Erstellen Sie zuerst ein Backup.</p>
-        {#if filterSearch}
+        {:else if filterSearch}
           <p>Keine Snapshots entsprechen dem Filter.</p>
           <Tooltip text="Filter zurücksetzen">
             <Button variant="secondary" size="sm" onclick={() => (filterSearch = '')}>
