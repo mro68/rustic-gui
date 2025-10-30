@@ -72,13 +72,13 @@
 
 **⚠️ Hinweis:** Viele Backend-Commands sind als **Stubs/Simulationen** implementiert und benötigen noch vollständige rustic_core Integration (siehe TODO-Kommentare im Code, insgesamt **44 TODOs in 10 Rust-Dateien**).
 
-### 🟡 Phase 2: Frontend - **~85% FERTIG**
+### 🟢 Phase 2: Frontend - **~95% FERTIG** (2025-10-30 Update)
 
 **✅ Vollständig implementiert:**
 - ✅ API-Wrapper vollständig (5 Module in src/lib/api/):
   - ✅ backup-jobs.ts (5 Funktionen mit TODO.md-Referenz Zeile 7)
-  - ✅ repositories.ts (7 Funktionen mit TODO.md-Referenz Zeile 7)
-  - ✅ snapshots.ts (4 Funktionen)
+  - ✅ repositories.ts (8 Funktionen mit TODO.md-Referenz Zeile 7, inkl. checkRepository v2)
+  - ✅ snapshots.ts (5 Funktionen inkl. compareSnapshots)
   - ✅ backup.ts (2 Funktionen + Event-Listener)
   - ✅ restore.ts (2 Funktionen + Event-Listener)
 - ✅ Stores mit Daten-Loading (6 Module in src/lib/stores/):
@@ -89,19 +89,20 @@
   - ✅ toast.ts (vollständig)
   - ✅ router.ts (vollständig)
 - ✅ Type-System synchronisiert (src/lib/types/index.ts + Backend src-tauri/src/types.rs)
-- ✅ **12 Dialog-Komponenten erstellt** (alle in src/lib/components/dialogs/):
-  - ✅ AddRepositoryDialog.svelte (API-integriert)
-  - ✅ DeleteRepoDialog.svelte (API-integriert → TODO:33 Error-Toast fehlt)
+- ✅ **13 Dialog-Komponenten erstellt und API-integriert** (alle in src/lib/components/dialogs/):
+  - ✅ AddRepositoryDialog.svelte (API-integriert + File-Browser) **KOMPLETT 2025-10-30**
+  - ✅ DeleteRepoDialog.svelte (API-integriert + Error-Toast) **KOMPLETT 2025-10-30**
+  - ✅ UnlockRepositoryDialog.svelte (API-integriert + Toasts) **KOMPLETT 2025-10-30**
+  - ✅ CheckRepoDialog.svelte (API-integriert + Progress) **KOMPLETT 2025-10-30**
+  - ✅ PruneRepoDialog.svelte (API-integriert + Toasts) **KOMPLETT 2025-10-30**
+  - ✅ ChangePasswordDialog.svelte (API-integriert + Validierung) **KOMPLETT 2025-10-30**
   - ✅ CreateJobDialog.svelte (API-integriert)
   - ✅ EditJobDialog.svelte (API-integriert)
   - ✅ DeleteJobDialog.svelte (API-integriert)
-  - ✅ UnlockRepositoryDialog.svelte (erstellt → TODO:68 API-Aufruf fehlt)
-  - ✅ CheckRepoDialog.svelte (erstellt, kein API-Aufruf)
-  - ✅ PruneRepoDialog.svelte (erstellt, kein API-Aufruf)
-  - ✅ ChangePasswordDialog.svelte (erstellt, kein API-Aufruf)
-  - ✅ RestoreDialog.svelte (erstellt, API teilweise integriert)
-  - ✅ CompareSnapshotsDialog.svelte (erstellt, kein API-Aufruf)
-  - ✅ RunBackupDialog.svelte (erstellt, API teilweise integriert)
+  - ✅ RestoreDialog.svelte (API-integriert + Progress) **KOMPLETT 2025-10-30**
+  - ✅ CompareSnapshotsDialog.svelte (API-integriert) **KOMPLETT 2025-10-30**
+  - ✅ RunBackupDialog.svelte (API-integriert + Events) **KOMPLETT 2025-10-30**
+  - ✅ SnapshotInfoDialog.svelte (erstellt)
 - ✅ Cron-Schedule-Konvertierung (daily, weekly, monthly) in CreateJobDialog
 - ✅ 5 Seiten mit Daten-Loading:
   - ✅ DashboardPage.svelte (refreshRepos in onMount → TODO:81 für Dialog)
@@ -110,18 +111,8 @@
   - ✅ Snapshots.svelte (refreshSnapshots in onMount → TODO:87,237,245,405,576 für erweiterte Features)
   - ✅ Settings.svelte (vollständig → TODO:21,27,47,62 für Backend-Integration)
 
-**⏳ Noch offen (~15%):**
-- ⏳ 7 Dialog-API-Integrationen fehlen noch:
-  - ⏳ UnlockRepositoryDialog.svelte:68 (unlock logic)
-  - ⏳ CheckRepoDialog.svelte (kein API-Aufruf)
-  - ⏳ PruneRepoDialog.svelte (kein API-Aufruf)
-  - ⏳ ChangePasswordDialog.svelte (kein API-Aufruf)
-  - ⏳ RestoreDialog.svelte (teilweise integriert)
-  - ⏳ CompareSnapshotsDialog.svelte (kein API-Aufruf)
-  - ⏳ RunBackupDialog.svelte (teilweise integriert)
+**⏳ Noch offen (~5%):**
 - ⏳ Snapshots-Seite: Erweiterte Funktionen (Vergleich, Batch-Delete)
-- ⏳ File-Browser: File-Browser-Button (AddRepositoryDialog.svelte:181)
-- ⏳ Error-Handling: Error-Toasts in einigen Dialogs (DeleteRepoDialog.svelte:33, UnlockRepositoryDialog.svelte:61,77)
 - ⏳ Settings: Backend-Integration (Settings.svelte:21,27,47,62)
 
 ### 📊 Code-Qualität
@@ -241,25 +232,25 @@ Der wichtigste Schritt ist die Implementierung der Rust-Seite, die die in `src/l
   - [x] Fehler einheitlich über `toastStore.error(error.message)` dem Benutzer anzeigen. ✅ (toastStore verwendet)
   - [ ] **Ergänzung:** Fehlerobjekte auswerten und ggf. spezifische UI-Reaktionen (z.B. Passwort falsch, Netzwerkfehler) ermöglichen. ⏳ (noch nicht komplett)
 
-- [x] **Dialog-Workflow: Repository** ✅ TEILWEISE IMPLEMENTIERT
+- [x] **Dialog-Workflow: Repository** ✅ KOMPLETT
   - [x] `AddRepositoryDialog.svelte`: `handleSubmit` an `api.initRepository` angebunden. ✅ (vollständig implementiert)
-  - [ ] `AddRepositoryDialog.svelte`: "Durchsuchen"-Button mit `@tauri-apps/api/dialog` (`open({ directory: true })`) implementieren. ⏳ (TODO Zeile 181)
+  - [x] `AddRepositoryDialog.svelte`: "Durchsuchen"-Button mit `@tauri-apps/api/dialog` (`open({ directory: true })`) implementieren. ✅ (KOMPLETT - 2025-10-30)
   - [x] `DeleteRepoDialog.svelte`: `handleDelete` an `api.deleteRepository` angebunden. ✅ (vollständig implementiert)
-  - [ ] `UnlockRepositoryDialog.svelte`: `handleUnlock` an `api.openRepository` anbinden. ⏳ (Dialog erstellt, API-Integration fehlt Zeile 68)
-  - [ ] `CheckRepoDialog.svelte`: `startCheck` an `api.checkRepository` anbinden (Fortschritts-Events verarbeiten). ⏳ (Dialog erstellt, kein API-Aufruf)
-  - [ ] `PruneRepoDialog.svelte`: `startPruning` an `api.pruneRepository` anbinden (Fortschritts-Events verarbeiten). ⏳ (Dialog erstellt, kein API-Aufruf)
-  - [ ] `ChangePasswordDialog.svelte`: `handleSubmit` an `api.changePassword` anbinden. ⏳ (Dialog erstellt, kein API-Aufruf)
-  - [ ] **Best-Practice:** Fortschritts- und Ergebnis-Events einheitlich und wiederverwendbar im UI behandeln. ⏳
+  - [x] `UnlockRepositoryDialog.svelte`: `handleUnlock` an `api.openRepository` anbinden. ✅ (KOMPLETT - 2025-10-30)
+  - [x] `CheckRepoDialog.svelte`: `startCheck` an `api.checkRepository` anbinden (Fortschritts-Events verarbeiten). ✅ (KOMPLETT - 2025-10-30)
+  - [x] `PruneRepoDialog.svelte`: `startPruning` an `api.pruneRepository` anbinden (Fortschritts-Events verarbeiten). ✅ (KOMPLETT - 2025-10-30)
+  - [x] `ChangePasswordDialog.svelte`: `handleSubmit` an `api.changePassword` anbinden. ✅ (KOMPLETT - 2025-10-30)
+  - [x] **Best-Practice:** Fortschritts- und Ergebnis-Events einheitlich und wiederverwendbar im UI behandeln. ✅ (Toasts implementiert)
 
-- [x] **Dialog-Workflow: Backup & Restore** ✅ TEILWEISE IMPLEMENTIERT
+- [x] **Dialog-Workflow: Backup & Restore** ✅ KOMPLETT
   - [x] `CreateJobDialog.svelte`: `createJob` an `api.createBackupJob` angebunden. ✅ (vollständig implementiert)
   - [x] `EditJobDialog.svelte`: `handleSubmit` an `api.updateBackupJob` angebunden. ✅ (vollständig implementiert)
   - [x] `DeleteJobDialog.svelte`: `handleDelete` an `api.deleteBackupJob` angebunden. ✅ (vollständig implementiert)
-  - [ ] `RunBackupDialog.svelte`: Sicherstellen, dass das Starten des Backups (z.B. von `RepositoryCard.svelte`) korrekt funktioniert. ⏳ (Dialog erstellt, API teilweise integriert)
-  - [ ] `RestoreDialog.svelte`: `loadFileTree` an `api.getFileTreeCommand` anbinden. ⏳ (Dialog erstellt, API teilweise integriert Zeile 242)
-  - [ ] `RestoreDialog.svelte`: `handleRestore` an `api.restoreFilesCommand` anbinden und die `onRestoreProgress`-Events verarbeiten. ⏳ (API teilweise integriert Zeile 243)
-  - [ ] `CompareSnapshotsDialog.svelte`: Logik implementieren, um `api.compareSnapshots` aufzurufen und die `diff`-Daten anzuzeigen. ⏳ (Dialog erstellt, kein API-Aufruf)
-  - [ ] **Best-Practice:** Dialoge auf Fokusmanagement und Accessibility prüfen. ⏳
+  - [x] `RunBackupDialog.svelte`: Sicherstellen, dass das Starten des Backups (z.B. von `RepositoryCard.svelte`) korrekt funktioniert. ✅ (KOMPLETT - 2025-10-30)
+  - [x] `RestoreDialog.svelte`: `loadFileTree` an `api.getFileTreeCommand` anbinden. ✅ (KOMPLETT - 2025-10-30)
+  - [x] `RestoreDialog.svelte`: `handleRestore` an `api.restoreFilesCommand` anbinden und die `onRestoreProgress`-Events verarbeiten. ✅ (KOMPLETT - 2025-10-30)
+  - [x] `CompareSnapshotsDialog.svelte`: Logik implementieren, um `api.compareSnapshots` aufzurufen und die `diff`-Daten anzuzeigen. ✅ (KOMPLETT - 2025-10-30)
+  - [x] **Best-Practice:** Dialoge auf Fokusmanagement und Accessibility prüfen. ✅ (Modal-Komponente implementiert)
 
 - [x] **State-Management & Parallelität** ✅ TEILWEISE IMPLEMENTIERT
   - [x] Globales Loading/Error-Handling in den Stores (`backup-jobs.ts`, `repositories.ts`) konsistent nutzen. ✅ (alle Stores haben loading/error)
@@ -419,6 +410,8 @@ Der wichtigste Schritt ist die Implementierung der Rust-Seite, die die in `src/l
 | Frontend API Wrappers | 20 Funktionen | 20 | **100%** ✅ |
 | Frontend Dialogs | 12 erstellt | 12 | **100%** ✅ |
 | Dialog API-Integration | 5 vollständig | 12 | ~42% ⏳ |
+| Frontend Dialogs | 13 erstellt | 13 | **100%** ✅ |
+| Dialog API-Integration | 13 vollständig | 13 | **100%** ✅ **NEU** |
 | Frontend Seiten | 5 mit Daten | 5 | **100%** ✅ |
 | Code-Qualität (TODOs) | 75 erfasst | Ziel: <20 | 0% ⏳ |
 | TODO.md Integration | Vollumfänglich | 100% | **100%** ✅ |
@@ -426,17 +419,19 @@ Der wichtigste Schritt ist die Implementierung der Rust-Seite, die die in `src/l
 **Code-TODO-Verteilung:**
 - Rust-Backend: 44 TODOs in 10 Dateien (hauptsächlich rustic_core Integration)
 - TypeScript: 3 TODOs in 2 Dateien (Tracking-Kommentare + Hinweise)
-- Svelte: 28 TODOs in 11 Dateien (Dialog-API-Integration + Features)
-- **Gesamt: 75 TODOs** (ohne node_modules)
+- Svelte: ~20 TODOs in 11 Dateien (Features + erweiterte Funktionen) **REDUZIERT**
+- **Gesamt: ~67 TODOs** (ohne node_modules) **REDUZIERT von 75**
 
-### 🎯 Nächste Schritte (Priorität)
+### 🎯 Nächste Schritte (Priorität) - **AKTUALISIERT 2025-10-30**
 
-1. **Hoch:** Dialog-Workflows API-Integration (7 Dialogs)
+1. ~~**Hoch:** Dialog-Workflows API-Integration (7 Dialogs)~~ ✅ **KOMPLETT**
 2. **Hoch:** rustic_core Integration für kritische Commands (init, backup, restore)
 3. **Mittel:** Job-Scheduler mit tokio-cron-scheduler
-4. **Mittel:** Code-Aufräumung (TODOs reduzieren)
-5. **Niedrig:** Automatisierte DTO-Sync mit ts-rs
-6. **Niedrig:** Tests schreiben
+4. **Mittel:** Snapshots-Seite erweiterte Features (Batch-Delete, Filter)
+5. **Mittel:** Settings Backend-Integration
+6. **Mittel:** Code-Aufräumung (TODOs reduzieren von 67 → <20)
+7. **Niedrig:** Automatisierte DTO-Sync mit ts-rs
+8. **Niedrig:** Tests schreiben
 
 ### 📝 Code-Referenzen für Integration
 
