@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rustic - Repository Location Picker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Arial, sans-serif;
+            background: #1a1d2e;
+            color: #e4e4e7;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .demo-container {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .demo-nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background: #22273a;
+            color: #e4e4e7;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .demo-btn:hover {
+            background: #2d3348;
+        }
+
+        .demo-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #22273a;
+            border-radius: 16px;
+            border: 1px solid #2d3348;
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #2d3348;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #f4f4f5;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #71717a;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: #2d3348;
+            color: #e4e4e7;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #2d3348;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Location Type Tabs */
+        .location-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #2d3348;
+        }
+
+        .location-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            color: #71717a;
+            font-size: 14px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .location-tab:hover {
+            color: #e4e4e7;
+        }
+
+        .location-tab.active {
+            color: #e4e4e7;
+            border-bottom-color: #3b82f6;
+        }
+
+        .tab-icon {
+            font-size: 18px;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* File Browser */
+        .browser-toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .breadcrumb {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: #1a1d2e;
+            border: 1px solid #2d3348;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .breadcrumb-item {
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .breadcrumb-item:hover {
+            color: #3b82f6;
+        }
+
+        .breadcrumb-separator {
+            color: #71717a;
+        }
+
+        .btn-icon {
+            padding: 8px 12px;
+            background: #2d3348;
+            border: 1px solid #3e4457;
+            color: #e4e4e7;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .btn-icon:hover {
+            background: #3e4457;
+        }
+
+        .file-browser {
+            border: 1px solid #2d3348;
+            border-radius: 8px;
+            overflow: hidden;
+            max-height: 400px;
+            overflow-y: auto;
+            background: #1a1d2e;
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #2d3348;
+            transition: background 0.2s;
+        }
+
+        .file-item:hover {
+            background: #22273a;
+        }
+
+        .file-item.selected {
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .file-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .file-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .file-name {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .file-meta {
+            font-size: 12px;
+            color: #71717a;
+        }
+
+        /* Cloud Provider Cards */
+        .cloud-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .cloud-card {
+            background: #1a1d2e;
+            border: 2px solid #2d3348;
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .cloud-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        .cloud-card.selected {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+        }
+
+        .cloud-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .cloud-name {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .cloud-desc {
+            font-size: 12px;
+            color: #71717a;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #e4e4e7;
+            margin-bottom: 8px;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #71717a;
+            margin-top: 4px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1a1d2e;
+            border: 1px solid #2d3348;
+            border-radius: 6px;
+            color: #e4e4e7;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1a1d2e;
+            border: 1px solid #2d3348;
+            border-radius: 6px;
+            color: #e4e4e7;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #93c5fd;
+            margin-bottom: 20px;
+        }
+
+        .info-box.warning {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+        }
+
+        .info-box.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #2d3348;
+            color: #e4e4e7;
+            border: 1px solid #3e4457;
+        }
+
+        .btn-secondary:hover {
+            background: #3e4457;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Recent Locations */
+        .recent-list {
+            background: #1a1d2e;
+            border: 1px solid #2d3348;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .recent-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #2d3348;
+            transition: background 0.2s;
+        }
+
+        .recent-item:last-child {
+            border-bottom: none;
+        }
+
+        .recent-item:hover {
+            background: #22273a;
+        }
+
+        .recent-icon {
+            font-size: 18px;
+            width: 24px;
+        }
+
+        .recent-info {
+            flex: 1;
+        }
+
+        .recent-path {
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 2px;
+        }
+
+        .recent-type {
+            font-size: 11px;
+            color: #71717a;
+        }
+
+        /* Quick Access Sidebar */
+        .quick-access {
+            background: #1a1d2e;
+            border: 1px solid #2d3348;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .quick-access-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: #71717a;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .quick-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+            transition: background 0.2s;
+        }
+
+        .quick-item:hover {
+            background: #22273a;
+        }
+
+        .quick-item.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        @media (max-width: 768px) {
+            .modal {
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .cloud-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-nav">
+            <button class="demo-btn active" onclick="showDialog('local-picker')">Local/Network Browser</button>
+            <button class="demo-btn" onclick="showDialog('cloud-picker')">Cloud Provider</button>
+            <button class="demo-btn" onclick="showDialog('manual-url')">Manual URL Entry</button>
+        </div>
+
+        <!-- Local/Network File Browser -->
+        <div class="modal-overlay active" id="local-picker">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Select Repository Location</h2>
+                    <button class="modal-close" onclick="closeDialog('local-picker')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="location-tabs">
+                        <div class="location-tab active" onclick="switchLocationTab(event, 'tab-filesystem')">
+                            <span class="tab-icon">💾</span>
+                            <span>Filesystem</span>
+                        </div>
+                        <div class="location-tab" onclick="switchLocationTab(event, 'tab-network')">
+                            <span class="tab-icon">🌐</span>
+                            <span>Network</span>
+                        </div>
+                        <div class="location-tab" onclick="switchLocationTab(event, 'tab-recent')">
+                            <span class="tab-icon">🕐</span>
+                            <span>Recent</span>
+                        </div>
+                    </div>
+
+                    <!-- Filesystem Tab -->
+                    <div class="tab-panel active" id="tab-filesystem">
+                        <div class="quick-access">
+                            <div class="quick-access-title">Quick Access</div>
+                            <div class="quick-item" onclick="navigateTo('/home')">
+                                <span>🏠</span>
+                                <span>Home</span>
+                            </div>
+                            <div class="quick-item" onclick="navigateTo('/mnt')">
+                                <span>💿</span>
+                                <span>Mounted Drives</span>
+                            </div>
+                            <div class="quick-item active" onclick="navigateTo('/media')">
+                                <span>📀</span>
+                                <span>External Media</span>
+                            </div>
+                            <div class="quick-item" onclick="navigateTo('/tmp')">
+                                <span>📂</span>
+                                <span>Temporary</span>
+                            </div>
+                        </div>
+
+                        <div class="browser-toolbar">
+                            <button class="btn-icon" onclick="navigateUp()">↑ Up</button>
+                            <button class="btn-icon" onclick="navigateHome()">🏠 Home</button>
+                            <button class="btn-icon" onclick="refreshBrowser()">⟳</button>
+                            <div class="breadcrumb">
+                                <span class="breadcrumb-item" onclick="navigateTo('/')">/</span>
+                                <span class="breadcrumb-separator">›</span>
+                                <span class="breadcrumb-item" onclick="navigateTo('/media')">media</span>
+                                <span class="breadcrumb-separator">›</span>
+                                <span>backup-drive</span>
+                            </div>
+                        </div>
+
+                        <div class="file-browser">
+                            <div class="file-list">
+                                <div class="file-item" onclick="navigateInto(this)" data-path="/media/backup-drive/documents">
+                                    <span class="file-icon">📁</span>
+                                    <span class="file-name">documents</span>
+                                    <span class="file-meta">12 items</span>
+                                </div>
+                                <div class="file-item selected" onclick="selectLocation(this)" data-path="/media/backup-drive/rustic-repo">
+                                    <span class="file-icon">📦</span>
+                                    <span class="file-name">rustic-repo</span>
+                                    <span class="file-meta">Repository • 156.3 GB</span>
+                                </div>
+                                <div class="file-item" onclick="navigateInto(this)" data-path="/media/backup-drive/photos">
+                                    <span class="file-icon">📁</span>
+                                    <span class="file-name">photos</span>
+                                    <span class="file-meta">2,345 items</span>
+                                </div>
+                                <div class="file-item" onclick="navigateInto(this)" data-path="/media/backup-drive/videos">
+                                    <span class="file-icon">📁</span>
+                                    <span class="file-name">videos</span>
+                                    <span class="file-meta">87 items</span>
+                                </div>
+                                <div class="file-item disabled">
+                                    <span class="file-icon">📄</span>
+                                    <span class="file-name">readme.txt</span>
+                                    <span class="file-meta">2.3 KB</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label class="form-label">New Folder Name (for init)</label>
+                            <input type="text" class="form-input" placeholder="e.g., my-new-repo" id="new-folder-name">
+                            <div class="form-help">Leave empty to use selected directory, or enter name to create new folder</div>
+                        </div>
+
+                        <div class="info-box success">
+                            ✅ Selected: <strong>/media/backup-drive/rustic-repo</strong>
+                        </div>
+                    </div>
+
+                    <!-- Network Tab -->
+                    <div class="tab-panel" id="tab-network">
+                        <div class="info-box">
+                            🌐 Connect to remote repositories via SFTP, SMB, NFS, or WebDAV
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Protocol</label>
+                            <select class="form-select" onchange="updateNetworkForm(this.value)">
+                                <option value="sftp">SFTP (SSH File Transfer)</option>
+                                <option value="smb">SMB/CIFS (Windows Share)</option>
+                                <option value="nfs">NFS (Network File System)</option>
+                                <option value="webdav">WebDAV</option>
+                            </select>
+                        </div>
+
+                        <div id="network-form-sftp">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Host</label>
+                                    <input type="text" class="form-input" placeholder="backup.example.com" value="backup.example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Port</label>
+                                    <input type="number" class="form-input" value="22">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Username</label>
+                                    <input type="text" class="form-input" placeholder="backup-user" value="backupuser">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Authentication</label>
+                                    <select class="form-select">
+                                        <option>Password</option>
+                                        <option selected>SSH Key</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Remote Path</label>
+                                <input type="text" class="form-input" placeholder="/path/to/repository" value="/backups/prod-server">
+                                <div class="form-help">Path on the remote server</div>
+                            </div>
+
+                            <button class="btn btn-secondary" onclick="testConnection()">🔌 Test Connection</button>
+                        </div>
+
+                        <div class="info-box success" style="margin-top: 16px;">
+                            ✅ Preview: <strong>sftp://backupuser@backup.example.com:22/backups/prod-server</strong>
+                        </div>
+                    </div>
+
+                    <!-- Recent Tab -->
+                    <div class="tab-panel" id="tab-recent">
+                        <div class="info-box">
+                            🕐 Recently used repository locations
+                        </div>
+
+                        <div class="recent-list">
+                            <div class="recent-item" onclick="selectRecent(this)" data-path="/media/backup-drive/rustic-repo">
+                                <span class="recent-icon">💾</span>
+                                <div class="recent-info">
+                                    <div class="recent-path">/media/backup-drive/rustic-repo</div>
+                                    <div class="recent-type">Local • Last used: Today 14:23</div>
+                                </div>
+                            </div>
+                            <div class="recent-item" onclick="selectRecent(this)" data-path="sftp://backup.example.com/prod">
+                                <span class="recent-icon">🌐</span>
+                                <div class="recent-info">
+                                    <div class="recent-path">sftp://backup.example.com/prod</div>
+                                    <div class="recent-type">SFTP • Last used: Yesterday 02:00</div>
+                                </div>
+                            </div>
+                            <div class="recent-item" onclick="selectRecent(this)" data-path="s3:s3.amazonaws.com/my-backup">
+                                <span class="recent-icon">☁️</span>
+                                <div class="recent-info">
+                                    <div class="recent-path">s3:s3.amazonaws.com/my-backup</div>
+                                    <div class="recent-type">Amazon S3 • Last used: Oct 10</div>
+                                </div>
+                            </div>
+                            <div class="recent-item" onclick="selectRecent(this)" data-path="/mnt/nas/backups/documents">
+                                <span class="recent-icon">💿</span>
+                                <div class="recent-info">
+                                    <div class="recent-path">/mnt/nas/backups/documents</div>
+                                    <div class="recent-type">Network Mount • Last used: Oct 5</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div style="flex: 1; font-size: 13px; color: #71717a;">
+                        Selected: <span id="selected-path">/media/backup-drive/rustic-repo</span>
+                    </div>
+                    <button class="btn btn-secondary" onclick="closeDialog('local-picker')">Cancel</button>
+                    <button class="btn btn-primary">Select Location</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cloud Provider Picker -->
+        <div class="modal-overlay" id="cloud-picker">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Select Cloud Provider</h2>
+                    <button class="modal-close" onclick="closeDialog('cloud-picker')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-box">
+                        ☁️ Choose your cloud storage provider to configure repository access
+                    </div>
+
+                    <div class="cloud-grid">
+                        <div class="cloud-card selected" onclick="selectCloud(this, 's3')">
+                            <div class="cloud-icon">📦</div>
+                            <div class="cloud-name">Amazon S3</div>
+                            <div class="cloud-desc">AWS Object Storage</div>
+                        </div>
+
+                        <div class="cloud-card" onclick="selectCloud(this, 'b2')">
+                            <div class="cloud-icon">☁️</div>
+                            <div class="cloud-name">Backblaze B2</div>
+                            <div class="cloud-desc">Affordable Cloud Storage</div>
+                        </div>
+
+                        <div class="cloud-card" onclick="selectCloud(this, 'azure')">
+                            <div class="cloud-icon">🔷</div>
+                            <div class="cloud-name">Azure Blob</div>
+                            <div class="cloud-desc">Microsoft Cloud Storage</div>
+                        </div>
+
+                        <div class="cloud-card" onclick="selectCloud(this, 'gcs')">
+                            <div class="cloud-icon">🌐</div>
+                            <div class="cloud-name">Google Cloud</div>
+                            <div class="cloud-desc">GCS Object Storage</div>
+                        </div>
+
+                        <div class="cloud-card" onclick="selectCloud(this, 'wasabi')">
+                            <div class="cloud-icon">💚</div>
+                            <div class="cloud-name">Wasabi</div>
+                            <div class="cloud-desc">Hot Cloud Storage</div>
+                        </div>
+
+                        <div class="cloud-card" onclick="selectCloud(this, 'minio')">
+                            <div class="cloud-icon">🪣</div>
+                            <div class="cloud-name">MinIO</div>
+                            <div class="cloud-desc">Self-hosted S3-compatible</div>
+                        </div>
+
+                        <div class="cloud-card" onclick="selectCloud(this, 'rclone')">
+                            <div class="cloud-icon">🔗</div>
+                            <div class="cloud-name">Rclone</div>
+                            <div class="cloud-desc">Any Rclone Backend</div>
+                        </div>
+
+                        <div class="cloud-card" onclick="selectCloud(this, 'rest')">
+                            <div class="cloud-icon">🔌</div>
+                            <div class="cloud-name">REST Server</div>
+                            <div class="cloud-desc">Custom REST Backend</div>
+                        </div>
+                    </div>
+
+                    <div id="cloud-config" style="margin-top: 24px;">
+                        <h3 style="font-size: 16px; margin-bottom: 16px; font-weight: 500;">Amazon S3 Configuration</h3>
+
+                        <div class="form-group">
+                            <label class="form-label">Bucket Name</label>
+                            <input type="text" class="form-input" placeholder="my-backup-bucket" value="prod-server-backups">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Region</label>
+                                <select class="form-select">
+                                    <option>us-east-1 (N. Virginia)</option>
+                                    <option selected>eu-central-1 (Frankfurt)</option>
+                                    <option>ap-southeast-1 (Singapore)</option>
+                                    <option>Custom...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Path Prefix (optional)</label>
+                                <input type="text" class="form-input" placeholder="e.g., /prod-backups">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Access Key ID</label>
+                                <input type="text" class="form-input" placeholder="AKIAIOSFODNN7EXAMPLE">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Secret Access Key</label>
+                                <input type="password" class="form-input" placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Endpoint URL (optional)</label>
+                            <input type="text" class="form-input" placeholder="Leave empty for AWS S3, or custom for S3-compatible">
+                            <div class="form-help">For S3-compatible services (e.g., MinIO, Wasabi)</div>
+                        </div>
+
+                        <button class="btn btn-secondary" onclick="testCloudConnection()">🔌 Test Connection</button>
+
+                        <div class="info-box success" style="margin-top: 16px;">
+                            ✅ Preview: <strong>s3:s3.eu-central-1.amazonaws.com/prod-server-backups</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div style="flex: 1; font-size: 13px; color: #71717a;">
+                        Provider: Amazon S3
+                    </div>
+                    <button class="btn btn-secondary" onclick="closeDialog('cloud-picker')">Cancel</button>
+                    <button class="btn btn-primary">Select Cloud Storage</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual URL Entry -->
+        <div class="modal-overlay" id="manual-url">
+            <div class="modal" style="max-width: 700px;">
+                <div class="modal-header">
+                    <h2 class="modal-title">Enter Repository URL</h2>
+                    <button class="modal-close" onclick="closeDialog('manual-url')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-box">
+                        ⌨️ Enter the full repository URL or path manually
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Repository Location</label>
+                        <input type="text" class="form-input" placeholder="Enter path or URL..." id="manual-url-input" style="font-size: 15px; padding: 12px;">
+                        <div class="form-help">Examples below - click to use</div>
+                    </div>
+
+                    <div style="background: #1a1d2e; border: 1px solid #2d3348; border-radius: 8px; padding: 16px; margin-top: 16px;">
+                        <h3 style="font-size: 14px; margin-bottom: 12px; font-weight: 500; color: #a1a1aa;">Examples:</h3>
+                        
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 12px; color: #71717a; margin-bottom: 4px;">Local filesystem:</div>
+                            <div class="recent-item" onclick="useExample('/mnt/backup/my-repo')" style="border: none; padding: 8px 12px; background: #22273a; border-radius: 6px;">
+                                <span class="recent-icon">💾</span>
+                                <span style="font-family: 'Courier New', monospace; font-size: 13px;">/mnt/backup/my-repo</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 12px; color: #71717a; margin-bottom: 4px;">SFTP:</div>
+                            <div class="recent-item" onclick="useExample('sftp://user@backup.example.com:22/backups/repo')" style="border: none; padding: 8px 12px; background: #22273a; border-radius: 6px;">
+                                <span class="recent-icon">🌐</span>
+                                <span style="font-family: 'Courier New', monospace; font-size: 13px;">sftp://user@backup.example.com:22/backups/repo</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 12px; color: #71717a; margin-bottom: 4px;">Amazon S3:</div>
+                            <div class="recent-item" onclick="useExample('s3:s3.amazonaws.com/my-bucket/path')" style="border: none; padding: 8px 12px; background: #22273a; border-radius: 6px;">
+                                <span class="recent-icon">☁️</span>
+                                <span style="font-family: 'Courier New', monospace; font-size: 13px;">s3:s3.amazonaws.com/my-bucket/path</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 12px; color: #71717a; margin-bottom: 4px;">Backblaze B2:</div>
+                            <div class="recent-item" onclick="useExample('b2:bucket-name:path/to/repo')" style="border: none; padding: 8px 12px; background: #22273a; border-radius: 6px;">
+                                <span class="recent-icon">☁️</span>
+                                <span style="font-family: 'Courier New', monospace; font-size: 13px;">b2:bucket-name:path/to/repo</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 12px; color: #71717a; margin-bottom: 4px;">REST Server:</div>
+                            <div class="recent-item" onclick="useExample('rest:http://backup.example.com:8000/myrepo')" style="border: none; padding: 8px 12px; background: #22273a; border-radius: 6px;">
+                                <span class="recent-icon">🔌</span>
+                                <span style="font-family: 'Courier New', monospace; font-size: 13px;">rest:http://backup.example.com:8000/myrepo</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 12px; color: #71717a; margin-bottom: 4px;">Rclone (any backend):</div>
+                            <div class="recent-item" onclick="useExample('rclone:remote:path/to/repo')" style="border: none; padding: 8px 12px; background: #22273a; border-radius: 6px;">
+                                <span class="recent-icon">🔗</span>
+                                <span style="font-family: 'Courier New', monospace; font-size: 13px;">rclone:remote:path/to/repo</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="font-size: 12px; color: #71717a; margin-bottom: 4px;">Azure Blob Storage:</div>
+                            <div class="recent-item" onclick="useExample('azure:container:/path')" style="border: none; padding: 8px 12px; background: #22273a; border-radius: 6px;">
+                                <span class="recent-icon">🔷</span>
+                                <span style="font-family: 'Courier New', monospace; font-size: 13px;">azure:container:/path</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="url-validation" style="margin-top: 16px;"></div>
+                </div>
+                <div class="modal-footer">
+                    <div style="flex: 1;"></div>
+                    <button class="btn btn-secondary" onclick="closeDialog('manual-url')">Cancel</button>
+                    <button class="btn btn-primary" id="url-confirm-btn" disabled>Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showDialog(id) {
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.classList.remove('active');
+            });
+            document.getElementById(id).classList.add('active');
+            
+            document.querySelectorAll('.demo-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function closeDialog(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function switchLocationTab(event, tabId) {
+            const modal = event.target.closest('.modal');
+            modal.querySelectorAll('.location-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            modal.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            event.target.closest('.location-tab').classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function navigateTo(path) {
+            console.log('Navigate to:', path);
+            // In real app: update file browser with new path
+        }
+
+        function navigateUp() {
+            console.log('Navigate up');
+            // In real app: go to parent directory
+        }
+
+        function navigateHome() {
+            navigateTo('/home/user');
+        }
+
+        function refreshBrowser() {
+            console.log('Refresh browser');
+            // In real app: reload current directory
+        }
+
+        function navigateInto(element) {
+            const path = element.getAttribute('data-path');
+            if (path) {
+                console.log('Navigate into:', path);
+                // In real app: update browser with subdirectory
+            }
+        }
+
+        function selectLocation(element) {
+            // Remove selection from all items
+            document.querySelectorAll('.file-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            // Select clicked item
+            element.classList.add('selected');
+            
+            const path = element.getAttribute('data-path');
+            document.getElementById('selected-path').textContent = path;
+            
+            // Update info box
+            const infoBox = document.querySelector('#tab-filesystem .info-box');
+            infoBox.innerHTML = `✅ Selected: <strong>${path}</strong>`;
+        }
+
+        function selectRecent(element) {
+            const path = element.getAttribute('data-path');
+            document.getElementById('selected-path').textContent = path;
+            console.log('Selected recent:', path);
+        }
+
+        function updateNetworkForm(protocol) {
+            console.log('Switch to protocol:', protocol);
+            // In real app: show/hide different form fields based on protocol
+        }
+
+        function testConnection() {
+            alert('Testing connection...\n\n✅ Connection successful!\n\nRemote server is accessible.');
+        }
+
+        function selectCloud(card, provider) {
+            document.querySelectorAll('.cloud-card').forEach(c => {
+                c.classList.remove('selected');
+            });
+            card.classList.add('selected');
+            console.log('Selected cloud provider:', provider);
+            
+            // In real app: update form fields based on provider
+            const configDiv = document.getElementById('cloud-config');
+            const providerNames = {
+                's3': 'Amazon S3',
+                'b2': 'Backblaze B2',
+                'azure': 'Azure Blob Storage',
+                'gcs': 'Google Cloud Storage',
+                'wasabi': 'Wasabi',
+                'minio': 'MinIO',
+                'rclone': 'Rclone',
+                'rest': 'REST Server'
+            };
+            
+            const title = configDiv.querySelector('h3');
+            title.textContent = providerNames[provider] + ' Configuration';
+        }
+
+        function testCloudConnection() {
+            alert('Testing cloud connection...\n\n✅ Connection successful!\n\nBucket is accessible and credentials are valid.');
+        }
+
+        function useExample(url) {
+            const input = document.getElementById('manual-url-input');
+            input.value = url;
+            input.focus();
+            validateUrl(url);
+        }
+
+        function validateUrl(url) {
+            const validation = document.getElementById('url-validation');
+            const confirmBtn = document.getElementById('url-confirm-btn');
+            
+            if (!url || url.trim() === '') {
+                validation.innerHTML = '';
+                confirmBtn.disabled = true;
+                return;
+            }
+
+            // Simple validation
+            const patterns = {
+                local: /^(\/|~\/|\.\/).*/,
+                sftp: /^sftp:\/\/.+/,
+                s3: /^s3:.+/,
+                b2: /^b2:.+/,
+                rest: /^rest:https?:\/\/.+/,
+                rclone: /^rclone:.+/,
+                azure: /^azure:.+/
+            };
+
+            let valid = false;
+            let type = '';
+
+            for (const [key, pattern] of Object.entries(patterns)) {
+                if (pattern.test(url)) {
+                    valid = true;
+                    type = key;
+                    break;
+                }
+            }
+
+            if (valid) {
+                validation.innerHTML = `
+                    <div class="info-box success">
+                        ✅ Valid ${type.toUpperCase()} repository URL
+                    </div>
+                `;
+                confirmBtn.disabled = false;
+            } else {
+                validation.innerHTML = `
+                    <div class="info-box warning">
+                        ⚠️ URL format not recognized. Please check the examples above.
+                    </div>
+                `;
+                confirmBtn.disabled = true;
+            }
+        }
+
+        // Manual URL input validation
+        const manualInput = document.getElementById('manual-url-input');
+        if (manualInput) {
+            manualInput.addEventListener('input', (e) => {
+                validateUrl(e.target.value);
+            });
+        }
+
+        // Close on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                    overlay.classList.remove('active');
+                });
+            }
+        });
+
+        // Simulate file item clicks
+        document.querySelectorAll('.file-item:not(.disabled)').forEach(item => {
+            item.addEventListener('click', function() {
+                const isFolder = this.querySelector('.file-icon').textContent === '📁';
+                if (isFolder) {
+                    // Double click to navigate
+                    if (this.dataset.lastClick && Date.now() - this.dataset.lastClick < 500) {
+                        navigateInto(this);
+                    }
+                    this.dataset.lastClick = Date.now();
+                } else {
+                    selectLocation(this);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
