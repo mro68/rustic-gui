@@ -1,7 +1,18 @@
 <!--
   RunBackupDialog.svelte
   ---------------------
-  Fortschritts-Dialog für laufende Backups (gemäß Mockup)
+  TODO.md: Phase 2 - Dialog-Workflow: Backup & Restore (Zeile 258)
+  Status: ✅ KOMPLETT - API-Integration vollständig
+  
+  Backend-Command: src-tauri/src/lib.rs:121 (run_backup_command)
+  API-Wrapper: src/lib/api/backup.ts:runBackup
+  
+  Implementierung:
+  - ✅ API-Integration mit runBackup
+  - ✅ Event-Listener für Progress, Completed, Failed
+  - ✅ Error-Handling mit Toasts
+  - ✅ Retry-Funktionalität
+  - ✅ Log-Anzeige
 -->
 <script lang="ts">
   import { runBackup } from '$lib/api/backup';

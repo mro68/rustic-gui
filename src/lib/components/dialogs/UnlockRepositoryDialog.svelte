@@ -2,17 +2,17 @@
   /**
    * UnlockRepositoryDialog.svelte
    * 
-   * TODO.md: Phase 2 - Dialog-Workflow Repository (Zeile 231)
-   * Status: ✅ Dialog erstellt, ⏳ API-Integration fehlt
-   * Referenz: TODO.md Zeile 66, Integration-Zusammenfassung Zeile 363
+   * TODO.md: Phase 2 - Dialog-Workflow Repository (Zeile 248)
+   * Status: ✅ KOMPLETT - API-Integration vollständig
    * 
    * Backend-Command: src-tauri/src/lib.rs:392 (open_repository)
-   * API-Wrapper: src/lib/api/repositories.ts:33 (openRepository)
+   * API-Wrapper: src/lib/api/repositories.ts:37 (openRepository)
    * 
-   * TODOs in dieser Datei:
-   * - Zeile 61: Error-Toast für leeres Passwort
-   * - Zeile 68: Tatsächliche API-Integration mit openRepository
-   * - Zeile 77: Error-Toast für Unlock-Fehler
+   * Implementierung:
+   * - ✅ API-Integration mit openRepository
+   * - ✅ Error-Toasts für alle Fehlerfälle
+   * - ✅ Success-Toast bei erfolgreichem Unlock
+   * - ⏳ Keychain-Integration für rememberPassword (TODO für später)
    */
   
   import { createEventDispatcher } from 'svelte';
@@ -20,11 +20,14 @@
   import Checkbox from '../shared/Checkbox.svelte';
   import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
+  import { openRepository } from '$lib/api/repositories';
+  import { toastStore } from '$lib/stores/toast';
 
   const dispatch = createEventDispatcher();
 
   export let repositoryName = '';
   export let repositoryPath = '';
+  export let repositoryId = '';
 
   // Form state
   let password = '';
@@ -74,31 +77,34 @@
 
   async function handleUnlock() {
     if (!password.trim()) {
-      // TODO: Show error toast (TODO.md Zeile 298, Integration-Zusammenfassung Zeile 363)
-      // import { showToast } from '$lib/stores/toast';
-      // showToast('error', 'Passwort erforderlich');
+      toastStore.error('Passwort erforderlich');
       return;
     }
 
     isUnlocking = true;
 
     try {
-      // TODO: Implement actual unlock logic (TODO.md Phase 2 Zeile 231)
-      // import { openRepository } from '$lib/api/repositories';
-      // await openRepository(repositoryPath, password.trim());
+      // ✅ Tatsächliche API-Integration (TODO.md Phase 2 Zeile 248)
+      await openRepository(repositoryPath, password.trim());
+      
+      // TODO: Passwort im Keychain speichern wenn rememberPassword = true
       // if (rememberPassword) {
       //   await storeRepositoryPassword(repositoryId, password.trim());
       // }
+      
+      toastStore.success('Repository erfolgreich entsperrt');
+      
       dispatch('unlock', {
+        repositoryId,
         password: password.trim(),
         remember: rememberPassword,
       });
 
       // Close dialog on success
       dispatch('close');
-    } catch (error) {
-      // TODO: Show error toast (TODO.md Zeile 298, Integration-Zusammenfassung Zeile 363)
-      // showToast('error', 'Repository entsperren fehlgeschlagen', error.message);
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Unbekannter Fehler';
+      toastStore.error('Repository entsperren fehlgeschlagen: ' + errorMessage);
       console.error('Unlock failed:', error);
     } finally {
       isUnlocking = false;

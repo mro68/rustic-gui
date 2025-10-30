@@ -1,10 +1,11 @@
 <!-- AddRepositoryDialog.svelte: Dialog zum Hinzufügen eines neuen Repositories -->
 <!--
-  TODO.md: Phase 2 - Dialog-Workflow: Repository ✅ IMPLEMENTIERT
-  Referenz: TODO.md Zeile 227-235, 332-340
+  TODO.md: Phase 2 - Dialog-Workflow: Repository ✅ KOMPLETT
+  Referenz: TODO.md Zeile 245-246
   
   Status:
-  - handleSubmit an api.initRepository angebunden ✅ (TODO.md Zeile 228)
+  - handleSubmit an api.initRepository angebunden ✅ (TODO.md Zeile 245)
+  - "Durchsuchen"-Button implementiert ✅ (TODO.md Zeile 246)
   
   Backend-Commands:
   - init_repository: src-tauri/src/lib.rs:180 (simuliert in rustic/repository.rs:32)
@@ -14,9 +15,6 @@
   Verwendung:
   - src/lib/components/pages/Repositories.svelte
   - src/lib/components/pages/DashboardPage.svelte
-  
-  TODO:
-  - Zeile 181: "Durchsuchen"-Button mit @tauri-apps/api/dialog implementieren (TODO.md Zeile 229)
 -->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
@@ -25,6 +23,7 @@
   import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
   import Toast from '../shared/Toast.svelte';
+  import { open } from '@tauri-apps/plugin-dialog';
 
   const dispatch = createEventDispatcher();
 
@@ -41,6 +40,24 @@
   let showToast = false;
   let toastMessage = '';
   let toastType: 'success' | 'error' | 'info' = 'info';
+  
+  // ✅ File browser function (TODO.md Zeile 246)
+  async function browseDirectory() {
+    try {
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: 'Repository-Verzeichnis auswählen',
+      });
+      
+      if (selected && typeof selected === 'string') {
+        repositoryPath = selected;
+      }
+    } catch (error) {
+      console.error('File browser error:', error);
+      showToastMessage('error', 'Fehler beim Öffnen des Datei-Dialogs');
+    }
+  }
 
   // Repository types from mockup
   const repositoryTypes = [
@@ -197,9 +214,7 @@
           <Button
             variant="secondary"
             size="sm"
-            on:click={() => {
-              /* TODO: File browser */
-            }}
+            on:click={browseDirectory}
           >
             Durchsuchen
           </Button>

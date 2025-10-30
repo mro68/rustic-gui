@@ -38,8 +38,14 @@ export async function openRepository(path: string, password: string): Promise<Re
   return await invoke<RepositoryDto>('open_repository', { path, password });
 }
 
-export async function checkRepository(path: string, password: string): Promise<RepositoryDto> {
+// Check repository (v1 - requires path and password)
+export async function checkRepositoryV1(path: string, password: string): Promise<RepositoryDto> {
   return await invoke<RepositoryDto>('check_repository_v1', { path, password });
+}
+
+// Check repository (v2 - uses stored credentials by ID)
+export async function checkRepository(id: string, readData: boolean = false): Promise<string> {
+  return await invoke<string>('check_repository', { id, readData });
 }
 
 export async function listRepositories(): Promise<RepositoryDto[]> {

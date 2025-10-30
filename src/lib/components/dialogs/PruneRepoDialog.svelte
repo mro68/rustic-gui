@@ -1,7 +1,25 @@
 <script lang="ts">
+  /**
+   * PruneRepoDialog.svelte
+   * 
+   * TODO.md: Phase 2 - Dialog-Workflow Repository (Zeile 250)
+   * Status: ✅ KOMPLETT - API-Integration vollständig
+   * 
+   * Backend-Command: src-tauri/src/commands/repository.rs:124 (prune_repository)
+   * API-Wrapper: src/lib/api/repositories.ts:53 (pruneRepository)
+   * 
+   * Implementierung:
+   * - ✅ API-Integration mit pruneRepository
+   * - ✅ Error-Handling mit Toasts
+   * - ✅ Success-Toast bei erfolgreichem Prune
+   * - ⏳ Progress-Events (Backend sendet noch keine Events)
+   */
+  
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Modal from '../shared/Modal.svelte';
+  import { toastStore } from '$lib/stores/toast';
+  import { pruneRepository } from '$lib/api/repositories';
 
   const dispatch = createEventDispatcher();
 
@@ -58,10 +76,25 @@
   async function startPruning() {
     isPruning = true;
     try {
-      dispatch('prune-repo', {
+      // ✅ Tatsächliche API-Integration (TODO.md Phase 2 Zeile 250)
+      const result = await pruneRepository(repositoryId);
+      
+      toastStore.success('Repository erfolgreich bereinigt');
+      
+      dispatch('prune-complete', {
         repositoryId,
-        options,
+        result,
       });
+      
+      // Auto-close nach 2 Sekunden
+      setTimeout(() => {
+        dispatch('close');
+      }, 2000);
+      
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Unbekannter Fehler';
+      toastStore.error('Repository-Bereinigung fehlgeschlagen: ' + errorMessage);
+      console.error('Prune failed:', error);
     } finally {
       isPruning = false;
     }
