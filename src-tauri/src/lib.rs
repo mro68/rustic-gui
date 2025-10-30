@@ -406,12 +406,13 @@ pub fn run() {
             // --- Restore ---
             get_file_tree_command,
             restore_files_v1,
+            // --- Additional Repository Commands ---
+            commands::repository::list_repositories,
+            commands::repository::delete_repository,
+            commands::repository::check_repository,
+            commands::repository::prune_repository,
+            commands::repository::change_password,
             // --- Platzhalter für weitere geplante Commands (TODO) ---
-            // commands::repository::list_repositories, // TODO
-            // commands::repository::delete_repository, // TODO
-            // commands::repository::check_repository, // TODO
-            // commands::repository::prune_repository, // TODO
-            // commands::repository::change_password, // TODO
             // commands::snapshot::compare_snapshots, // TODO
             // commands::restore::restore_files_command, // TODO
             // commands::system::check_repository_health, // TODO

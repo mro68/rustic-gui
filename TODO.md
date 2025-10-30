@@ -13,14 +13,15 @@ Der wichtigste Schritt ist die Implementierung der Rust-Seite, die die in `src/l
   - [x] **Best-Practice:** State thread-sicher gestalten, um parallele Operationen (z.B. mehrere Backups) zu ermöglichen.
 
 - [x] **Befehle: Repository-Management (Rust)**
-  - [x] `#[tauri::command] async fn list_repositories() -> Result<Vec<RepositoryDto>, ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn list_repositories() -> Result<Vec<RepositoryDto>, ErrorDto>` (IMPLEMENTIERT in commands/repository.rs)
   - [x] `#[tauri::command] async fn init_repository(path: String, password: String, ...) -> Result<(), ErrorDto>` (Platzhalter vorhanden)
   - [x] `#[tauri::command] async fn open_repository(path: String, password: String) -> Result<RepositoryDto, ErrorDto>` (Platzhalter vorhanden)
-  - [x] `#[tauri::command] async fn delete_repository(id: String, delete_data: bool) -> Result<(), ErrorDto>` (Platzhalter vorhanden)
-  - [x] `#[tauri::command] async fn check_repository(id: String, read_data: bool, ...) -> Result<CheckResultDto, ErrorDto>` (Platzhalter vorhanden)
-  - [x] `#[tauri::command] async fn prune_repository(id: String, ...) -> Result<PruneResultDto, ErrorDto>` (Platzhalter vorhanden)
-  - [x] `#[tauri::command] async fn change_password(id: String, old_pass: String, new_pass: String) -> Result<(), ErrorDto>` (Platzhalter vorhanden)
+  - [x] `#[tauri::command] async fn delete_repository(id: String, delete_data: bool) -> Result<(), ErrorDto>` (IMPLEMENTIERT in commands/repository.rs)
+  - [x] `#[tauri::command] async fn check_repository(id: String, read_data: bool, ...) -> Result<CheckResultDto, ErrorDto>` (IMPLEMENTIERT in commands/repository.rs)
+  - [x] `#[tauri::command] async fn prune_repository(id: String, ...) -> Result<PruneResultDto, ErrorDto>` (IMPLEMENTIERT in commands/repository.rs)
+  - [x] `#[tauri::command] async fn change_password(id: String, old_pass: String, new_pass: String) -> Result<(), ErrorDto>` (IMPLEMENTIERT in commands/repository.rs)
   - [x] **Ergänzung:** Fehler als strukturierte Objekte (`ErrorDto`) zurückgeben, nicht nur als String.
+  - [x] **Hinweis:** Alle Repository-Commands sind nun in lib.rs registriert
 
 - [x] **Befehle: Backup-Job-Management (Rust)**
   - [x] `#[tauri::command] async fn list_jobs() -> Result<Vec<BackupJob>, ErrorDto>` (Platzhalter vorhanden)
@@ -53,17 +54,17 @@ Der wichtigste Schritt ist die Implementierung der Rust-Seite, die die in `src/l
 
 ## Phase 2: Svelte 5-Frontend (API-Anbindung & Logik)
 
-- [ ] **Fehlende API-Wrapper (TypeScript)**
-  - [ ] `src/lib/api/backup-jobs.ts` (oder ähnlich) erstellen für `list_jobs`, `create_job`, `update_job`, `delete_job`.
-  - [ ] `src/lib/api/repositories.ts` ergänzen um `delete_repository`, `check_repository`, `prune_repository`, `change_password`.
+- [x] **Fehlende API-Wrapper (TypeScript)**
+  - [x] `src/lib/api/backup-jobs.ts` erstellt für `list_jobs`, `create_job`, `update_job`, `delete_job`.
+  - [x] `src/lib/api/repositories.ts` ergänzt um `delete_repository`, `check_repository`, `prune_repository`, `change_password`.
   - [ ] `src/lib/api/snapshots.ts` ergänzen um `compare_snapshots`.
   - [ ] **Ergänzung:** Alle API-Wrapper müssen strukturierte Fehlerobjekte (`ErrorDto`) korrekt behandeln.
 
-- [ ] **Daten-Initialisierung (Stores & Pages)**
-  - [ ] `DashboardPage.svelte`: `refreshRepos` (in `onMount`) implementieren, um `api.listRepositories` aufzurufen und den `$repositories`-Store zu füllen.
-  - [ ] `Repositories.svelte`: `loadRepositories` (in `onMount`) implementieren, um `api.listRepositories` aufzurufen.
+- [x] **Daten-Initialisierung (Stores & Pages)**
+  - [x] `DashboardPage.svelte`: `refreshRepos` (in `onMount`) implementiert, ruft `api.listRepositories` auf und füllt den `$repositories`-Store.
+  - [x] `Repositories.svelte`: `loadRepositories` (in `onMount`) implementiert, ruft `api.listRepositories` auf.
   - [ ] `Snapshots.svelte`: `refreshSnapshots` (in `onMount`) implementieren, um `api.listSnapshots` für alle entsperrten Repos aufzurufen.
-  - [ ] `BackupJobs.svelte`: `loadJobs` (in `onMount`) implementieren, um den neuen `api.listJobs` aufzurufen.
+  - [x] `BackupJobs.svelte`: `loadJobs` (in `onMount`) implementiert, ruft `api.listBackupJobs` auf.
   - [ ] **Best-Practice:** Lade- und Fehlerzustände in den jeweiligen Stores abbilden.
 
 - [ ] **Fehlerbehandlung (Global)**

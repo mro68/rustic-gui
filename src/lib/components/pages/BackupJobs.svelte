@@ -16,12 +16,12 @@
   let showDeleteDialog = false;
   let selectedJob: BackupJob | null = null;
 
-  // TODO: API-Call zum Laden der Jobs
   async function loadJobs() {
     try {
-      // const jobList = await getBackupJobs();
-      // jobs.set(jobList);
-      console.log('Loading backup jobs...');
+      const { listBackupJobs } = await import('$lib/api/backup-jobs');
+      const jobList = await listBackupJobs();
+      jobs.set(jobList);
+      console.log('Backup jobs loaded:', jobList.length);
     } catch (error) {
       console.error('Failed to load jobs:', error);
       toastStore.error('Fehler beim Laden der Backup-Jobs');

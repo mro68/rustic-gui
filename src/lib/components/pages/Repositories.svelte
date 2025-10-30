@@ -22,12 +22,12 @@
 
   let selectedRepository: RepositoryDto | null = null;
 
-  // TODO: API-Call zum Laden der Repositories
   async function loadRepositories() {
     try {
-      // const repoList = await getRepositories();
-      // setRepositories(repoList);
-      console.log('Loading repositories...');
+      const { listRepositories } = await import('$lib/api/repositories');
+      const repoList = await listRepositories();
+      repositories.set(repoList);
+      console.log('Repositories loaded:', repoList.length);
     } catch (error) {
       console.error('Failed to load repositories:', error);
       toastStore.error('Fehler beim Laden der Repositories');
