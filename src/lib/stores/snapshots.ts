@@ -88,7 +88,6 @@ export async function loadSnapshots(repositoryId?: string): Promise<void> {
       setSnapshots(snapshotList);
     }
   } catch (error) {
-    // eslint-disable-next-line no-undef
     console.error('Failed to load snapshots:', error);
     setError(error instanceof Error ? error.message : 'Failed to load snapshots');
   } finally {
@@ -112,7 +111,6 @@ export async function refreshSnapshots(): Promise<void> {
     }
     setSnapshots(allSnapshots);
   } catch (error) {
-    // eslint-disable-next-line no-undef
     console.error('Failed to refresh snapshots:', error);
     setError(error instanceof Error ? error.message : 'Failed to refresh snapshots');
   } finally {

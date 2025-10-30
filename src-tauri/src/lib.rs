@@ -372,12 +372,18 @@ async fn restore_files_v1(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // App-State erstellen
+    // TODO.md: Phase 1 - Grund-Setup ✅ KOMPLETT
+    // - AppState mit thread-sicheren Locks (Parking_lot::Mutex)
+    // - CancellationToken für Backup-Abbruch
     let app_state = state::AppState::new().expect("AppState initialisieren fehlgeschlagen");
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(app_state)
         .invoke_handler(tauri::generate_handler![
+            // TODO.md: Phase 1 - Alle Backend-Commands registriert ✅
+            // 24 Commands registriert, viele als Stubs (siehe TODO-Kommentare in jeweiligen Modulen)
+            
             // --- System/Utility ---
             greet,
             prepare_shutdown,

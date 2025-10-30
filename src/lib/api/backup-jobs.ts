@@ -4,11 +4,14 @@ import { invoke } from '@tauri-apps/api/core';
 /**
  * API-Wrapper für Backup-Job-Kommandos (Tauri Backend)
  *
+ * TODO.md: Phase 2 - API-Wrapper ✅ KOMPLETT
  * - listBackupJobs
  * - getBackupJob
  * - createBackupJob
  * - updateBackupJob
  * - deleteBackupJob
+ * 
+ * Backend-Commands: commands/backup.rs (alle implementiert)
  */
 
 /**
