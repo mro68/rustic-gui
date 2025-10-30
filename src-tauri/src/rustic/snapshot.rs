@@ -91,7 +91,7 @@ pub async fn delete_snapshot(
             error!(?e, "Fehler beim Öffnen des Repositories");
             RusticGuiError::RepositoryNotFound { path: repository_path.to_string() }
         })?;
-    let id = Id::from_hex(snapshot_id)
+    let id: Id = snapshot_id.parse()
         .map_err(|e| RusticGuiError::Internal(format!("Ungültige Snapshot-ID: {e}")))?;
     let snap_id = SnapshotId::from(id);
     repo.delete_snapshots(&[snap_id])
@@ -143,6 +143,12 @@ pub async fn get_snapshot(
         file_count: snap.summary.as_ref().map(|s| s.total_files_processed).unwrap_or(0),
         total_size: snap.summary.as_ref().map(|s| s.total_bytes_processed).unwrap_or(0),
         repository_id: repo_id,
+        username: Some(snap.username.clone()),
+        summary: snap.summary.as_ref().map(|s| crate::types::SnapshotSummary {
+            files_count: Some(s.total_files_processed),
+            dirs_count: Some(s.total_dirs_processed),
+            data_size: Some(s.total_bytes_processed),
+        }),
     };
     Ok(dto)
 }
@@ -188,6 +194,12 @@ pub async fn list_snapshots(
         file_count: snap.summary.as_ref().map(|s| s.total_files_processed).unwrap_or(0),
         total_size: snap.summary.as_ref().map(|s| s.total_bytes_processed).unwrap_or(0),
         repository_id: repo_id.clone(),
+        username: Some(snap.username.clone()),
+        summary: snap.summary.as_ref().map(|s| crate::types::SnapshotSummary {
+            files_count: Some(s.total_files_processed),
+            dirs_count: Some(s.total_dirs_processed),
+            data_size: Some(s.total_bytes_processed),
+        }),
     }).collect();
     snapshots.sort_by(|a, b| b.time.cmp(&a.time));
     Ok(snapshots)

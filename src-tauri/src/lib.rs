@@ -1,4 +1,17 @@
-use rustic::types::RestoreProgress;
+mod commands;
+mod config;
+mod error;
+mod keychain;
+mod rustic;
+mod state;
+mod types;
+
+use serde::Serialize;
+use std::time::Duration;
+use tauri::Emitter;
+use tokio::time::sleep;
+use types::{FileTreeNode, RepositoryDto, RestoreOptionsDto, RestoreProgress, RetentionPolicy, SnapshotDto};
+
 /// Event-Format für Restore-Progress
 #[derive(Serialize)]
 struct RestoreEvent {
@@ -9,7 +22,7 @@ struct RestoreEvent {
     snapshotId: String,
     targetPath: String,
 }
-use tauri::Manager;
+
 /// Event-Format für Backup-Abbruch
 #[derive(Serialize)]
 struct BackupCancelEvent {
@@ -34,7 +47,7 @@ async fn cancel_backup(
             jobId: job_id.clone(),
             message: Some("Backup wurde abgebrochen".to_string()),
         };
-        let _ = app.emit_all("backup-cancelled", &event);
+        let _ = app.emit("backup-cancelled", &event);
         tracing::info!(job = %job_id, "Backup-Abbruch ausgelöst");
         Ok(())
     } else {
@@ -91,7 +104,6 @@ async fn list_snapshots_command(
 
 
 use rustic::backup::{run_backup, BackupOptions, BackupProgress};
-use serde::Serialize;
 
 
 /// Event-Format für Backup-Progress
@@ -124,7 +136,7 @@ async fn run_backup_command(
             message: None,
             jobId: job_id_progress.clone(),
         };
-        let _ = app_progress.emit_all("backup-progress", &event);
+        let _ = app_progress.emit("backup-progress", &event);
         tracing::debug!(
             files = progress.files_processed,
             bytes = progress.bytes_uploaded,
@@ -142,7 +154,7 @@ async fn run_backup_command(
                 message: Some("Backup erfolgreich abgeschlossen".to_string()),
                 jobId: job_id.clone(),
             };
-            let _ = app.emit_all("backup-completed", &event);
+            let _ = app.emit("backup-completed", &event);
             Ok(())
         }
         Err(e) => {
@@ -152,25 +164,11 @@ async fn run_backup_command(
                 message: Some(format!("Backup fehlgeschlagen: {}", e)),
                 jobId: job_id.clone(),
             };
-            let _ = app.emit_all("backup-failed", &event);
+            let _ = app.emit("backup-failed", &event);
             Err(crate::types::ErrorDto::from(&e))
         }
     }
 }
-// Hauptmodul für rustic-gui
-pub mod commands;
-pub mod config;
-pub mod error;
-pub mod keychain;
-pub mod state;
-pub mod types;
-pub mod rustic;
-
-// Re-export wichtige Typen
-pub use config::*;
-pub use error::{RusticGuiError, Result};
-pub use keychain::*;
-pub use types::*;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -196,7 +194,7 @@ fn open_repository(path: String, password: String) -> std::result::Result<Reposi
 }
 
 #[tauri::command]
-fn check_repository(path: String, password: String) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
+fn check_repository_v1(path: String, password: String) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
     rustic::repository::check_repository(&path, &password)
         .map_err(|e| crate::types::ErrorDto::from(&e))
 }
@@ -323,7 +321,7 @@ async fn get_file_tree_command(
 }
 
 #[tauri::command]
-async fn restore_files_command(
+async fn restore_files_v1(
     app: tauri::AppHandle,
     repository_path: String,
     password: String,
@@ -338,12 +336,14 @@ async fn restore_files_command(
     let total = files.len().max(1) as u64;
     for (i, file) in files.iter().enumerate() {
         let progress = RestoreProgress {
-            files_processed: (i+1) as u64,
+            base: types::ProgressInfo {
+                current: (i+1) as u64,
+                total,
+                message: None,
+                percentage: Some((i+1) as f32 / total as f32 * 100.0),
+            },
             files_restored: (i+1) as u64,
-            files_skipped: 0,
-            files_failed: 0,
-            bytes_processed: ((i+1) * 1024) as u64,
-            percent_complete: Some((i+1) as f32 / total as f32),
+            bytes_restored: ((i+1) * 1024) as u64,
             current_file: Some(file.clone()),
         };
         let event = RestoreEvent {
@@ -353,7 +353,7 @@ async fn restore_files_command(
             snapshotId: snapshot_id.clone(),
             targetPath: target_path.clone(),
         };
-        let _ = app.emit_all("restore-progress", &event);
+        let _ = app.emit("restore-progress", &event);
         sleep(Duration::from_millis(200)).await;
     }
     // Simulierte Restore-Logik (ersetzt echten Restore-Aufruf)
@@ -365,7 +365,7 @@ async fn restore_files_command(
         snapshotId: snapshot_id,
         targetPath: target_path,
     };
-    let _ = app.emit_all("restore-completed", &event);
+    let _ = app.emit("restore-completed", &event);
     Ok(())
 }
 
@@ -385,7 +385,7 @@ pub fn run() {
             init_repository,
             open_repository,
             get_repository_info,
-            check_repository,
+            check_repository_v1,
             switch_repository,
             store_repository_password,
             get_repository_password,
@@ -405,7 +405,7 @@ pub fn run() {
             forget_snapshots_command,
             // --- Restore ---
             get_file_tree_command,
-            restore_files_command,
+            restore_files_v1,
             // --- Platzhalter für weitere geplante Commands (TODO) ---
             // commands::repository::list_repositories, // TODO
             // commands::repository::delete_repository, // TODO

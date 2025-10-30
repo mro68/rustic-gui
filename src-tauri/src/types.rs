@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 /// Fehlerobjekt für strukturierte Fehlerkommunikation (API)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorDto {
@@ -8,7 +10,6 @@ pub struct ErrorDto {
     /// Optionale technische Details (z.B. Stacktrace, Felder)
     pub details: Option<String>,
 }
-use serde::{Deserialize, Serialize};
 
 /// DTO für Repository-Informationen
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,12 +52,9 @@ pub enum RepositoryStatus {
     /// Repository ist verfügbar aber hat Warnungen
     Warning,
     /// Repository ist nicht verfügbar
-    use ts_rs::TS;
     Unavailable,
     /// Repository ist gesperrt
     Locked,
-    #[derive(TS)]
-    #[ts(export)]
 }
 
 /// DTO für Snapshot-Informationen
@@ -69,8 +67,6 @@ pub struct SnapshotDto {
     /// Hostname wo der Snapshot erstellt wurde
     pub hostname: String,
     /// Tags des Snapshots
-    #[derive(TS)]
-    #[ts(export)]
     pub tags: Vec<String>,
     /// Pfade die gesichert wurden
     pub paths: Vec<String>,
@@ -94,8 +90,6 @@ pub struct SnapshotSummary {
     pub data_size: Option<u64>,
 }
 
-    #[derive(TS)]
-    #[ts(export)]
 /// DTO für Backup-Job-Konfiguration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BackupJobDto {
@@ -106,8 +100,6 @@ pub struct BackupJobDto {
     /// Repository ID
     pub repository_id: String,
     /// Pfade die gesichert werden sollen
-    #[derive(TS)]
-    #[ts(export)]
     pub source_paths: Vec<String>,
     /// Tags für den Snapshot
     pub tags: Vec<String>,
@@ -121,8 +113,6 @@ pub struct BackupJobDto {
     pub next_run: Option<String>, // ISO 8601
     /// Retention-Policy
     pub retention: Option<RetentionPolicy>,
-    #[derive(TS)]
-    #[ts(export)]
 }
 
 /// Retention-Policy für Snapshots
@@ -156,8 +146,6 @@ impl Default for RetentionPolicy {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RestoreOptionsDto {
     /// Snapshot ID zum Wiederherstellen
-    #[derive(TS)]
-    #[ts(export)]
     pub snapshot_id: String,
     /// Zielpfad für die Wiederherstellung
     pub target_path: String,
@@ -183,8 +171,6 @@ pub struct FileTreeNode {
     /// Ist es ein Verzeichnis?
     pub is_directory: bool,
     /// Größe in Bytes (optional, None für Verzeichnisse)
-    #[derive(TS)]
-    #[ts(export)]
     pub size: Option<u64>,
     /// Änderungszeit (ISO 8601)
     pub modified: Option<String>,
@@ -212,8 +198,6 @@ pub struct BackupProgress {
     pub current_file: Option<String>,
     pub estimated_time_remaining: Option<u64>,
 }
-    #[derive(TS)]
-    #[ts(export)]
 
 /// Fortschritt für Restore
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -225,6 +209,32 @@ pub struct RestoreProgress {
     pub current_file: Option<String>,
 }
 
+/// DTO für Snapshot-Vergleich (Diff)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiffResultDto {
+    /// Hinzugefügte Dateien
+    pub added: Vec<String>,
+    /// Entfernte Dateien
+    pub removed: Vec<String>,
+    /// Geänderte Dateien
+    pub modified: Vec<String>,
+    /// Statistiken
+    pub stats: DiffStats,
+}
+
+/// Statistiken für Diff-Ergebnisse
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiffStats {
+    /// Anzahl hinzugefügter Dateien
+    pub added_count: u64,
+    /// Anzahl entfernter Dateien
+    pub removed_count: u64,
+    /// Anzahl geänderter Dateien
+    pub modified_count: u64,
+    /// Gesamtgröße der Änderungen in Bytes
+    pub total_size_change: i64,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -233,8 +243,6 @@ mod tests {
     fn test_repository_dto_serialization() {
         let repo = RepositoryDto {
             id: "repo-1".to_string(),
-    #[derive(TS)]
-    #[ts(export)]
             name: "My Local Repo".to_string(),
             path: "/home/user/backup".to_string(),
             repository_type: RepositoryType::Local,
@@ -263,6 +271,8 @@ mod tests {
             file_count: 1337,
             total_size: 512 * 1024 * 1024, // 512MB
             repository_id: "repo-1".to_string(),
+            username: None,
+            summary: None,
         };
 
         let json = serde_json::to_string(&snapshot).unwrap();

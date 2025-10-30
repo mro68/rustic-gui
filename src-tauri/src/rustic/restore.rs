@@ -53,7 +53,7 @@ pub async fn get_file_tree(
         name: "/".to_string(),
         path: "/".to_string(),
         is_directory: true,
-        size: 0,
+        size: Some(0),
         modified: None,
         children: Some(Vec::new()),
     };
@@ -93,7 +93,7 @@ pub async fn get_file_tree(
                     name: child_name,
                     path: child_path.clone(),
                     is_directory: true,
-                    size: 0,
+                    size: Some(0),
                     modified: None,
                     children: Some(build_tree(&child_path, path_map, snapshot).children.unwrap_or_default()),
                 }
@@ -104,7 +104,7 @@ pub async fn get_file_tree(
                     name: child_name,
                     path: child_path,
                     is_directory: false,
-                    size: 1024, // Placeholder
+                    size: Some(1024), // Placeholder
                     modified: Some(snapshot.time.to_rfc3339()),
                     children: None,
                 }
@@ -117,7 +117,7 @@ pub async fn get_file_tree(
             name: path.split('/').last().unwrap_or("/").to_string(),
             path: path.to_string(),
             is_directory: true,
-            size: 0,
+            size: Some(0),
             modified: Some(snapshot.time.to_rfc3339()),
             children: Some(child_nodes),
         }
