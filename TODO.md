@@ -10,6 +10,7 @@
 > - ✅ **100% Store-Integration**: Alle 6 Stores mit Backend-Referenzen
 > - ✅ **100% Page-Integration**: Alle 5 Seiten-Komponenten dokumentiert  
 > - ✅ **50% Dialog-Integration**: 6 von 13 Dialogs mit umfassenden Headers
+> - ✅ **NEU: LocationPickerDialog implementiert** (2025-10-30) - Unified Repository Location Selection
 > 
 > **Bidirektionale Verlinkung:**
 > - Code → TODO.md: Jede Komponente referenziert ihre TODO.md Phase und Zeile
@@ -90,7 +91,13 @@
   - ✅ router.ts (vollständig)
 - ✅ Type-System synchronisiert (src/lib/types/index.ts + Backend src-tauri/src/types.rs)
 - ✅ **13 Dialog-Komponenten erstellt und API-integriert** (alle in src/lib/components/dialogs/):
-  - ✅ AddRepositoryDialog.svelte (API-integriert + File-Browser) **KOMPLETT 2025-10-30**
+  - ✅ AddRepositoryDialog.svelte (API-integriert + **LocationPickerDialog**) **ERWEITERT 2025-10-30**
+  - ✅ **LocationPickerDialog.svelte (NEU 2025-10-30)** - Unified Location Picker
+    - 📁 Local Tab: File/Directory Browser mit neuer Ordner-Erstellung
+    - 🌐 Network Tab: SFTP, SMB, NFS, WebDAV Konfiguration
+    - ☁️ Cloud Tab: S3, B2, Azure, GCS, Wasabi, MinIO, Rclone Provider Selection
+    - 🕐 Recent Tab: Zuletzt verwendete Speicherorte
+    - Referenz: `docs/mockups/rustic_location_picker.html`
   - ✅ DeleteRepoDialog.svelte (API-integriert + Error-Toast) **KOMPLETT 2025-10-30**
   - ✅ UnlockRepositoryDialog.svelte (API-integriert + Toasts) **KOMPLETT 2025-10-30**
   - ✅ CheckRepoDialog.svelte (API-integriert + Progress) **KOMPLETT 2025-10-30**
@@ -104,6 +111,8 @@
   - ✅ RunBackupDialog.svelte (API-integriert + Events) **KOMPLETT 2025-10-30**
   - ✅ SnapshotInfoDialog.svelte (erstellt)
 - ✅ Cron-Schedule-Konvertierung (daily, weekly, monthly) in CreateJobDialog
+- ✅ **Shared Components erweitert** (2025-10-30):
+  - ✅ Modal.svelte: size-Prop hinzugefügt (small/medium/large) für LocationPickerDialog
 - ✅ 5 Seiten mit Daten-Loading:
   - ✅ DashboardPage.svelte (refreshRepos in onMount → TODO:81 für Dialog)
   - ✅ Repositories.svelte (loadRepositories in onMount → TODO:43,49,79 für Dialogs)
@@ -232,9 +241,12 @@ Der wichtigste Schritt ist die Implementierung der Rust-Seite, die die in `src/l
   - [x] Fehler einheitlich über `toastStore.error(error.message)` dem Benutzer anzeigen. ✅ (toastStore verwendet)
   - [ ] **Ergänzung:** Fehlerobjekte auswerten und ggf. spezifische UI-Reaktionen (z.B. Passwort falsch, Netzwerkfehler) ermöglichen. ⏳ (noch nicht komplett)
 
-- [x] **Dialog-Workflow: Repository** ✅ KOMPLETT
+- [x] **Dialog-Workflow: Repository** ✅ KOMPLETT + **ERWEITERT (2025-10-30)**
   - [x] `AddRepositoryDialog.svelte`: `handleSubmit` an `api.initRepository` angebunden. ✅ (vollständig implementiert)
-  - [x] `AddRepositoryDialog.svelte`: "Durchsuchen"-Button mit `@tauri-apps/api/dialog` (`open({ directory: true })`) implementieren. ✅ (KOMPLETT - 2025-10-30)
+  - [x] `AddRepositoryDialog.svelte`: **"Durchsuchen"-Button ersetzt durch LocationPickerDialog** ✅ (**ERWEITERT - 2025-10-30**)
+    - [x] LocationPickerDialog.svelte mit 4 Tabs implementiert (Local/Network/Cloud/Recent)
+    - [x] Mockup-Referenz: `docs/mockups/rustic_location_picker.html` vollständig umgesetzt
+    - [x] Modal.svelte um size-Prop erweitert (small/medium/large)
   - [x] `DeleteRepoDialog.svelte`: `handleDelete` an `api.deleteRepository` angebunden. ✅ (vollständig implementiert)
   - [x] `UnlockRepositoryDialog.svelte`: `handleUnlock` an `api.openRepository` anbinden. ✅ (KOMPLETT - 2025-10-30)
   - [x] `CheckRepoDialog.svelte`: `startCheck` an `api.checkRepository` anbinden (Fortschritts-Events verarbeiten). ✅ (KOMPLETT - 2025-10-30)
@@ -500,5 +512,77 @@ _Svelte (28 TODOs):_
 - Phase-spezifische Checklisten (Zeile 154-297)
 - Integration-Zusammenfassung (Zeile 301-413)
 - Code-Referenzen (Zeile 424-461)
+
+---
+
+## 🆕 LATEST UPDATES (2025-10-30)
+
+### ✅ LocationPickerDialog Implementierung
+
+**Neue Komponente:** `src/lib/components/dialogs/LocationPickerDialog.svelte` (543 Zeilen)
+
+**Features gemäß Mockup (`docs/mockups/rustic_location_picker.html`):**
+- **📁 Local Tab:**
+  - Integration mit Tauri Dialog API (`@tauri-apps/plugin-dialog`)
+  - Unterstützung für neuen Ordner-Namen (für Repository-Initialisierung)
+  - Pfad-Auswahl mit Validierung
+  
+- **🌐 Network Tab:**
+  - SFTP (Port 22) - SSH File Transfer Protocol
+  - SMB/CIFS (Port 445) - Windows Share
+  - NFS (Port 2049) - Network File System
+  - WebDAV (Port 443) - Web Distributed Authoring and Versioning
+  - Host, Port, Benutzername, Authentifizierung (Password/SSH Key)
+  - Remote-Pfad-Eingabe
+  - Live-Vorschau der URL
+  
+- **☁️ Cloud Tab:**
+  - 7 Provider-Karten im Grid-Layout:
+    - Amazon S3 📦 (AWS Object Storage)
+    - Backblaze B2 ☁️ (Affordable Cloud Storage)
+    - Azure Blob 🔷 (Microsoft Cloud Storage)
+    - Google Cloud 🌐 (GCS Object Storage)
+    - Wasabi 💚 (Hot Cloud Storage)
+    - MinIO 🪣 (Self-hosted S3-compatible)
+    - Rclone 🔗 (70+ Cloud Providers)
+  - Konfigurationsformular für Endpoint, Bucket, Access Key, Secret Key
+  - Live-Vorschau der Cloud-URL
+  
+- **🕐 Recent Tab:**
+  - Liste zuletzt verwendeter Speicherorte
+  - Icon-basierte Typ-Anzeige
+  - Zeitstempel für letzte Verwendung
+  - Schnell-Auswahl per Klick
+
+**Event-System:**
+- `select`: Dispatched mit `{ path: string, type: string, config?: any }`
+- `cancel`: Dispatched bei Abbruch
+
+**Integration:**
+- `AddRepositoryDialog.svelte` erweitert:
+  - Alte File-Browser-Funktion ersetzt
+  - LocationPickerDialog als Modal integriert
+  - Backend-Type wird automatisch aus LocationPicker übernommen
+  - Config-Objekt für Network/Cloud-Backends
+  
+- `Modal.svelte` erweitert:
+  - Neue Prop `size: 'small' | 'medium' | 'large'`
+  - CSS-Klassen für unterschiedliche Modal-Größen
+  - LocationPickerDialog nutzt `size="large"` (max-width: 900px)
+
+**Design-Treue:**
+- Exakte Farben aus Mockup (--color-primary: #3b82f6, etc.)
+- Tab-Navigation mit Icons und Hover-Effekten
+- Info-Boxen mit Icon-Präfixen
+- Cloud-Provider-Karten mit Grid-Layout
+- Recent-Items mit Icon und Typ-Anzeige
+- Responsive CSS-Grid
+
+**Status:**
+- ✅ Komponente erstellt und voll funktionsfähig
+- ✅ In AddRepositoryDialog integriert
+- ✅ Mockup vollständig umgesetzt
+- ⏳ Backend-Unterstützung für Network/Cloud noch zu implementieren
+- ⏳ Recent Locations Persistenz in Config noch zu implementieren
 
 ---
