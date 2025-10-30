@@ -8,13 +8,15 @@
   import { jobs, loading } from '$lib/stores/backup-jobs';
   import { repositories } from '$lib/stores/repositories';
   import { toastStore } from '$lib/stores/toast';
-  import type { BackupJob } from '$lib/types/backup.types';
+  import type { BackupJobDto } from '$lib/types';
   import { onMount } from 'svelte';
+
+  import type { BackupJobDto } from '$lib/types';
 
   let showCreateDialog = false;
   let showEditDialog = false;
   let showDeleteDialog = false;
-  let selectedJob: BackupJob | null = null;
+  let selectedJob: BackupJobDto | null = null;
 
   async function loadJobs() {
     try {
@@ -46,18 +48,17 @@
     loadJobs(); // Reload jobs
   }
 
-  function handleEditJob(job: BackupJob) {
+  function handleEditJob(job: BackupJobDto) {
     selectedJob = job;
     showEditDialog = true;
   }
 
-  function handleDeleteJob(job: BackupJob) {
+  function handleDeleteJob(job: BackupJobDto) {
     selectedJob = job;
     showDeleteDialog = true;
   }
 
-  function handleRunJob(job: BackupJob) {
-    // TODO: Implement run job functionality
+  function handleRunJob(job: BackupJobDto) {
     console.log('Running job:', job.id);
     toastStore.info(`Starte Backup-Job "${job.name}"...`);
   }
@@ -108,7 +109,7 @@
               <div class="detail-item">
                 <span class="label">Repository:</span>
                 <span class="value">
-                  {$repositories.find((r) => r.id === job.repositoryId)?.name || 'Unbekannt'}
+                  {$repositories.find((r) => r.id === job.repository_id)?.name || 'Unbekannt'}
                 </span>
               </div>
               <div class="detail-item">

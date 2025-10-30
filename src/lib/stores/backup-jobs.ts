@@ -15,7 +15,11 @@ const _runningJobId = writable<string | null>(null);
 const _loading = writable(false);
 const _error = writable<string | null>(null);
 
-export const jobs = { subscribe: _jobs.subscribe };
+export const jobs = { 
+  subscribe: _jobs.subscribe,
+  set: _jobs.set,
+  update: _jobs.update
+};
 export const runningJobId = { subscribe: _runningJobId.subscribe };
 export const loading = { subscribe: _loading.subscribe };
 export const error = { subscribe: _error.subscribe };

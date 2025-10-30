@@ -228,7 +228,7 @@
         await updateBackupJob({
           id: job.id,
           name: jobName,
-          repository_id: selectedRepository,
+          repository_id: selectedRepositoryId,
           source_paths: sourcePaths
             .split('\n')
             .map((p) => p.trim())
@@ -237,10 +237,10 @@
             .split('\n')
             .map((p) => p.trim())
             .filter((p) => p),
-          tags: jobTags
+          tags: tags
             .split(',')
-            .map((t) => t.trim())
-            .filter((t) => t),
+            .map((t: string) => t.trim())
+            .filter((t: string) => t),
           schedule: cronSchedule,
           retention: {
             keep_last: keepLast,

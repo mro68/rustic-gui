@@ -15,7 +15,11 @@ const _activeRepositoryId = writable<string | null>(null);
 const _loading = writable(false);
 const _error = writable<string | null>(null);
 
-export const repositories = { subscribe: _repositories.subscribe };
+export const repositories = { 
+  subscribe: _repositories.subscribe,
+  set: _repositories.set,
+  update: _repositories.update
+};
 export const activeRepositoryId = { subscribe: _activeRepositoryId.subscribe };
 export const loading = { subscribe: _loading.subscribe };
 export const error = { subscribe: _error.subscribe };

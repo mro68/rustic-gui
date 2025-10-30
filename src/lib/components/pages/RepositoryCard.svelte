@@ -11,6 +11,7 @@
   import { jobs } from '../../stores/backup-jobs';
   import type { RepositoryDto } from '../../types';
   import RunBackupDialog from '../dialogs/RunBackupDialog.svelte';
+  import Tooltip from '../shared/Tooltip.svelte';
 
   export let repo: RepositoryDto = {
     id: '',
@@ -35,7 +36,7 @@
   function handleBackup() {
     // Finde einen Backup-Job für dieses Repository
     const allJobs = get(jobs);
-    const repoJob = allJobs.find((job) => job.repositoryId === repo.id);
+    const repoJob = allJobs.find((job) => job.repository_id === repo.id);
 
     if (!repoJob) {
       // TODO: Dialog öffnen um Job zu erstellen
