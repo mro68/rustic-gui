@@ -4,6 +4,7 @@
   import DeleteJobDialog from '$lib/components/dialogs/DeleteJobDialog.svelte';
   import EditJobDialog from '$lib/components/dialogs/EditJobDialog.svelte';
   import Button from '$lib/components/shared/Button.svelte';
+  import Tooltip from '$lib/components/shared/Tooltip.svelte';
   import { jobs, loading } from '$lib/stores/backup-jobs';
   import { repositories } from '$lib/stores/repositories';
   import { toastStore } from '$lib/stores/toast';
@@ -71,9 +72,11 @@
   <div class="toolbar">
     <h1 class="page-title">Backup-Jobs</h1>
     <div class="toolbar-actions">
-      <Button variant="primary" size="sm" onclick={() => (showCreateDialog = true)}>
-        + Neuer Job
-      </Button>
+      <Tooltip text="Neuen Backup-Job erstellen">
+        <Button variant="primary" size="sm" onclick={() => (showCreateDialog = true)}>
+          + Neuer Job
+        </Button>
+      </Tooltip>
     </div>
   </div>
 
@@ -121,15 +124,21 @@
             </div>
 
             <div class="job-actions">
-              <Button variant="secondary" size="sm" onclick={() => handleRunJob(job)}>
-                Ausführen
-              </Button>
-              <Button variant="secondary" size="sm" onclick={() => handleEditJob(job)}>
-                Bearbeiten
-              </Button>
-              <Button variant="danger" size="sm" onclick={() => handleDeleteJob(job)}>
-                Löschen
-              </Button>
+              <Tooltip text="Backup jetzt ausführen">
+                <Button variant="secondary" size="sm" onclick={() => handleRunJob(job)}>
+                  Ausführen
+                </Button>
+              </Tooltip>
+              <Tooltip text="Job bearbeiten">
+                <Button variant="secondary" size="sm" onclick={() => handleEditJob(job)}>
+                  Bearbeiten
+                </Button>
+              </Tooltip>
+              <Tooltip text="Job löschen">
+                <Button variant="danger" size="sm" onclick={() => handleDeleteJob(job)}>
+                  Löschen
+                </Button>
+              </Tooltip>
             </div>
           </div>
         {/each}

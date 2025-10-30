@@ -18,6 +18,7 @@
   import RepositoryCard from './RepositoryCard.svelte';
   import StorageChart from './StorageChart.svelte';
   // Test Tauri API (Tauri 2.x: ES-Module-Import)
+  import Tooltip from '$lib/components/shared/Tooltip.svelte';
   import { getVersion } from '@tauri-apps/api/app';
   // State-Variablen
   let loading = $state(false);
@@ -71,27 +72,31 @@
 <div class="toolbar dashboard-toolbar" role="region" aria-label="Repository Aktionen">
   <div class="section-title">Repositories</div>
   <div class="toolbar-actions">
-    <button
-      class="btn btn-primary"
-      aria-label="Repository öffnen"
-      title="Neues Repository öffnen"
-      onclick={() => {
-        /* TODO: Dialog öffnen */
-      }}
-    >
-      <span class="btn-icon" aria-hidden="true">➕</span>
-      <span class="btn-text">Repository öffnen</span>
-    </button>
-    <button
-      class="btn btn-secondary"
-      aria-label="Repositories neu laden"
-      title="Repositories neu laden"
-      onclick={refreshRepos}
-      disabled={loading}
-    >
-      <span class="btn-icon" aria-hidden="true">{loading ? '⏳' : '🔄'}</span>
-      <span class="btn-text">{loading ? 'Lädt...' : 'Refresh'}</span>
-    </button>
+    <Tooltip text="Neues Repository öffnen">
+      <button
+        class="btn btn-primary"
+        aria-label="Repository öffnen"
+        title="Neues Repository öffnen"
+        onclick={() => {
+          /* TODO: Dialog öffnen */
+        }}
+      >
+        <span class="btn-icon" aria-hidden="true">➕</span>
+        <span class="btn-text">Repository öffnen</span>
+      </button>
+    </Tooltip>
+    <Tooltip text="Repositories neu laden">
+      <button
+        class="btn btn-secondary"
+        aria-label="Repositories neu laden"
+        title="Repositories neu laden"
+        onclick={refreshRepos}
+        disabled={loading}
+      >
+        <span class="btn-icon" aria-hidden="true">{loading ? '⏳' : '🔄'}</span>
+        <span class="btn-text">{loading ? 'Lädt...' : 'Refresh'}</span>
+      </button>
+    </Tooltip>
   </div>
 </div>
 

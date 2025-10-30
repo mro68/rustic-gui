@@ -1,4 +1,3 @@
-/* eslint-env browser */
 <script lang="ts">
   /**
    * Toast/Notification-Komponente für Rustic GUI
@@ -54,27 +53,26 @@
     }, 200);
   }
 
-  $: icon =
-    type === 'success' ? '✔️'
-    : type === 'error' ? '❌'
-    : type === 'warning' ? '⚠️'
-    : 'ℹ️';
+  $: icon = type === 'success' ? '✔️' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
 </script>
 
+/* eslint-env browser */
 <div
   class="toast toast-{type} {closing ? 'toast-closing' : ''}"
   role="status"
   aria-live="polite"
-  on:mouseenter={() => { clearTimer(); }}
-  on:mouseleave={() => { startTimer(); }}
+  on:mouseenter={() => {
+    clearTimer();
+  }}
+  on:mouseleave={() => {
+    startTimer();
+  }}
 >
   <span class="toast-icon" aria-hidden="true">{icon}</span>
   <span class="toast-message">
     <slot>{message}</slot>
   </span>
-  <button class="toast-close" aria-label="Schließen" on:click={close}>
-    &times;
-  </button>
+  <button class="toast-close" aria-label="Schließen" on:click={close}> &times; </button>
 </div>
 
 <style>
@@ -87,7 +85,7 @@
     background: var(--bg-secondary);
     color: var(--text-primary);
     border-radius: var(--radius-md);
-    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
     padding: 14px 18px;
     font-size: 15px;
     margin-bottom: 12px;
@@ -95,10 +93,18 @@
     animation: toastIn 0.18s;
     position: relative;
   }
-  .toast-success { border-left-color: var(--color-success); }
-  .toast-error { border-left-color: var(--color-error); }
-  .toast-warning { border-left-color: var(--color-warning); }
-  .toast-info { border-left-color: var(--color-primary); }
+  .toast-success {
+    border-left-color: var(--color-success);
+  }
+  .toast-error {
+    border-left-color: var(--color-error);
+  }
+  .toast-warning {
+    border-left-color: var(--color-warning);
+  }
+  .toast-info {
+    border-left-color: var(--color-primary);
+  }
   .toast-icon {
     font-size: 20px;
     margin-right: 2px;
@@ -124,12 +130,24 @@
     color: var(--color-error);
   }
   @keyframes toastIn {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   @keyframes toastOut {
-    from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translateY(12px); }
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(12px);
+    }
   }
   .toast-closing {
     animation: toastOut 0.18s forwards;

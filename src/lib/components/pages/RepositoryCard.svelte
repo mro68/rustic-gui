@@ -175,33 +175,41 @@
     <span></span>
   </div>
   <div class="card-actions">
-    <button
-      class="btn btn-primary"
-      onclick={handleBackup}
-      aria-label="Backup jetzt starten"
-      title="Backup Now"
-    >
-      <span class="btn-icon" aria-hidden="true">🔄</span>
-      <span class="btn-text">Backup Now</span>
-    </button>
-    <button
-      class="btn btn-secondary"
-      onclick={handleBrowse}
-      aria-label="Repository durchsuchen"
-      title="Browse Repository"
-    >
-      <span class="btn-icon" aria-hidden="true">📂</span>
-      <span class="btn-text">Browse</span>
-    </button>
-    <button
-      class="btn btn-secondary"
-      aria-label="Repository konfigurieren"
-      title="Configure Repository"
-      disabled
-    >
-      <span class="btn-icon" aria-hidden="true">⚙️</span>
-      <span class="btn-text">Configure</span>
-    </button>
+    <Tooltip text="Backup jetzt starten">
+      <button
+        class="btn btn-primary"
+        onclick={handleBackup}
+        aria-label="Backup jetzt starten"
+        title="Backup Now"
+      >
+        <span class="btn-icon" aria-hidden="true">🔄</span>
+        <span class="btn-text">Backup Now</span>
+      </button>
+    </Tooltip>
+
+    <Tooltip text="Repository durchsuchen">
+      <button
+        class="btn btn-secondary"
+        onclick={handleBrowse}
+        aria-label="Repository durchsuchen"
+        title="Browse Repository"
+      >
+        <span class="btn-icon" aria-hidden="true">📂</span>
+        <span class="btn-text">Browse</span>
+      </button>
+    </Tooltip>
+
+    <Tooltip text="Repository konfigurieren">
+      <button
+        class="btn btn-secondary"
+        aria-label="Repository konfigurieren"
+        title="Configure Repository"
+        disabled
+      >
+        <span class="btn-icon" aria-hidden="true">⚙️</span>
+        <span class="btn-text">Configure</span>
+      </button>
+    </Tooltip>
   </div>
 </div>
 
