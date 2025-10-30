@@ -1,5 +1,6 @@
 import type { RepositoryDto } from '$lib/types';
 import { derived, writable } from 'svelte/store';
+import * as api from '$lib/api/repositories';
 
 /**
  * Store für Repository-Verwaltung.
@@ -41,6 +42,25 @@ export function setLoading(val: boolean): void {
 
 export function setError(msg: string | null): void {
   _error.set(msg);
+}
+
+/**
+ * Lädt alle Repositories vom Backend
+ */
+export async function loadRepositories(): Promise<void> {
+  _loading.set(true);
+  _error.set(null);
+  
+  try {
+    const repos = await api.listRepositories();
+    _repositories.set(repos);
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Fehler beim Laden der Repositories';
+    _error.set(errorMsg);
+    console.error('loadRepositories error:', err);
+  } finally {
+    _loading.set(false);
+  }
 }
 
 export function resetRepositories(): void {

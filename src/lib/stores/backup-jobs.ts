@@ -1,5 +1,6 @@
-import type { BackupJob } from '$lib/types/backup.types';
+import type { BackupJobDto } from '$lib/types';
 import { writable } from 'svelte/store';
+import * as api from '$lib/api/backup-jobs';
 
 /**
  * Store für Backup-Job-Management.
@@ -9,7 +10,7 @@ import { writable } from 'svelte/store';
  * - error: Fehlertext
  */
 
-const _jobs = writable<BackupJob[]>([]);
+const _jobs = writable<BackupJobDto[]>([]);
 const _runningJobId = writable<string | null>(null);
 const _loading = writable(false);
 const _error = writable<string | null>(null);
@@ -20,7 +21,7 @@ export const loading = { subscribe: _loading.subscribe };
 export const error = { subscribe: _error.subscribe };
 
 // Actions
-export function setJobs(list: BackupJob[]): void {
+export function setJobs(list: BackupJobDto[]): void {
   _jobs.set(list);
 }
 
@@ -34,6 +35,25 @@ export function setLoading(val: boolean): void {
 
 export function setError(msg: string | null): void {
   _error.set(msg);
+}
+
+/**
+ * Lädt alle Backup-Jobs vom Backend
+ */
+export async function loadJobs(): Promise<void> {
+  _loading.set(true);
+  _error.set(null);
+  
+  try {
+    const jobList = await api.listBackupJobs();
+    _jobs.set(jobList);
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Fehler beim Laden der Backup-Jobs';
+    _error.set(errorMsg);
+    console.error('loadJobs error:', err);
+  } finally {
+    _loading.set(false);
+  }
 }
 
 export function resetJobs(): void {
