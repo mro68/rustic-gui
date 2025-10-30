@@ -1,4 +1,25 @@
 <!-- src/lib/components/dialogs/RestoreDialog.svelte -->
+<!--
+  TODO.md: Phase 2 - Dialog-Workflow: Backup & Restore ⏳ TEILWEISE IMPLEMENTIERT
+  Referenz: TODO.md Zeile 241-244, 332-340
+  
+  Status:
+  - loadFileTree: ⏳ Teilweise integriert (TODO.md Zeile 242)
+  - handleRestore: ⏳ Teilweise integriert (TODO.md Zeile 243)
+  - onRestoreProgress Events: ✅ Implementiert (TODO.md Zeile 243)
+  
+  Backend-Commands:
+  - get_file_tree_command: src-tauri/src/lib.rs:312 (stub in rustic/restore.rs:181)
+  - restore_files_v1: src-tauri/src/lib.rs:324 (simuliert mit Events)
+  
+  API-Wrapper: src/lib/api/restore.ts
+  - getFileTree, restoreFiles, onRestoreProgress
+  
+  Verwendung:
+  - src/lib/components/pages/Snapshots.svelte (geplant)
+  
+  TODO: Vollständige Integration mit Backend-Commands
+-->
 <script lang="ts">
   /**
    * Dialog zum Wiederherstellen von Dateien aus einem Snapshot.

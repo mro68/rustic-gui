@@ -1,4 +1,31 @@
 <!-- BackupJobs.svelte: Backup-Job-Management Seite (gemäß Mockup) -->
+<!--
+  TODO.md: Phase 2 - Daten-Initialisierung (Stores & Pages) ✅ KOMPLETT
+  Referenz: TODO.md Zeile 219, 342
+  
+  Status:
+  - loadJobs in onMount implementiert ✅ (TODO.md Zeile 219)
+  - Lädt Backup-Jobs via api.listBackupJobs ✅
+  - Füllt $jobs Store ✅
+  
+  Backend-Commands:
+  - list_backup_jobs: src-tauri/src/commands/backup.rs:289
+  - create_backup_job: src-tauri/src/commands/backup.rs:21
+  - update_backup_job: src-tauri/src/commands/backup.rs:122
+  - delete_backup_job: src-tauri/src/commands/backup.rs:217
+  - get_backup_job: src-tauri/src/commands/backup.rs:255
+  
+  API-Wrapper: src/lib/api/backup-jobs.ts
+  Store: src/lib/stores/backup-jobs.ts
+  
+  Dialogs verwendet:
+  - CreateJobDialog.svelte ✅ (TODO.md Zeile 238)
+  - EditJobDialog.svelte ✅ (TODO.md Zeile 239)
+  - DeleteJobDialog.svelte ✅ (TODO.md Zeile 240)
+  
+  TODO:
+  - Zeile 101, 116, 121: Job-Status und Zeitrechnung (last_run, next_run)
+-->
 <script lang="ts">
   import CreateJobDialog from '$lib/components/dialogs/CreateJobDialog.svelte';
   import DeleteJobDialog from '$lib/components/dialogs/DeleteJobDialog.svelte';

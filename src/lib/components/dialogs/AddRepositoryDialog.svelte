@@ -1,3 +1,23 @@
+<!-- AddRepositoryDialog.svelte: Dialog zum Hinzufügen eines neuen Repositories -->
+<!--
+  TODO.md: Phase 2 - Dialog-Workflow: Repository ✅ IMPLEMENTIERT
+  Referenz: TODO.md Zeile 227-235, 332-340
+  
+  Status:
+  - handleSubmit an api.initRepository angebunden ✅ (TODO.md Zeile 228)
+  
+  Backend-Commands:
+  - init_repository: src-tauri/src/lib.rs:180 (simuliert in rustic/repository.rs:32)
+  
+  API-Wrapper: src/lib/api/repositories.ts:initRepository
+  
+  Verwendung:
+  - src/lib/components/pages/Repositories.svelte
+  - src/lib/components/pages/DashboardPage.svelte
+  
+  TODO:
+  - Zeile 181: "Durchsuchen"-Button mit @tauri-apps/api/dialog implementieren (TODO.md Zeile 229)
+-->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';

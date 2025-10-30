@@ -4,6 +4,22 @@ import * as api from '$lib/api/repositories';
 
 /**
  * Store für Repository-Verwaltung.
+ * TODO.md: Phase 2 - Stores mit Daten-Loading ✅ KOMPLETT
+ * Referenz: TODO.md Zeile 215-221, 320-325
+ * 
+ * Backend-Commands:
+ * - list_repositories: src-tauri/src/commands/repository.rs:7
+ * - init_repository: src-tauri/src/lib.rs:180 (simuliert)
+ * - open_repository: src-tauri/src/lib.rs:191 (simuliert)
+ * - delete_repository: src-tauri/src/commands/repository.rs:41
+ * 
+ * API-Wrapper: src/lib/api/repositories.ts
+ * 
+ * Verwendung:
+ * - src/lib/components/pages/Repositories.svelte (loadRepositories in onMount)
+ * - src/lib/components/pages/DashboardPage.svelte (refreshRepos in onMount)
+ * 
+ * Features:
  * - repositories: Liste aller Repositories
  * - activeRepositoryId: ID des aktuell ausgewählten Repos
  * - loading: Ladezustand

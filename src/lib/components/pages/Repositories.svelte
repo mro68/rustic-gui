@@ -1,3 +1,36 @@
+<!--
+  Repositories.svelte
+  ------------------
+  TODO.md: Phase 2 - Daten-Initialisierung (Stores & Pages) ✅ KOMPLETT
+  Referenz: TODO.md Zeile 215-221, 342
+  
+  Status:
+  - loadRepositories in onMount implementiert ✅ (TODO.md Zeile 217)
+  - Lädt Repositories via api.listRepositories ✅
+  - Füllt $repositories Store ✅
+  
+  Backend-Commands:
+  - list_repositories: src-tauri/src/commands/repository.rs:7
+  - delete_repository: src-tauri/src/commands/repository.rs:41
+  - check_repository: src-tauri/src/commands/repository.rs:84
+  - prune_repository: src-tauri/src/commands/repository.rs:124
+  - change_password: src-tauri/src/commands/repository.rs:151
+  
+  API-Wrapper: src/lib/api/repositories.ts
+  Store: src/lib/stores/repositories.ts
+  
+  Dialogs verwendet:
+  - AddRepositoryDialog.svelte ✅
+  - UnlockRepositoryDialog.svelte ⏳
+  - DeleteRepoDialog.svelte ✅
+  - CheckRepoDialog.svelte ⏳
+  - PruneRepoDialog.svelte ⏳
+  - ChangePasswordDialog.svelte ⏳
+  
+  TODO:
+  - Zeile 43, 49, 79: Dialog-Workflows vollständig integrieren
+-->
+
 <script lang="ts">
   import { onMount } from 'svelte';
   import { loading, repositories } from '../../stores/repositories';

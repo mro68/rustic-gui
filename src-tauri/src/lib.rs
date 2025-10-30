@@ -1,3 +1,35 @@
+// TODO.md: Phase 1 - Rust-Backend (Tauri 2-Befehle & Events) ✅ GRÖSSTENTEILS KOMPLETT
+// Referenz: TODO.md Zeile 154-203
+//
+// Status-Übersicht:
+// ✅ Grund-Setup (TODO.md Zeile 158-163): KOMPLETT
+//    - AppState mit thread-sicheren Locks (state.rs)
+//    - CancellationToken für Backup-Abbruch
+//    - 24 Commands registriert in invoke_handler (Zeile 383-426)
+//
+// ✅ Repository-Management (TODO.md Zeile 164-174): REGISTRIERT (teilweise Stubs)
+//    - list_repositories, delete_repository: IMPLEMENTIERT
+//    - init_repository, open_repository: SIMULIERT
+//    - check_repository, prune_repository, change_password: STUBS
+//
+// ✅ Backup-Job-Management (TODO.md Zeile 175-181): VOLLSTÄNDIG IMPLEMENTIERT
+//    - Alle 5 Commands (list, create, update, delete, get) in commands/backup.rs
+//
+// ✅ Snapshot-Management (TODO.md Zeile 182-187): REGISTRIERT (teilweise Stubs)
+//    - list_snapshots, get_snapshot, delete_snapshot, forget_snapshots: IMPLEMENTIERT in lib.rs
+//    - compare_snapshots: STUB (auskommentiert in Zeile 422)
+//
+// ✅ Prozess-Steuerung (TODO.md Zeile 189-198): SIMULIERT mit Events
+//    - run_backup (Zeile 121): Simuliert mit BackupEvent
+//    - cancel_backup (Zeile 37): Implementiert mit CancellationToken
+//    - restore_files_v1 (Zeile 324): Simuliert mit RestoreEvent
+//    - get_file_tree_command (Zeile 312): Stub
+//
+// ⏳ Weitere Integration benötigt:
+//    - Echte rustic_core Integration statt Simulationen
+//    - Job-Scheduler für zeitgesteuerte Backups
+//    - Vollständige Error-DTOs (types.rs:45-51)
+
 mod commands;
 mod config;
 mod error;

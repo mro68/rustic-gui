@@ -1,4 +1,19 @@
 <!-- EditJobDialog.svelte: Dialog zum Bearbeiten von Backup-Jobs (gemäß Mockup) -->
+<!--
+  TODO.md: Phase 2 - Dialog-Workflow: Backup & Restore ✅ IMPLEMENTIERT
+  Referenz: TODO.md Zeile 237-244, 332-340
+  
+  Status:
+  - handleSubmit an api.updateBackupJob angebunden ✅ (TODO.md Zeile 239)
+  
+  Backend-Command: update_backup_job
+  - src-tauri/src/commands/backup.rs:122
+  
+  API-Wrapper: src/lib/api/backup-jobs.ts:updateBackupJob
+  
+  Verwendung:
+  - src/lib/components/pages/BackupJobs.svelte
+-->
 <script lang="ts">
   import Button from '$lib/components/shared/Button.svelte';
   import Checkbox from '$lib/components/shared/Checkbox.svelte';

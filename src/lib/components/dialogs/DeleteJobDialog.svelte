@@ -1,4 +1,19 @@
 <!-- DeleteJobDialog.svelte: Bestätigungsdialog für Job-Löschung -->
+<!--
+  TODO.md: Phase 2 - Dialog-Workflow: Backup & Restore ✅ IMPLEMENTIERT
+  Referenz: TODO.md Zeile 237-244, 332-340
+  
+  Status:
+  - handleDelete an api.deleteBackupJob angebunden ✅ (TODO.md Zeile 240)
+  
+  Backend-Command: delete_backup_job
+  - src-tauri/src/commands/backup.rs:217
+  
+  API-Wrapper: src/lib/api/backup-jobs.ts:deleteBackupJob
+  
+  Verwendung:
+  - src/lib/components/pages/BackupJobs.svelte
+-->
 <script lang="ts">
   import Button from '$lib/components/shared/Button.svelte';
   import Modal from '$lib/components/shared/Modal.svelte';
