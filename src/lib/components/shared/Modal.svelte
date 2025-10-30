@@ -18,6 +18,7 @@
    * - footer: Optionaler Footer
    */
   import { createEventDispatcher, onMount } from 'svelte';
+  import { tick } from 'svelte';
   export let open: boolean = false;
   export let closeOnEsc: boolean = true;
   export let closeOnBackdrop: boolean = true;
@@ -26,11 +27,20 @@
   const dispatch = createEventDispatcher();
   let modalRef: HTMLDivElement | null = null;
   let modalDialogRef: HTMLDivElement | null = null;
+  let localOpen = open;
+  let closing = false;
   // generate stable-ish id for aria
   const dialogId = `modal-${Math.random().toString(36).slice(2, 9)}`;
 
   function close() {
-    dispatch('close');
+    // start close animation and dispatch after animation finished
+    if (closing) return;
+    closing = true;
+    // wait for animation duration (match CSS below)
+    setTimeout(() => {
+      closing = false;
+      dispatch('close');
+    }, 180);
   }
 
   function handleBackdropClick(e: MouseEvent) {
@@ -58,30 +68,39 @@
 
   $: if (open) {
     document.body.style.overflow = 'hidden';
+    localOpen = true;
+    // focus next tick when opened
+    tick().then(() => modalDialogRef && modalDialogRef.focus());
   } else {
-    document.body.style.overflow = '';
+    // if parent closed externally, animate close
+    if (localOpen && !closing) {
+      closing = true;
+      setTimeout(() => {
+        closing = false;
+        localOpen = false;
+        document.body.style.overflow = '';
+      }, 180);
+    } else {
+      document.body.style.overflow = '';
+    }
   }
 
-  // focus dialog when opened (reactive statement)
-  $: if (open && modalDialogRef) {
-    // small timeout to ensure it's in DOM
-    setTimeout(() => modalDialogRef && modalDialogRef.focus(), 0);
-  }
+  // focus dialog when opened (reactive handled above)
 </script>
 
 /* eslint-env browser */
-{#if open}
+{#if localOpen}
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
-    class="modal-backdrop"
+    class="modal-backdrop {closing ? 'modal-closing' : ''}"
     bind:this={modalRef}
     role="presentation"
     aria-hidden="true"
     onclick={handleBackdropClick}
   >
     <div
-      class="modal-dialog"
+      class="modal-dialog {closing ? 'modal-closing' : ''}"
       bind:this={modalDialogRef}
       role="dialog"
       aria-modal="true"
@@ -92,7 +111,7 @@
     >
       <header class="modal-header">
         <slot name="header" />
-        <button class="modal-close" aria-label="Schließen" onclick={close}>
+        <button class="modal-close" aria-label="Schließen" on:click={close}>
           <span aria-hidden="true">&times;</span>
         </button>
       </header>
@@ -118,7 +137,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: fadeIn 0.2s;
+    animation: fadeIn 0.18s;
   }
   .modal-dialog {
     background: #22273a;
@@ -133,6 +152,10 @@
     flex-direction: column;
     outline: none;
     animation: popIn 0.18s;
+  }
+  .modal-closing.modal-dialog,
+  .modal-closing.modal-backdrop {
+    animation: fadeOut 0.18s forwards;
   }
   .modal-header {
     display: flex;
@@ -193,5 +216,9 @@
       transform: scale(1);
       opacity: 1;
     }
+  }
+  @keyframes fadeOut {
+    from { opacity: 1; transform: none; }
+    to { opacity: 0; transform: scale(0.995); }
   }
 </style>
