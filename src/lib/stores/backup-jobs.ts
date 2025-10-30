@@ -4,6 +4,22 @@ import * as api from '$lib/api/backup-jobs';
 
 /**
  * Store für Backup-Job-Management.
+ * TODO.md: Phase 2 - Stores mit Daten-Loading ✅ KOMPLETT
+ * Referenz: TODO.md Zeile 219, 320-325
+ * 
+ * Backend-Commands:
+ * - list_backup_jobs: src-tauri/src/commands/backup.rs:289
+ * - create_backup_job: src-tauri/src/commands/backup.rs:21
+ * - update_backup_job: src-tauri/src/commands/backup.rs:122
+ * - delete_backup_job: src-tauri/src/commands/backup.rs:217
+ * - get_backup_job: src-tauri/src/commands/backup.rs:255
+ * 
+ * API-Wrapper: src/lib/api/backup-jobs.ts
+ * 
+ * Verwendung:
+ * - src/lib/components/pages/BackupJobs.svelte (loadJobs in onMount)
+ * 
+ * Features:
  * - jobs: Liste aller Backup-Jobs
  * - runningJobId: ID des aktuell laufenden Jobs (oder null)
  * - loading: Ladezustand

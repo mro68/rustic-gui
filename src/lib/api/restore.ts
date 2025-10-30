@@ -6,8 +6,19 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 
 /**
  * API-Wrapper für Restore-Operationen.
+ * TODO.md: Phase 2 - API-Wrapper ✅ KOMPLETT
+ * Referenz: TODO.md Zeile 208-214
  *
  * Kapselt alle Tauri-Commands und Events für Datei-Wiederherstellung.
+ * 
+ * Commands:
+ * - getFileTree (TODO.md Zeile 198) ✅ IMPLEMENTIERT (lib.rs:312, stub in rustic/restore.rs:181)
+ * - restoreFiles (TODO.md Zeile 195-197) ✅ IMPLEMENTIERT (lib.rs:324, simuliert mit Events)
+ * 
+ * Backend-Events:
+ * - restore-progress (RestoreEvent in lib.rs:16-24)
+ * - restore-completed
+ * - restore-failed
  */
 
 /**

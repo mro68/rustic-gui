@@ -1,4 +1,22 @@
 <!-- CreateJobDialog.svelte: 4-Tab Wizard für Backup-Job-Erstellung (gemäß rustic_backup_dialogs.html) -->
+<!--
+TODO.md: Phase 2 - Dialog-Workflow: Backup & Restore ✅ IMPLEMENTIERT
+Referenz: TODO.md Zeile 237-244, 332-340
+
+Status:
+- createJob an api.createBackupJob angebunden ✅ (TODO.md Zeile 238)
+- Cron-Schedule-Konvertierung implementiert ✅ (TODO.md Zeile 88, daily/weekly/monthly)
+- Multi-Step-Wizard mit Tabs ✅
+
+Backend-Command: create_backup_job
+- src-tauri/src/commands/backup.rs:21
+
+API-Wrapper: src/lib/api/backup-jobs.ts:createBackupJob
+
+Verwendung:
+- src/lib/components/pages/BackupJobs.svelte
+- src/lib/components/pages/RepositoryCard.svelte
+-->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';

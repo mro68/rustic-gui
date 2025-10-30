@@ -1,8 +1,19 @@
+// TODO.md: Phase 1 - Repository-Management Commands ✅ REGISTRIERT (teilweise Stubs)
+// Referenz: TODO.md Zeile 164-174
+// Commands:
+// - list_repositories (Zeile 165) ✅ IMPLEMENTIERT
+// - delete_repository (Zeile 168) ✅ IMPLEMENTIERT  
+// - check_repository (Zeile 169) ⏳ STUB (TODO Zeile 134)
+// - prune_repository (Zeile 170) ⏳ STUB (TODO Zeile 161)
+// - change_password (Zeile 171) ⏳ STUB (TODO Zeile 161)
+// Weitere Commands in lib.rs: init_repository, open_repository
+
 use crate::types::RepositoryDto;
 use crate::state::AppState;
 use crate::config::RepositoryConfig;
 
 /// Listet alle Repositories auf
+/// TODO.md: Phase 1 Zeile 165 ✅ IMPLEMENTIERT
 #[tauri::command]
 pub async fn list_repositories(
     state: tauri::State<'_, AppState>,
@@ -34,6 +45,7 @@ pub async fn list_repositories(
 }
 
 /// Löscht ein Repository
+/// TODO.md: Phase 1 Zeile 168 ✅ IMPLEMENTIERT
 #[tauri::command]
 pub async fn delete_repository(
     id: String,
@@ -79,6 +91,7 @@ pub async fn delete_repository(
 }
 
 /// Prüft ein Repository (Health-Check)
+/// TODO.md: Phase 1 Zeile 169 ⏳ STUB - benötigt rustic_core Integration
 #[tauri::command]
 pub async fn check_repository(
     id: String,
@@ -110,6 +123,7 @@ pub async fn check_repository(
 }
 
 /// Prune-Operation für ein Repository
+/// TODO.md: Phase 1 Zeile 170 ⏳ STUB - benötigt rustic_core Integration
 #[tauri::command]
 pub async fn prune_repository(
     id: String,
@@ -139,6 +153,7 @@ pub async fn prune_repository(
 }
 
 /// Passwort ändern für ein Repository
+/// TODO.md: Phase 1 Zeile 171 ⏳ STUB - benötigt rustic_core Integration
 #[tauri::command]
 pub async fn change_password(
     id: String,

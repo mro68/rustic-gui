@@ -1,3 +1,12 @@
+// TODO.md: Phase 1 - Backup-Job-Management Commands ✅ IMPLEMENTIERT
+// Referenz: TODO.md Zeile 175-181
+// Commands:
+// - list_backup_jobs (Zeile 176) ✅ IMPLEMENTIERT
+// - create_backup_job (Zeile 177) ✅ IMPLEMENTIERT
+// - update_backup_job (Zeile 178) ✅ IMPLEMENTIERT
+// - delete_backup_job (Zeile 179) ✅ IMPLEMENTIERT
+// - get_backup_job (Zeile 180) ✅ IMPLEMENTIERT (mit TODO für last_run/next_run)
+
 use crate::config::BackupJobConfig;
 use crate::types::{BackupJobDto, RetentionPolicy};
 use crate::state::AppState;
@@ -5,6 +14,7 @@ use std::path::PathBuf;
 use uuid::Uuid;
 
 /// Erstellt einen neuen Backup-Job.
+/// TODO.md: Phase 1 Zeile 177 ✅ IMPLEMENTIERT
 ///
 /// # Parameter
 /// - `name`: Anzeigename des Jobs
@@ -98,6 +108,7 @@ pub async fn create_backup_job(
 }
 
 /// Aktualisiert einen bestehenden Backup-Job.
+/// TODO.md: Phase 1 Zeile 178 ✅ IMPLEMENTIERT
 ///
 /// # Parameter
 /// - `job_id`: ID des zu aktualisierenden Jobs
@@ -200,6 +211,7 @@ pub async fn update_backup_job(
 }
 
 /// Löscht einen Backup-Job.
+/// TODO.md: Phase 1 Zeile 179 ✅ IMPLEMENTIERT
 ///
 /// # Parameter
 /// - `job_id`: ID des zu löschenden Jobs
@@ -235,6 +247,7 @@ pub async fn delete_backup_job(
 }
 
 /// Holt Details eines Backup-Jobs.
+/// TODO.md: Phase 1 Zeile 180 ✅ IMPLEMENTIERT (mit TODO für last_run/next_run)
 ///
 /// # Parameter
 /// - `job_id`: ID des Jobs
@@ -269,6 +282,7 @@ pub async fn get_backup_job(
 }
 
 /// Listet alle Backup-Jobs auf.
+/// TODO.md: Phase 1 Zeile 176 ✅ IMPLEMENTIERT
 ///
 /// # Parameter
 /// - `repository_id`: Optional - filtere nach Repository
