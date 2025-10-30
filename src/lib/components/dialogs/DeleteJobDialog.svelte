@@ -3,11 +3,11 @@
   import Button from '$lib/components/shared/Button.svelte';
   import Modal from '$lib/components/shared/Modal.svelte';
   import { toastStore } from '$lib/stores/toast';
-  import type { BackupJob } from '$lib/types/backup.types';
+  import type { BackupJobDto } from '$lib/types';
   import { createEventDispatcher } from 'svelte';
 
   export let open: boolean = false;
-  export let job: BackupJob | null = null;
+  export let job: BackupJobDto | null = null;
 
   const dispatch = createEventDispatcher();
 
@@ -21,9 +21,10 @@
 
     isDeleting = true;
     try {
-      // TODO: API-Call zum Löschen des Jobs
-      console.log('Deleting job:', job.id);
+      const { deleteBackupJob } = await import('$lib/api/backup-jobs');
+      await deleteBackupJob(job.id);
 
+      console.log('Job deleted:', job.id);
       dispatch('deleted', job);
       open = false;
       confirmText = '';

@@ -52,8 +52,27 @@
     isSubmitting = true;
 
     try {
-      // TODO: Implement actual repository creation
-      // For now, just dispatch the event
+      const { initRepository } = await import('$lib/api/repositories');
+      const { store_repository_password } = await import('@tauri-apps/api/core');
+      
+      // Initialize repository
+      const backendOpts = backendOptions.trim() ? JSON.parse(backendOptions.trim()) : undefined;
+      const repo = await initRepository(
+        repositoryPath.trim(),
+        password,
+        repositoryType,
+        backendOpts
+      );
+
+      // Store password in keychain if requested
+      if (storePassword && password) {
+        try {
+          await store_repository_password(repo.id, password);
+        } catch (error) {
+          console.warn('Failed to store password in keychain:', error);
+        }
+      }
+
       dispatch('create', {
         name: repositoryName.trim(),
         type: repositoryType,

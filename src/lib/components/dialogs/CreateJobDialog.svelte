@@ -119,7 +119,6 @@
   async function createJob() {
     if (!validateCurrentTab()) return;
 
-    // TODO: API-Call zum Erstellen des Jobs
     const jobData = {
       name: jobName,
       repositoryId: selectedRepository,
@@ -144,11 +143,48 @@
       },
     };
 
-    console.log('Creating job:', jobData);
+    try {
+      const { createBackupJob } = await import('$lib/api/backup-jobs');
+      
+      // Konvertiere Schedule in Cron-Expression (vereinfacht)
+      let cronSchedule: string | undefined;
+      if (scheduleType !== 'manual') {
+        const [hours, minutes] = scheduleTime.split(':');
+        switch (scheduleType) {
+          case 'daily':
+            cronSchedule = `${minutes} ${hours} * * *`;
+            break;
+          case 'weekly':
+            cronSchedule = `${minutes} ${hours} * * 0`;
+            break;
+          case 'monthly':
+            cronSchedule = `${minutes} ${hours} 1 * *`;
+            break;
+        }
+      }
 
-    // TODO: API-Call und Error-Handling
-    dispatch('created', jobData);
-    close();
+      const jobId = await createBackupJob({
+        name: jobName,
+        repository_id: selectedRepository,
+        source_paths: sourcePaths.filter((p) => p.trim()),
+        exclude_patterns: excludePatterns.filter((p) => p.trim()),
+        tags: jobData.tags,
+        schedule: cronSchedule,
+        retention: {
+          keep_daily: keepDaily,
+          keep_weekly: keepWeekly,
+          keep_monthly: keepMonthly,
+          keep_yearly: keepYearly,
+        },
+      });
+
+      console.log('Job created with ID:', jobId);
+      dispatch('created', jobData);
+      close();
+    } catch (error) {
+      console.error('Failed to create job:', error);
+      errors.general = `Fehler beim Erstellen des Jobs: ${error}`;
+    }
   }
 
   $: schedulePreview = (() => {
