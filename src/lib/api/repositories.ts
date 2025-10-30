@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 /**
  * API-Wrapper für Repository-Kommandos (Tauri Backend)
  *
+ * TODO.md: Phase 2 - API-Wrapper ✅ KOMPLETT
  * - initRepository
  * - openRepository
  * - checkRepository
@@ -11,6 +12,12 @@ import { invoke } from '@tauri-apps/api/core';
  * - deleteRepository
  * - pruneRepository
  * - changePassword
+ * 
+ * Backend-Commands: 
+ * - lib.rs (init, open, check_repository_v1)
+ * - commands/repository.rs (list, delete, check, prune, change_password)
+ * 
+ * ⚠️ Hinweis: Viele Backend-Implementations sind Stubs (siehe TODO-Kommentare in Rust-Code)
  */
 
 export async function initRepository(
