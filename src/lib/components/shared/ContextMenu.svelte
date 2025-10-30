@@ -10,7 +10,6 @@
   export type { ContextMenuAction };
   export let actions: ContextMenuAction[] = [];
 
-  import { onMount } from 'svelte';
   const dispatch = createEventDispatcher();
   let containerRef: HTMLDivElement | null = null;
 
@@ -29,7 +28,7 @@
   }
 </script>
 
-  {#if visible}
+{#if visible}
   <div class="context-menu active" style="left: {x}px; top: {y}px;" bind:this={containerRef}>
     {#each actions as item}
       {#if item === 'divider'}
@@ -91,7 +90,7 @@
   .context-menu-item:focus {
     outline: none;
     background: #2d3348;
-    box-shadow: 0 6px 18px rgba(59,130,246,0.08);
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.08);
   }
   .context-menu-item.danger {
     color: #f87171;

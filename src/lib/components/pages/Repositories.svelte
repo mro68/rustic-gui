@@ -10,6 +10,7 @@
   import PruneRepoDialog from '../dialogs/PruneRepoDialog.svelte';
   import UnlockRepositoryDialog from '../dialogs/UnlockRepositoryDialog.svelte';
   import Button from '../shared/Button.svelte';
+  import Tooltip from '../shared/Tooltip.svelte';
 
   // Dialog States
   let showAddDialog = false;
@@ -159,7 +160,9 @@
   <div class="toolbar">
     <h1 class="page-title">Repository Management</h1>
     <div class="toolbar-actions">
-      <Button variant="primary" size="sm" onclick={handleAddRepository}>+ Add Repository</Button>
+      <Tooltip text="Repository hinzufügen">
+        <Button variant="primary" size="sm" onclick={handleAddRepository}>+ Add Repository</Button>
+      </Tooltip>
     </div>
   </div>
 
@@ -171,9 +174,11 @@
       <div class="empty-state">
         <h3>Keine Repositories gefunden</h3>
         <p>Fügen Sie Ihr erstes Repository hinzu, um mit dem Backup zu beginnen.</p>
-        <Button variant="primary" onclick={handleAddRepository}>
-          Erstes Repository hinzufügen
-        </Button>
+        <Tooltip text="Repository hinzufügen">
+          <Button variant="primary" onclick={handleAddRepository}>
+            Erstes Repository hinzufügen
+          </Button>
+        </Tooltip>
       </div>
     {:else}
       <div class="repositories-list">
@@ -199,30 +204,36 @@
               </div>
             </div>
             <div class="repository-actions">
-              <Button
-                variant="secondary"
-                size="sm"
-                onclick={() => handleViewRepository(repo)}
-                ariaLabel="Repository anzeigen"
-              >
-                🔍
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onclick={() => handleEditRepository(repo)}
-                ariaLabel="Repository bearbeiten"
-              >
-                ✏️
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onclick={() => handleUnlockRepository(repo)}
-                ariaLabel="Repository entsperren"
-              >
-                🔓
-              </Button>
+              <Tooltip text="Repository anzeigen">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onclick={() => handleViewRepository(repo)}
+                  ariaLabel="Repository anzeigen"
+                >
+                  🔍
+                </Button>
+              </Tooltip>
+              <Tooltip text="Repository bearbeiten">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onclick={() => handleEditRepository(repo)}
+                  ariaLabel="Repository bearbeiten"
+                >
+                  ✏️
+                </Button>
+              </Tooltip>
+              <Tooltip text="Repository entsperren">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onclick={() => handleUnlockRepository(repo)}
+                  ariaLabel="Repository entsperren"
+                >
+                  🔓
+                </Button>
+              </Tooltip>
             </div>
           </div>
         {/each}
@@ -284,46 +295,56 @@
       <div class="maintenance-card">
         <h3>Maintenance Actions</h3>
         <div class="maintenance-actions">
-          <Button
-            variant="secondary"
-            size="sm"
-            onclick={() => selectedRepository && handleCheckRepository(selectedRepository)}
-            disabled={!selectedRepository}
-          >
-            🔍 Check Repository
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onclick={() => selectedRepository && handlePruneRepository(selectedRepository)}
-            disabled={!selectedRepository}
-          >
-            ✂️ Prune Unused Data
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onclick={() => selectedRepository && handleUnlockRepository(selectedRepository)}
-            disabled={!selectedRepository}
-          >
-            🔓 Unlock Repository
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onclick={() => selectedRepository && handleChangePassword(selectedRepository)}
-            disabled={!selectedRepository}
-          >
-            🔑 Change Password
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onclick={() => selectedRepository && handleForgetSnapshots(selectedRepository)}
-            disabled={!selectedRepository}
-          >
-            🧹 Forget Old Snapshots
-          </Button>
+          <Tooltip text="Repository überprüfen">
+            <Button
+              variant="secondary"
+              size="sm"
+              onclick={() => selectedRepository && handleCheckRepository(selectedRepository)}
+              disabled={!selectedRepository}
+            >
+              🔍 Check Repository
+            </Button>
+          </Tooltip>
+          <Tooltip text="Repository bereinigen">
+            <Button
+              variant="secondary"
+              size="sm"
+              onclick={() => selectedRepository && handlePruneRepository(selectedRepository)}
+              disabled={!selectedRepository}
+            >
+              ✂️ Prune Unused Data
+            </Button>
+          </Tooltip>
+          <Tooltip text="Repository entsperren">
+            <Button
+              variant="secondary"
+              size="sm"
+              onclick={() => selectedRepository && handleUnlockRepository(selectedRepository)}
+              disabled={!selectedRepository}
+            >
+              🔓 Unlock Repository
+            </Button>
+          </Tooltip>
+          <Tooltip text="Passwort ändern">
+            <Button
+              variant="secondary"
+              size="sm"
+              onclick={() => selectedRepository && handleChangePassword(selectedRepository)}
+              disabled={!selectedRepository}
+            >
+              🔑 Change Password
+            </Button>
+          </Tooltip>
+          <Tooltip text="Alte Snapshots vergessen">
+            <Button
+              variant="secondary"
+              size="sm"
+              onclick={() => selectedRepository && handleForgetSnapshots(selectedRepository)}
+              disabled={!selectedRepository}
+            >
+              🧹 Forget Old Snapshots
+            </Button>
+          </Tooltip>
         </div>
       </div>
     </div>

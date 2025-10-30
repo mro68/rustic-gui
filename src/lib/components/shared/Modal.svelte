@@ -17,8 +17,7 @@
    * - header: Optionaler Header
    * - footer: Optionaler Footer
    */
-  import { createEventDispatcher, onMount } from 'svelte';
-  import { tick } from 'svelte';
+  import { createEventDispatcher, onMount, tick } from 'svelte';
   export let open: boolean = false;
   export let closeOnEsc: boolean = true;
   export let closeOnBackdrop: boolean = true;
@@ -111,7 +110,7 @@
     >
       <header class="modal-header">
         <slot name="header" />
-        <button class="modal-close" aria-label="Schließen" on:click={close}>
+        <button class="modal-close" aria-label="Schließen" onclick={close}>
           <span aria-hidden="true">&times;</span>
         </button>
       </header>
@@ -218,7 +217,13 @@
     }
   }
   @keyframes fadeOut {
-    from { opacity: 1; transform: none; }
-    to { opacity: 0; transform: scale(0.995); }
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.995);
+    }
   }
 </style>

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { toastStore } from '../../stores/toast';
   import Checkbox from '../shared/Checkbox.svelte';
+  import Tooltip from '../shared/Tooltip.svelte';
 
   // Settings state
   let theme = 'Dark';
@@ -201,8 +202,14 @@
 
     <!-- Action Buttons -->
     <div class="settings-actions">
-      <button class="btn btn-secondary" on:click={handleResetSettings}> Reset to Defaults </button>
-      <button class="btn btn-primary" on:click={handleSaveSettings}> Save Settings </button>
+      <Tooltip text="Einstellungen zurücksetzen">
+        <button class="btn btn-secondary" on:click={handleResetSettings}>
+          Reset to Defaults
+        </button>
+      </Tooltip>
+      <Tooltip text="Einstellungen speichern">
+        <button class="btn btn-primary" on:click={handleSaveSettings}> Save Settings </button>
+      </Tooltip>
     </div>
   </div>
 </div>

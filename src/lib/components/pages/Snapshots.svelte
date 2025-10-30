@@ -2,6 +2,7 @@
 <script lang="ts">
   import Button from '$lib/components/shared/Button.svelte';
   import Modal from '$lib/components/shared/Modal.svelte';
+  import Tooltip from '$lib/components/shared/Tooltip.svelte';
   import { repositories } from '$lib/stores/repositories';
   import { loadSnapshots, snapshots } from '$lib/stores/snapshots';
   import { toastStore } from '$lib/stores/toast';
@@ -282,9 +283,11 @@
   <div class="toolbar">
     <h1 class="page-title">Alle Snapshots</h1>
     <div class="toolbar-actions">
-      <Button variant="secondary" size="sm" disabled={isLoading} onclick={refreshSnapshots}>
-        {isLoading ? '↻' : '↻'} Aktualisieren
-      </Button>
+      <Tooltip text="Snapshots aktualisieren">
+        <Button variant="secondary" size="sm" disabled={isLoading} onclick={refreshSnapshots}>
+          {isLoading ? '↻' : '↻'} Aktualisieren
+        </Button>
+      </Tooltip>
     </div>
   </div>
   <FilterBar
@@ -308,12 +311,16 @@
     <div class="bulk-actions">
       <span class="selection-count">{selectedSnapshots.size} Snapshots ausgewählt</span>
       <div class="bulk-buttons">
-        <Button variant="secondary" size="sm" onclick={() => (selectedSnapshots = new Set())}>
-          Auswahl aufheben
-        </Button>
-        <Button variant="danger" size="sm" disabled={isDeleting}>
-          {isDeleting ? '...' : '🗑️'} Löschen
-        </Button>
+        <Tooltip text="Auswahl aufheben">
+          <Button variant="secondary" size="sm" onclick={() => (selectedSnapshots = new Set())}>
+            Auswahl aufheben
+          </Button>
+        </Tooltip>
+        <Tooltip text="Snapshots löschen">
+          <Button variant="danger" size="sm" disabled={isDeleting}>
+            {isDeleting ? '...' : '🗑️'} Löschen
+          </Button>
+        </Tooltip>
       </div>
     </div>
   {/if}
@@ -390,22 +397,26 @@
               {/if}
             </td>
             <td class="actions-column">
-              <Button
-                variant="secondary"
-                size="sm"
-                onclick={() => {
-                  /* TODO: Open restore dialog */
-                }}
-              >
-                📂
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onclick={() => showSnapshotDetails(snapshot.id)}
-              >
-                ℹ️
-              </Button>
+              <Tooltip text="Wiederherstellen">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onclick={() => {
+                    /* TODO: Open restore dialog */
+                  }}
+                >
+                  📂
+                </Button>
+              </Tooltip>
+              <Tooltip text="Details anzeigen">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onclick={() => showSnapshotDetails(snapshot.id)}
+                >
+                  ℹ️
+                </Button>
+              </Tooltip>
             </td>
           </tr>
         {/each}
@@ -437,11 +448,13 @@
       <div class="empty-state">
         {#if $snapshots.length === 0}
           <p>Keine Snapshots gefunden. Erstellen Sie zuerst ein Backup.</p>
-        {:else if filterSearch}
+        {#if filterSearch}
           <p>Keine Snapshots entsprechen dem Filter.</p>
-          <Button variant="secondary" size="sm" onclick={() => (filterSearch = '')}>
-            Filter zurücksetzen
-          </Button>
+          <Tooltip text="Filter zurücksetzen">
+            <Button variant="secondary" size="sm" onclick={() => (filterSearch = '')}>
+              Filter zurücksetzen
+            </Button>
+          </Tooltip>
         {/if}
       </div>
     {/if}
@@ -552,16 +565,20 @@
   {/if}
 
   <div slot="footer">
-    <Button variant="secondary" onclick={() => (showDetailsModal = false)}>Schließen</Button>
+    <Tooltip text="Schließen">
+      <Button variant="secondary" onclick={() => (showDetailsModal = false)}>Schließen</Button>
+    </Tooltip>
     {#if selectedSnapshot}
-      <Button
-        variant="primary"
-        onclick={() => {
-          /* TODO: Open restore dialog */
-        }}
-      >
-        📂 Wiederherstellen
-      </Button>
+      <Tooltip text="Wiederherstellen">
+        <Button
+          variant="primary"
+          onclick={() => {
+            /* TODO: Open restore dialog */
+          }}
+        >
+          📂 Wiederherstellen
+        </Button>
+      </Tooltip>
     {/if}
   </div>
 </Modal>
