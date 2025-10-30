@@ -1,4 +1,27 @@
 /* eslint-env browser, es2021 */
+/**
+ * snapshots.ts - Store für Snapshot-Management
+ * 
+ * TODO.md: Phase 2 - Stores mit Daten-Loading ✅ KOMPLETT
+ * Referenz: TODO.md Zeile 53, 116-119, 320-325
+ * 
+ * Backend-Commands:
+ * - list_snapshots_command: src-tauri/src/lib.rs:96
+ * - get_snapshot_command: src-tauri/src/lib.rs:84
+ * - delete_snapshot_command: src-tauri/src/lib.rs:73
+ * 
+ * API-Wrapper: src/lib/api/snapshots.ts
+ * 
+ * Verwendung:
+ * - src/lib/components/pages/Snapshots.svelte (refreshSnapshots in onMount)
+ * - src/lib/components/pages/DashboardPage.svelte
+ * 
+ * Features:
+ * - Snapshot-Liste mit Filter-Unterstützung
+ * - Loading/Error States
+ * - loadSnapshots() lädt Snapshots vom Backend
+ */
+
 import { listSnapshots as apiListSnapshots } from '$lib/api/snapshots';
 import type { SnapshotDto } from '$lib/types/index';
 import { get, writable } from 'svelte/store';

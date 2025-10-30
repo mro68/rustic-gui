@@ -1,4 +1,20 @@
 <script lang="ts">
+  /**
+   * UnlockRepositoryDialog.svelte
+   * 
+   * TODO.md: Phase 2 - Dialog-Workflow Repository (Zeile 231)
+   * Status: ✅ Dialog erstellt, ⏳ API-Integration fehlt
+   * Referenz: TODO.md Zeile 66, Integration-Zusammenfassung Zeile 363
+   * 
+   * Backend-Command: src-tauri/src/lib.rs:392 (open_repository)
+   * API-Wrapper: src/lib/api/repositories.ts:33 (openRepository)
+   * 
+   * TODOs in dieser Datei:
+   * - Zeile 61: Error-Toast für leeres Passwort
+   * - Zeile 68: Tatsächliche API-Integration mit openRepository
+   * - Zeile 77: Error-Toast für Unlock-Fehler
+   */
+  
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
@@ -58,14 +74,21 @@
 
   async function handleUnlock() {
     if (!password.trim()) {
-      // TODO: Show error toast
+      // TODO: Show error toast (TODO.md Zeile 298, Integration-Zusammenfassung Zeile 363)
+      // import { showToast } from '$lib/stores/toast';
+      // showToast('error', 'Passwort erforderlich');
       return;
     }
 
     isUnlocking = true;
 
     try {
-      // TODO: Implement actual unlock logic
+      // TODO: Implement actual unlock logic (TODO.md Phase 2 Zeile 231)
+      // import { openRepository } from '$lib/api/repositories';
+      // await openRepository(repositoryPath, password.trim());
+      // if (rememberPassword) {
+      //   await storeRepositoryPassword(repositoryId, password.trim());
+      // }
       dispatch('unlock', {
         password: password.trim(),
         remember: rememberPassword,
@@ -74,7 +97,8 @@
       // Close dialog on success
       dispatch('close');
     } catch (error) {
-      // TODO: Show error toast
+      // TODO: Show error toast (TODO.md Zeile 298, Integration-Zusammenfassung Zeile 363)
+      // showToast('error', 'Repository entsperren fehlgeschlagen', error.message);
       console.error('Unlock failed:', error);
     } finally {
       isUnlocking = false;
