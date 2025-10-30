@@ -1,12 +1,30 @@
 <!--
   DashboardPage.svelte
   -------------------
-  Dashboard-Ansicht gemäß Mockup (docs/mockups/rustic_gui_mockup.html)
+  TODO.md: Phase 2 - Daten-Initialisierung (Stores & Pages) ✅ KOMPLETT
+  Referenz: TODO.md Zeile 215-221, 342
+  
+  Status:
+  - refreshRepos in onMount implementiert ✅ (TODO.md Zeile 216)
+  - Lädt Repositories via api.listRepositories ✅
+  - Füllt $repositories Store ✅
+  
+  Backend-Commands:
+  - list_repositories: src-tauri/src/commands/repository.rs:7
+  
+  API-Wrapper: src/lib/api/repositories.ts:listRepositories
+  Store: src/lib/stores/repositories.ts
+  
+  Features:
+  - Dashboard-Ansicht gemäß Mockup (docs/mockups/rustic_gui_mockup.html)
   - Grid mit Repository-Cards
   - Activity Log
   - Storage Usage Charts (optional)
   - Integration mit Stores
   - Pixel-perfect laut Mockup
+  
+  TODO:
+  - Zeile 81: Dialog-Integration für Repository-Verwaltung
 -->
 
 <script lang="ts">

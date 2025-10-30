@@ -1,3 +1,26 @@
+<!-- Settings.svelte: App-Einstellungen (gemäß rustic_gui_mockup.html Settings-Tab) -->
+<!--
+  TODO.md: Phase 2 - Daten-Initialisierung (Stores & Pages) ✅ KOMPLETT
+  Referenz: TODO.md Zeile 220, 343
+  
+  Status:
+  - Seite vollständig erstellt ✅
+  - Settings Store integriert ✅
+  
+  Backend-Commands (noch nicht alle implementiert):
+  - Geplant: save_settings, load_settings, reset_settings
+  
+  Store: src/lib/stores/settings.ts
+  
+  Features:
+  - ✅ Theme-Umschaltung (Dark/Light/System)
+  - ✅ Logging-Level-Konfiguration
+  - ✅ Auto-Update-Einstellungen
+  - ✅ Passwort-Speicherung-Optionen
+  
+  TODO:
+  - Zeile 21, 27, 47, 62: Backend-Integration für Settings-Persistenz
+-->
 <script lang="ts">
   import { onMount } from 'svelte';
   import { toastStore } from '../../stores/toast';
