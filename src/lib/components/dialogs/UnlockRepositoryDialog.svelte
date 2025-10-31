@@ -56,7 +56,9 @@
   let strengthLabel = '';
   let strengthColor = '';
 
-  $: updatePasswordStrength(password);
+  $effect(() => {
+    updatePasswordStrength(password);
+  });
 
   function updatePasswordStrength(pwd: string) {
     if (pwd.length === 0) {

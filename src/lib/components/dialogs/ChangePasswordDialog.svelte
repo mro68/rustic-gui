@@ -53,7 +53,9 @@
     width: '20%',
   };
 
-  $: updatePasswordStrength(newPassword);
+  $effect(() => {
+    updatePasswordStrength(newPassword);
+  });
 
   function updatePasswordStrength(password: string) {
     let score = 0;

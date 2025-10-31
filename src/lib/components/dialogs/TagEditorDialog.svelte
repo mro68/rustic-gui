@@ -115,9 +115,9 @@
 </script>
 
 {#if open}
-  <div class="modal-overlay" onclick={handleClose}>
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="modal-overlay" onclick={handleClose} role="presentation">
     <div class="modal-dialog" onclick={(e) => e.stopPropagation()}>
       <header class="modal-header">
         <h2>Tags bearbeiten</h2>

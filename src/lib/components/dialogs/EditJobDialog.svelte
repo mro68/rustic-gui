@@ -101,9 +101,11 @@
   ];
 
   // Initialize form when job changes
-  $: if (job && open) {
-    initializeForm();
-  }
+  $effect(() => {
+    if (job && open) {
+      initializeForm();
+    }
+  });
 
   function initializeForm() {
     if (!job) return;

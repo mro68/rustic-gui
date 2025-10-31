@@ -69,7 +69,7 @@
 
   const dispatch = createEventDispatcher();
 
-  let isComparing = false;
+  let isComparing = $state(false);
 
   async function handleCompare() {
     if (!snapshotA || !snapshotB) {

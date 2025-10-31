@@ -32,11 +32,11 @@
 
   let { repository = null }: DeleteRepoDialogProps = $props();
 
-  let confirmName = '';
+  let confirmName = $state('');
   let deleteData = false;
   let isDeleting = false;
 
-  $: isValid = confirmName === (repository?.name || '');
+  const isValid = $derived(confirmName === (repository?.name || ''));
 
   async function handleDelete() {
     if (!isValid || !repository) return;

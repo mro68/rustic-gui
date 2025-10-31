@@ -49,9 +49,9 @@
   let statusText = status === 'healthy' ? 'Healthy' : status === 'warning' ? 'Warning' : 'Error';
 
   // Backup-Dialog State
-  let showBackupDialog = false;
-  let currentJobId = '';
-  let currentJobName = '';
+  let showBackupDialog = $state(false);
+  let currentJobId = $state('');
+  let currentJobName = $state('');
 
   function handleBackup() {
     // Finde einen Backup-Job für dieses Repository

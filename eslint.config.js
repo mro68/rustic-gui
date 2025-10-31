@@ -66,7 +66,7 @@ export default [
     rules: {
       ...svelte.configs.recommended.rules,
       'no-undef': 'warn',
-      'no-unused-vars': 'warn',
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
   {

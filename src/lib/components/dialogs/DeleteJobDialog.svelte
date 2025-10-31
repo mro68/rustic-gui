@@ -49,9 +49,9 @@
   const dispatch = createEventDispatcher();
 
   let isDeleting = false;
-  let confirmText = '';
+  let confirmText = $state('');
 
-  $: isConfirmValid = confirmText === 'LÖSCHEN';
+  const isConfirmValid = $derived(confirmText === 'LÖSCHEN');
 
   async function handleDelete() {
     if (!job || !isConfirmValid) return;
