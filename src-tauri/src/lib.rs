@@ -42,7 +42,9 @@ use serde::Serialize;
 use std::time::Duration;
 use tauri::Emitter;
 use tokio::time::sleep;
-use types::{FileTreeNode, RepositoryDto, RestoreOptionsDto, RestoreProgress, RetentionPolicy, SnapshotDto};
+use types::{
+    FileTreeNode, RepositoryDto, RestoreOptionsDto, RestoreProgress, RetentionPolicy, SnapshotDto,
+};
 
 /// Event-Format für Restore-Progress
 #[derive(Serialize)]
@@ -129,14 +131,10 @@ async fn list_snapshots_command(
     repository_path: String,
     password: String,
 ) -> std::result::Result<Vec<SnapshotDto>, String> {
-    rustic::snapshot::list_snapshots(&repository_path, &password)
-        .await
-        .map_err(|e| e.to_string())
+    rustic::snapshot::list_snapshots(&repository_path, &password).await.map_err(|e| e.to_string())
 }
 
-
-use rustic::backup::{run_backup, BackupOptions, BackupProgress};
-
+use rustic::backup::{BackupOptions, BackupProgress, run_backup};
 
 /// Event-Format für Backup-Progress
 #[derive(Serialize)]
@@ -220,19 +218,28 @@ fn init_repository(
 }
 
 #[tauri::command]
-fn open_repository(path: String, password: String) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
+fn open_repository(
+    path: String,
+    password: String,
+) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
     rustic::repository::open_repository(&path, &password)
         .map_err(|e| crate::types::ErrorDto::from(&e))
 }
 
 #[tauri::command]
-fn check_repository_v1(path: String, password: String) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
+fn check_repository_v1(
+    path: String,
+    password: String,
+) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
     rustic::repository::check_repository(&path, &password)
         .map_err(|e| crate::types::ErrorDto::from(&e))
 }
 
 #[tauri::command]
-fn get_repository_info(path: String, password: String) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
+fn get_repository_info(
+    path: String,
+    password: String,
+) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
     rustic::repository::get_repository_info(&path, &password)
         .map_err(|e| crate::types::ErrorDto::from(&e))
 }
@@ -244,7 +251,7 @@ fn switch_repository(
 ) -> std::result::Result<types::RepositoryDto, crate::types::ErrorDto> {
     // TODO: Implementiere vollständiges Repository-Switching
     // Für jetzt nur ein Platzhalter mit vereinfachter Logik
-    
+
     // 1. Altes Repository schließen
     {
         let mut current = state.current_repo.lock();
@@ -253,13 +260,13 @@ fn switch_repository(
             tracing::debug!("Altes Repository geschlossen");
         }
     }
-    
+
     // 2. TODO: Repo-Config laden (Milestone 1.4)
     // Für jetzt simulieren wir eine Config
-    
+
     // 3. TODO: Neues Repository öffnen (richtige rustic_core Integration)
     // Für jetzt nur Platzhalter
-    
+
     // 4. Repository-Info für Frontend erstellen
     let info = types::RepositoryDto {
         id: repository_id.clone(),
@@ -268,16 +275,16 @@ fn switch_repository(
         repository_type: types::RepositoryType::Local,
         status: types::RepositoryStatus::Healthy,
         snapshot_count: 0, // TODO: Aus Repository lesen
-        total_size: 0, // TODO: Berechnen
+        total_size: 0,     // TODO: Berechnen
         last_accessed: Some(chrono::Utc::now().to_rfc3339()),
         created_at: chrono::Utc::now().to_rfc3339(),
     };
-    
+
     // 5. TODO: Repository in State speichern (wenn rustic_core fertig)
     // Für jetzt lassen wir current_repo None
-    
+
     tracing::info!("Repository gewechselt zu: {}", repository_id);
-    
+
     Ok(info)
 }
 
@@ -287,7 +294,7 @@ fn prepare_shutdown(
 ) -> std::result::Result<bool, crate::types::ErrorDto> {
     // Prüfe ob laufende Backups existieren
     let running_backups = state.cancellation_tokens.lock().len();
-    
+
     if running_backups > 0 {
         tracing::warn!("Shutdown verhindert: {} laufende Backups", running_backups);
         return Err(crate::types::ErrorDto {
@@ -296,9 +303,9 @@ fn prepare_shutdown(
             details: None,
         });
     }
-    
+
     // TODO: Weitere Cleanup-Logik (Scheduler stoppen, etc.)
-    
+
     tracing::info!("Shutdown vorbereitet - keine laufenden Operationen");
     Ok(true) // Shutdown erlaubt
 }
@@ -308,36 +315,29 @@ fn store_repository_password(
     repo_id: String,
     password: String,
 ) -> std::result::Result<(), crate::types::ErrorDto> {
-    keychain::store_password(&repo_id, &password)
-        .map_err(|e| crate::types::ErrorDto {
-            code: "KeychainStoreFailed".to_string(),
-            message: format!("Passwort speichern fehlgeschlagen: {}", e),
-            details: None,
-        })
+    keychain::store_password(&repo_id, &password).map_err(|e| crate::types::ErrorDto {
+        code: "KeychainStoreFailed".to_string(),
+        message: format!("Passwort speichern fehlgeschlagen: {}", e),
+        details: None,
+    })
 }
 
 #[tauri::command]
-fn get_repository_password(
-    repo_id: String,
-) -> std::result::Result<String, crate::types::ErrorDto> {
-    keychain::load_password(&repo_id)
-        .map_err(|e| crate::types::ErrorDto {
-            code: "KeychainLoadFailed".to_string(),
-            message: format!("Passwort laden fehlgeschlagen: {}", e),
-            details: None,
-        })
+fn get_repository_password(repo_id: String) -> std::result::Result<String, crate::types::ErrorDto> {
+    keychain::load_password(&repo_id).map_err(|e| crate::types::ErrorDto {
+        code: "KeychainLoadFailed".to_string(),
+        message: format!("Passwort laden fehlgeschlagen: {}", e),
+        details: None,
+    })
 }
 
 #[tauri::command]
-fn delete_repository_password(
-    repo_id: String,
-) -> std::result::Result<(), crate::types::ErrorDto> {
-    keychain::delete_password(&repo_id)
-        .map_err(|e| crate::types::ErrorDto {
-            code: "KeychainDeleteFailed".to_string(),
-            message: format!("Passwort löschen fehlgeschlagen: {}", e),
-            details: None,
-        })
+fn delete_repository_password(repo_id: String) -> std::result::Result<(), crate::types::ErrorDto> {
+    keychain::delete_password(&repo_id).map_err(|e| crate::types::ErrorDto {
+        code: "KeychainDeleteFailed".to_string(),
+        message: format!("Passwort löschen fehlgeschlagen: {}", e),
+        details: None,
+    })
 }
 
 #[tauri::command]
@@ -369,13 +369,13 @@ async fn restore_files_v1(
     for (i, file) in files.iter().enumerate() {
         let progress = RestoreProgress {
             base: types::ProgressInfo {
-                current: (i+1) as u64,
+                current: (i + 1) as u64,
                 total,
                 message: None,
-                percentage: Some((i+1) as f32 / total as f32 * 100.0),
+                percentage: Some((i + 1) as f32 / total as f32 * 100.0),
             },
-            files_restored: (i+1) as u64,
-            bytes_restored: ((i+1) * 1024) as u64,
+            files_restored: (i + 1) as u64,
+            bytes_restored: ((i + 1) * 1024) as u64,
             current_file: Some(file.clone()),
         };
         let event = RestoreEvent {
@@ -415,7 +415,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             // TODO.md: Phase 1 - Alle Backend-Commands registriert ✅
             // 24 Commands registriert, viele als Stubs (siehe TODO-Kommentare in jeweiligen Modulen)
-            
+
             // --- System/Utility ---
             greet,
             prepare_shutdown,
@@ -450,8 +450,8 @@ pub fn run() {
             commands::repository::check_repository,
             commands::repository::prune_repository,
             commands::repository::change_password,
+            commands::snapshot::compare_snapshots,
             // --- Platzhalter für weitere geplante Commands (TODO) ---
-            // commands::snapshot::compare_snapshots, // TODO
             // commands::restore::restore_files_command, // TODO
             // commands::system::check_repository_health, // TODO
             // commands::system::force_unlock_repository, // TODO

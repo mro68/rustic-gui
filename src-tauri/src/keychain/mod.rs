@@ -1,5 +1,5 @@
-use keyring::{Entry, Error as KeyringError};
 use anyhow::{Context, Result};
+use keyring::{Entry, Error as KeyringError};
 
 /// Service-Name für Keychain-Einträge
 const SERVICE_NAME: &str = "rustic-gui";
@@ -22,8 +22,7 @@ pub fn store_password(repo_id: &str, password: &str) -> Result<()> {
     let entry = Entry::new(SERVICE_NAME, repo_id)
         .context("Keychain-Eintrag konnte nicht erstellt werden")?;
 
-    entry.set_password(password)
-        .context("Passwort konnte nicht gespeichert werden")?;
+    entry.set_password(password).context("Passwort konnte nicht gespeichert werden")?;
 
     tracing::debug!("Passwort für Repository '{}' erfolgreich gespeichert", repo_id);
 
@@ -41,8 +40,7 @@ pub fn load_password(repo_id: &str) -> Result<String> {
     let entry = Entry::new(SERVICE_NAME, repo_id)
         .context("Keychain-Eintrag konnte nicht erstellt werden")?;
 
-    let password = entry.get_password()
-        .context("Passwort konnte nicht geladen werden")?;
+    let password = entry.get_password().context("Passwort konnte nicht geladen werden")?;
 
     tracing::debug!("Passwort für Repository '{}' erfolgreich geladen", repo_id);
 
@@ -69,7 +67,10 @@ pub fn delete_password(repo_id: &str) -> Result<()> {
     // Das ist nicht perfekt, aber die beste verfügbare Option
     match entry.set_password("") {
         Ok(_) => {
-            tracing::debug!("Passwort für Repository '{}' erfolgreich gelöscht (überschrieben)", repo_id);
+            tracing::debug!(
+                "Passwort für Repository '{}' erfolgreich gelöscht (überschrieben)",
+                repo_id
+            );
             Ok(())
         }
         Err(KeyringError::NoEntry) => {
@@ -77,11 +78,10 @@ pub fn delete_password(repo_id: &str) -> Result<()> {
             tracing::debug!("Passwort für Repository '{}' war nicht gespeichert", repo_id);
             Ok(())
         }
-        Err(e) => {
-            Err(anyhow::anyhow!("Passwort konnte nicht gelöscht werden: {}", e))
-        }
+        Err(e) => Err(anyhow::anyhow!("Passwort konnte nicht gelöscht werden: {}", e)),
     }
-}/// Prüft ob ein Passwort für ein Repository gespeichert ist.
+}
+/// Prüft ob ein Passwort für ein Repository gespeichert ist.
 ///
 /// # Arguments
 /// * `repo_id` - Eindeutige ID des Repositories
@@ -103,7 +103,9 @@ pub fn keyring_error_to_message(error: KeyringError) -> String {
     match error {
         KeyringError::NoEntry => "Kein Passwort für dieses Repository gespeichert".to_string(),
         KeyringError::Invalid(_, _) => "Ungültiges Passwort-Format".to_string(),
-        KeyringError::PlatformFailure(_) => "Keychain-Systemfehler. Bitte System-Keychain überprüfen.".to_string(),
+        KeyringError::PlatformFailure(_) => {
+            "Keychain-Systemfehler. Bitte System-Keychain überprüfen.".to_string()
+        }
         KeyringError::TooLong(_, _) => "Passwort zu lang für Keychain".to_string(),
         _ => format!("Keychain-Fehler: {}", error),
     }
@@ -138,7 +140,9 @@ mod tests {
         let result = delete_password("nonexistent-repo");
         // Sollte entweder Ok(()) oder Err(NoEntry) zurückgeben, aber nicht panicen
         // In der aktuellen Implementierung geben wir Ok(()) zurück wenn NoEntry
-        assert!(result.is_ok() || matches!(result, Err(ref e) if e.to_string().contains("NoEntry")));
+        assert!(
+            result.is_ok() || matches!(result, Err(ref e) if e.to_string().contains("NoEntry"))
+        );
     }
 
     #[test]
@@ -156,7 +160,10 @@ mod tests {
         let message = keyring_error_to_message(no_entry_error);
         assert_eq!(message, "Kein Passwort für dieses Repository gespeichert");
 
-        let platform_error = KeyringError::PlatformFailure(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "test")));
+        let platform_error = KeyringError::PlatformFailure(Box::new(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            "test",
+        )));
         let message = keyring_error_to_message(platform_error);
         assert!(message.contains("Keychain-Systemfehler"));
     }

@@ -4,24 +4,26 @@ impl From<&RusticGuiError> for ErrorDto {
     fn from(error: &RusticGuiError) -> Self {
         use RusticGuiError::*;
         let (code, message, details) = match error {
-            RepositoryNotFound { path } => ("RepositoryNotFound", error.to_string(), Some(format!("path: {}", path))),
+            RepositoryNotFound { path } => {
+                ("RepositoryNotFound", error.to_string(), Some(format!("path: {}", path)))
+            }
             RepositoryLocked => ("RepositoryLocked", error.to_string(), None),
             AuthenticationFailed => ("AuthenticationFailed", error.to_string(), None),
-            SnapshotNotFound { id } => ("SnapshotNotFound", error.to_string(), Some(format!("id: {}", id))),
+            SnapshotNotFound { id } => {
+                ("SnapshotNotFound", error.to_string(), Some(format!("id: {}", id)))
+            }
             BackupFailed { reason } => ("BackupFailed", error.to_string(), Some(reason.clone())),
             RestoreFailed { reason } => ("RestoreFailed", error.to_string(), Some(reason.clone())),
-            InvalidConfig { field } => ("InvalidConfig", error.to_string(), Some(format!("field: {}", field))),
+            InvalidConfig { field } => {
+                ("InvalidConfig", error.to_string(), Some(format!("field: {}", field)))
+            }
             ConfigError { message } => ("ConfigError", error.to_string(), Some(message.clone())),
             IoError(e) => ("IoError", error.to_string(), Some(e.to_string())),
             JsonError(e) => ("JsonError", error.to_string(), Some(e.to_string())),
             TomlError(msg) => ("TomlError", error.to_string(), Some(msg.clone())),
             Internal(msg) => ("Internal", error.to_string(), Some(msg.clone())),
         };
-        ErrorDto {
-            code: code.to_string(),
-            message,
-            details,
-        }
+        ErrorDto { code: code.to_string(), message, details }
     }
 }
 use thiserror::Error;
@@ -92,13 +94,8 @@ mod tests {
 
     #[test]
     fn test_error_formatting() {
-        let error = RusticGuiError::RepositoryNotFound {
-            path: "/tmp/repo".into(),
-        };
-        assert_eq!(
-            error.to_string(),
-            "Repository nicht gefunden: /tmp/repo"
-        );
+        let error = RusticGuiError::RepositoryNotFound { path: "/tmp/repo".into() };
+        assert_eq!(error.to_string(), "Repository nicht gefunden: /tmp/repo");
     }
 
     #[test]
@@ -110,33 +107,25 @@ mod tests {
 
     #[test]
     fn test_snapshot_not_found_error() {
-        let error = RusticGuiError::SnapshotNotFound {
-            id: "snapshot-123".into(),
-        };
+        let error = RusticGuiError::SnapshotNotFound { id: "snapshot-123".into() };
         assert_eq!(error.to_string(), "Snapshot nicht gefunden: snapshot-123");
     }
 
     #[test]
     fn test_backup_failed_error() {
-        let error = RusticGuiError::BackupFailed {
-            reason: "Disk full".into(),
-        };
+        let error = RusticGuiError::BackupFailed { reason: "Disk full".into() };
         assert_eq!(error.to_string(), "Backup fehlgeschlagen: Disk full");
     }
 
     #[test]
     fn test_restore_failed_error() {
-        let error = RusticGuiError::RestoreFailed {
-            reason: "Permission denied".into(),
-        };
+        let error = RusticGuiError::RestoreFailed { reason: "Permission denied".into() };
         assert_eq!(error.to_string(), "Restore fehlgeschlagen: Permission denied");
     }
 
     #[test]
     fn test_invalid_config_error() {
-        let error = RusticGuiError::InvalidConfig {
-            field: "repository.path".into(),
-        };
+        let error = RusticGuiError::InvalidConfig { field: "repository.path".into() };
         assert_eq!(error.to_string(), "Konfiguration ungültig: repository.path");
     }
 
@@ -146,7 +135,7 @@ mod tests {
         let io_error = io::Error::new(io::ErrorKind::NotFound, "file not found");
         let rustic_error: RusticGuiError = io_error.into();
         match rustic_error {
-            RusticGuiError::IoError(_) => {},
+            RusticGuiError::IoError(_) => {}
             _ => panic!("Expected IoError"),
         }
     }
@@ -156,7 +145,7 @@ mod tests {
         let json_error = serde_json::from_str::<String>("invalid json").unwrap_err();
         let rustic_error: RusticGuiError = json_error.into();
         match rustic_error {
-            RusticGuiError::JsonError(_) => {},
+            RusticGuiError::JsonError(_) => {}
             _ => panic!("Expected JsonError"),
         }
     }

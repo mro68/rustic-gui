@@ -8,8 +8,8 @@
 // - get_backup_job (Zeile 180) ✅ IMPLEMENTIERT (mit TODO für last_run/next_run)
 
 use crate::config::BackupJobConfig;
-use crate::types::{BackupJobDto, RetentionPolicy};
 use crate::state::AppState;
+use crate::types::{BackupJobDto, RetentionPolicy};
 use std::path::PathBuf;
 use uuid::Uuid;
 
@@ -60,10 +60,7 @@ pub async fn create_backup_job(
     }
 
     // Validiere Pfade
-    let source_paths: Vec<PathBuf> = source_paths
-        .into_iter()
-        .map(PathBuf::from)
-        .collect();
+    let source_paths: Vec<PathBuf> = source_paths.into_iter().map(PathBuf::from).collect();
 
     for path in &source_paths {
         if !path.exists() {
@@ -81,13 +78,15 @@ pub async fn create_backup_job(
         exclude_patterns: exclude_patterns.unwrap_or_default(),
         tags: tags.unwrap_or_default(),
         schedule,
-        retention: retention.map(|r| RetentionPolicy {
-            keep_last: r.keep_last,
-            keep_daily: r.keep_daily,
-            keep_weekly: r.keep_weekly,
-            keep_monthly: r.keep_monthly,
-            keep_yearly: r.keep_yearly,
-        }).unwrap_or_default(),
+        retention: retention
+            .map(|r| RetentionPolicy {
+                keep_last: r.keep_last,
+                keep_daily: r.keep_daily,
+                keep_weekly: r.keep_weekly,
+                keep_monthly: r.keep_monthly,
+                keep_yearly: r.keep_yearly,
+            })
+            .unwrap_or_default(),
         enabled: true,
     };
 
@@ -98,9 +97,9 @@ pub async fn create_backup_job(
     }
 
     // Speichere Config auf Disk
-    state.save_config().map_err(|e| {
-        format!("Job erstellt aber Config-Speicherung fehlgeschlagen: {}", e)
-    })?;
+    state
+        .save_config()
+        .map_err(|e| format!("Job erstellt aber Config-Speicherung fehlgeschlagen: {}", e))?;
 
     tracing::info!("Backup-Job '{}' erstellt (ID: {})", name, job_id);
 
@@ -134,7 +133,8 @@ pub async fn update_backup_job(
     // Hole existierenden Job
     let mut job_config = {
         let config = state.config.lock();
-        config.get_backup_job(&job_id)
+        config
+            .get_backup_job(&job_id)
             .ok_or_else(|| format!("Backup-Job '{}' nicht gefunden", job_id))?
             .clone()
     };
@@ -152,10 +152,7 @@ pub async fn update_backup_job(
             return Err("Mindestens ein Quellpfad muss angegeben werden".to_string());
         }
 
-        let source_paths: Vec<PathBuf> = paths
-            .into_iter()
-            .map(PathBuf::from)
-            .collect();
+        let source_paths: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
 
         // Validiere Pfade
         for path in &source_paths {
@@ -201,9 +198,9 @@ pub async fn update_backup_job(
     }
 
     // Speichere Config auf Disk
-    state.save_config().map_err(|e| {
-        format!("Job aktualisiert aber Config-Speicherung fehlgeschlagen: {}", e)
-    })?;
+    state
+        .save_config()
+        .map_err(|e| format!("Job aktualisiert aber Config-Speicherung fehlgeschlagen: {}", e))?;
 
     tracing::info!("Backup-Job '{}' aktualisiert", job_id);
 
@@ -237,9 +234,9 @@ pub async fn delete_backup_job(
     }
 
     // Speichere Config auf Disk
-    state.save_config().map_err(|e| {
-        format!("Job gelöscht aber Config-Speicherung fehlgeschlagen: {}", e)
-    })?;
+    state
+        .save_config()
+        .map_err(|e| format!("Job gelöscht aber Config-Speicherung fehlgeschlagen: {}", e))?;
 
     tracing::info!("Backup-Job '{}' gelöscht", job_id);
 
@@ -260,16 +257,15 @@ pub async fn get_backup_job(
     state: tauri::State<'_, AppState>,
 ) -> Result<BackupJobDto, String> {
     let config = state.config.lock();
-    let job = config.get_backup_job(&job_id)
+    let job = config
+        .get_backup_job(&job_id)
         .ok_or_else(|| format!("Backup-Job '{}' nicht gefunden", job_id))?;
 
     let dto = BackupJobDto {
         id: job.id.clone(),
         name: job.name.clone(),
         repository_id: job.repository_id.clone(),
-        source_paths: job.source_paths.iter()
-            .map(|p| p.to_string_lossy().to_string())
-            .collect(),
+        source_paths: job.source_paths.iter().map(|p| p.to_string_lossy().to_string()).collect(),
         tags: job.tags.clone(),
         schedule: job.schedule.clone(),
         enabled: job.enabled,
@@ -297,20 +293,20 @@ pub async fn list_backup_jobs(
     let config = state.config.lock();
 
     let jobs = if let Some(repo_id) = repository_id {
-        config.get_backup_jobs_for_repository(&repo_id)
-            .into_iter()
-            .cloned()
-            .collect()
+        config.get_backup_jobs_for_repository(&repo_id).into_iter().cloned().collect()
     } else {
         config.backup_jobs.clone()
     };
 
-    let dtos = jobs.into_iter()
+    let dtos = jobs
+        .into_iter()
         .map(|job| BackupJobDto {
             id: job.id,
             name: job.name,
             repository_id: job.repository_id,
-            source_paths: job.source_paths.iter()
+            source_paths: job
+                .source_paths
+                .iter()
                 .map(|p| p.to_string_lossy().to_string())
                 .collect(),
             tags: job.tags,
@@ -345,7 +341,8 @@ mod tests {
             None,
             None,
             tauri::State::new(state.clone()),
-        ).await;
+        )
+        .await;
         assert!(result.is_err());
 
         // Leere Repository-ID sollte fehlschlagen
@@ -358,7 +355,8 @@ mod tests {
             None,
             None,
             tauri::State::new(state.clone()),
-        ).await;
+        )
+        .await;
         assert!(result.is_err());
 
         // Leere Source-Paths sollten fehlschlagen
@@ -371,7 +369,8 @@ mod tests {
             None,
             None,
             tauri::State::new(state),
-        ).await;
+        )
+        .await;
         assert!(result.is_err());
     }
 
@@ -379,10 +378,7 @@ mod tests {
     async fn test_get_backup_job_not_found() {
         let state = AppState::new().unwrap();
 
-        let result = get_backup_job(
-            "nonexistent".to_string(),
-            tauri::State::new(state),
-        ).await;
+        let result = get_backup_job("nonexistent".to_string(), tauri::State::new(state)).await;
 
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("nicht gefunden"));

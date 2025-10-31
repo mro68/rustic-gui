@@ -1,5 +1,5 @@
-use std::path::Path;
 use crate::{error::Result, types::RepositoryDto};
+use std::path::Path;
 
 /// Repository-Management Funktionen
 ///
@@ -35,10 +35,7 @@ pub fn init_repository(
     // Erstelle DTO als Response
     let dto = RepositoryDto {
         id: format!("repo-{}", path.display()),
-        name: path.file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("Unnamed Repository")
-            .to_string(),
+        name: path.file_name().and_then(|n| n.to_str()).unwrap_or("Unnamed Repository").to_string(),
         path: path.to_string_lossy().to_string(),
         repository_type: match backend_type {
             "local" => crate::types::RepositoryType::Local,
@@ -81,15 +78,12 @@ pub fn open_repository(path: &str, password: &str) -> Result<RepositoryDto> {
     // Erstelle DTO
     let dto = RepositoryDto {
         id: format!("repo-{}", path.display()),
-        name: path.file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("Unnamed Repository")
-            .to_string(),
+        name: path.file_name().and_then(|n| n.to_str()).unwrap_or("Unnamed Repository").to_string(),
         path: path.to_string_lossy().to_string(),
         repository_type: crate::types::RepositoryType::Local,
         status: crate::types::RepositoryStatus::Healthy,
         snapshot_count: 0, // TODO: Aus Repository lesen
-        total_size: 0, // TODO: Berechnen
+        total_size: 0,     // TODO: Berechnen
         last_accessed: Some(chrono::Utc::now().to_rfc3339()),
         created_at: "2025-01-01T00:00:00Z".to_string(), // TODO: Aus Config lesen
     };
@@ -133,15 +127,12 @@ pub fn check_repository(path: &str, password: &str) -> Result<RepositoryDto> {
 
     let dto = RepositoryDto {
         id: format!("repo-{}", path.display()),
-        name: path.file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("Unnamed Repository")
-            .to_string(),
+        name: path.file_name().and_then(|n| n.to_str()).unwrap_or("Unnamed Repository").to_string(),
         path: path.to_string_lossy().to_string(),
         repository_type: crate::types::RepositoryType::Local,
         status: crate::types::RepositoryStatus::Healthy, // TODO: Richtigen Status ermitteln
-        snapshot_count: 0, // TODO: Berechnen
-        total_size: 0, // TODO: Berechnen
+        snapshot_count: 0,                               // TODO: Berechnen
+        total_size: 0,                                   // TODO: Berechnen
         last_accessed: Some(chrono::Utc::now().to_rfc3339()),
         created_at: "2025-01-01T00:00:00Z".to_string(),
     };
@@ -159,12 +150,7 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let repo_path = temp_dir.path().join("test-repo");
 
-        let result = init_repository(
-            &repo_path.to_string_lossy(),
-            "test-password",
-            "local",
-            None,
-        );
+        let result = init_repository(&repo_path.to_string_lossy(), "test-password", "local", None);
 
         // Für jetzt erwarten wir einen Fehler, da rustic_core möglicherweise anders funktioniert
         // Das ist ein Platzhalter für die richtige Implementierung

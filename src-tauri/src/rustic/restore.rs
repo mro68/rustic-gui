@@ -1,9 +1,9 @@
-use crate::types::{FileTreeNode, RestoreOptionsDto};
 use crate::error::RusticGuiError;
-use rustic_core::{Repository, RepositoryOptions, repofile::SnapshotFile};
+use crate::types::{FileTreeNode, RestoreOptionsDto};
 use rustic_backend::BackendOptions;
+use rustic_core::{Repository, RepositoryOptions, repofile::SnapshotFile};
 use std::collections::HashMap;
-use tracing::{info, error};
+use tracing::{error, info};
 
 /// Lädt die Dateistruktur eines Snapshots.
 ///
@@ -30,8 +30,9 @@ pub async fn get_file_tree(
     repo_opts.password = Some(password.to_string());
     let mut backend_opts = BackendOptions::default();
     backend_opts.repository = Some(repository_path.to_string());
-    let backends = backend_opts.to_backends()
-        .map_err(|e| RusticGuiError::Internal(format!("Backend konnte nicht initialisiert werden: {e}")))?;
+    let backends = backend_opts.to_backends().map_err(|e| {
+        RusticGuiError::Internal(format!("Backend konnte nicht initialisiert werden: {e}"))
+    })?;
     let repo = Repository::new(&repo_opts, &backends)
         .map_err(|e| {
             error!(?e, "Fehler beim Initialisieren des Repositories");
@@ -44,9 +45,13 @@ pub async fn get_file_tree(
         })?;
 
     // Snapshot laden
-    let snaps = repo.get_snapshots(&[snapshot_id])
-        .map_err(|e| RusticGuiError::Internal(format!("Snapshot konnte nicht geladen werden: {e}")))?;
-    let snapshot = snaps.into_iter().next().ok_or_else(|| RusticGuiError::SnapshotNotFound { id: snapshot_id.to_string() })?;
+    let snaps = repo.get_snapshots(&[snapshot_id]).map_err(|e| {
+        RusticGuiError::Internal(format!("Snapshot konnte nicht geladen werden: {e}"))
+    })?;
+    let snapshot = snaps
+        .into_iter()
+        .next()
+        .ok_or_else(|| RusticGuiError::SnapshotNotFound { id: snapshot_id.to_string() })?;
 
     // Erstelle Baumstruktur aus den Pfaden des Snapshots
     let mut root = FileTreeNode {
@@ -60,34 +65,39 @@ pub async fn get_file_tree(
 
     // Gruppiere Pfade nach Verzeichnissen
     let mut path_map: HashMap<String, Vec<String>> = HashMap::new();
-    
+
     for snap_path in &snapshot.paths {
         let path_str = snap_path.to_string();
         let parts: Vec<&str> = path_str.split('/').collect();
-        
+
         for i in 0..parts.len() {
-            let parent_path = if i == 0 { "/".to_string() } else { format!("/{}", parts[0..i].join("/")) };
+            let parent_path =
+                if i == 0 { "/".to_string() } else { format!("/{}", parts[0..i].join("/")) };
             let item_name = parts[i].to_string();
-            
+
             path_map.entry(parent_path).or_insert_with(Vec::new).push(item_name);
         }
     }
 
     // Baue rekursiv den Baum auf
-    fn build_tree(path: &str, path_map: &HashMap<String, Vec<String>>, snapshot: &SnapshotFile) -> FileTreeNode {
+    fn build_tree(
+        path: &str,
+        path_map: &HashMap<String, Vec<String>>,
+        snapshot: &SnapshotFile,
+    ) -> FileTreeNode {
         let children = path_map.get(path).cloned().unwrap_or_default();
         let mut child_nodes = Vec::new();
-        
+
         for child_name in children {
             let child_path = if path == "/" {
                 format!("/{}", child_name)
             } else {
                 format!("{}/{}", path, child_name)
             };
-            
+
             // Prüfe ob es ein Verzeichnis ist (hat Kinder)
             let is_dir = path_map.contains_key(&child_path);
-            
+
             let node = if is_dir {
                 FileTreeNode {
                     name: child_name,
@@ -95,7 +105,9 @@ pub async fn get_file_tree(
                     is_directory: true,
                     size: Some(0),
                     modified: None,
-                    children: Some(build_tree(&child_path, path_map, snapshot).children.unwrap_or_default()),
+                    children: Some(
+                        build_tree(&child_path, path_map, snapshot).children.unwrap_or_default(),
+                    ),
                 }
             } else {
                 // Für Dateien: Versuche Größe und Modified aus Summary zu bekommen
@@ -109,10 +121,10 @@ pub async fn get_file_tree(
                     children: None,
                 }
             };
-            
+
             child_nodes.push(node);
         }
-        
+
         FileTreeNode {
             name: path.split('/').last().unwrap_or("/").to_string(),
             path: path.to_string(),
@@ -124,7 +136,7 @@ pub async fn get_file_tree(
     }
 
     root = build_tree("/", &path_map, &snapshot);
-    
+
     Ok(root)
 }
 
@@ -160,8 +172,9 @@ pub async fn restore_files(
     repo_opts.password = Some(password.to_string());
     let mut backend_opts = BackendOptions::default();
     backend_opts.repository = Some(repository_path.to_string());
-    let backends = backend_opts.to_backends()
-        .map_err(|e| RusticGuiError::Internal(format!("Backend konnte nicht initialisiert werden: {e}")))?;
+    let backends = backend_opts.to_backends().map_err(|e| {
+        RusticGuiError::Internal(format!("Backend konnte nicht initialisiert werden: {e}"))
+    })?;
     let repo = Repository::new(&repo_opts, &backends)
         .map_err(|e| {
             error!(?e, "Fehler beim Initialisieren des Repositories");
@@ -174,9 +187,13 @@ pub async fn restore_files(
         })?;
 
     // Snapshot laden
-    let snaps = repo.get_snapshots(&[snapshot_id])
-        .map_err(|e| RusticGuiError::Internal(format!("Snapshot konnte nicht geladen werden: {e}")))?;
-    let snapshot = snaps.into_iter().next().ok_or_else(|| RusticGuiError::SnapshotNotFound { id: snapshot_id.to_string() })?;
+    let snaps = repo.get_snapshots(&[snapshot_id]).map_err(|e| {
+        RusticGuiError::Internal(format!("Snapshot konnte nicht geladen werden: {e}"))
+    })?;
+    let snapshot = snaps
+        .into_iter()
+        .next()
+        .ok_or_else(|| RusticGuiError::SnapshotNotFound { id: snapshot_id.to_string() })?;
 
     // TODO: Implementiere Restore-Logik
     // rustic_core hat wahrscheinlich eine restore() Methode
@@ -185,31 +202,33 @@ pub async fn restore_files(
     // Placeholder-Implementierung: Simuliere Restore-Prozess
     // In einer echten Implementierung würde hier die Dateien aus dem Backend gelesen
     // und ins Zielverzeichnis geschrieben werden
-    
+
     for file_path in &files {
         info!("Restore Datei: {} -> {}/{}", file_path, target_path, file_path);
-        
+
         // Prüfe Overwrite-Policy
         let target_file_path = std::path::Path::new(target_path).join(&file_path[1..]); // Entferne führenden /
-        
+
         if target_file_path.exists() && !options.overwrite {
             return Err(RusticGuiError::Internal(format!(
-                "Datei {} existiert bereits und Overwrite ist deaktiviert", 
+                "Datei {} existiert bereits und Overwrite ist deaktiviert",
                 target_file_path.display()
             )));
         }
-        
+
         // Simuliere Datei-Restore (in echter Implementierung: Backend.read() -> File.write())
         // Für Demo-Zwecke erstelle leere Dateien
         if let Some(parent) = target_file_path.parent() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| RusticGuiError::Internal(format!("Verzeichnis konnte nicht erstellt werden: {e}")))?;
+            std::fs::create_dir_all(parent).map_err(|e| {
+                RusticGuiError::Internal(format!("Verzeichnis konnte nicht erstellt werden: {e}"))
+            })?;
         }
-        
+
         // Erstelle Platzhalter-Datei (in echter Implementierung: echte Daten schreiben)
-        std::fs::write(&target_file_path, b"Restored file content placeholder\n")
-            .map_err(|e| RusticGuiError::Internal(format!("Datei konnte nicht geschrieben werden: {e}")))?;
-        
+        std::fs::write(&target_file_path, b"Restored file content placeholder\n").map_err(|e| {
+            RusticGuiError::Internal(format!("Datei konnte nicht geschrieben werden: {e}"))
+        })?;
+
         info!("Datei wiederhergestellt: {}", target_file_path.display());
     }
 

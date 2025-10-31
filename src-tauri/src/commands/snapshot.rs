@@ -8,8 +8,8 @@
 //       (list_snapshots_command, get_snapshot_command, delete_snapshot_command, forget_snapshots_command)
 //       Diese Commands hier sind für erweiterte Funktionen gedacht.
 
-use crate::types::{SnapshotDto, DiffResultDto};
 use crate::state::AppState;
+use crate::types::{DiffResultDto, SnapshotDto};
 
 /// Listet alle Snapshots eines Repositories
 #[tauri::command]
@@ -48,10 +48,7 @@ pub async fn compare_snapshots(
 
 /// Löscht einen Snapshot
 #[tauri::command]
-pub async fn delete_snapshot(
-    id: String,
-    state: tauri::State<'_, AppState>,
-) -> Result<(), String> {
+pub async fn delete_snapshot(id: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
     // TODO: Implementieren mit rustic_core
     // TODO.md: Phase 1 Zeile 185 (delete_snapshot implementiert, aber in lib.rs:73)
     Err("delete_snapshot: Noch nicht implementiert".into())
