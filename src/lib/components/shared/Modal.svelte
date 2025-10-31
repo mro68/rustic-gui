@@ -7,6 +7,7 @@
    * - open: boolean (default: false)
    * - closeOnEsc: boolean (default: true)
    * - closeOnBackdrop: boolean (default: true)
+   * - size: 'small' | 'medium' | 'large' (default: 'medium')
    * - ariaLabel: string (optional)
    *
    * Events:
@@ -21,6 +22,7 @@
   export let open: boolean = false;
   export let closeOnEsc: boolean = true;
   export let closeOnBackdrop: boolean = true;
+  export let size: 'small' | 'medium' | 'large' = 'medium';
   export let ariaLabel: string | undefined = undefined;
 
   const dispatch = createEventDispatcher();
@@ -99,7 +101,7 @@
     onclick={handleBackdropClick}
   >
     <div
-      class="modal-dialog {closing ? 'modal-closing' : ''}"
+      class="modal-dialog modal-{size} {closing ? 'modal-closing' : ''}"
       bind:this={modalDialogRef}
       role="dialog"
       aria-modal="true"
@@ -144,13 +146,22 @@
     border: 1px solid #2d3348;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     min-width: 340px;
-    max-width: 96vw;
+    max-width: 600px;
     min-height: 80px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
     outline: none;
     animation: popIn 0.18s;
+  }
+  .modal-small {
+    max-width: 400px;
+  }
+  .modal-medium {
+    max-width: 600px;
+  }
+  .modal-large {
+    max-width: 900px;
   }
   .modal-closing.modal-dialog,
   .modal-closing.modal-backdrop {

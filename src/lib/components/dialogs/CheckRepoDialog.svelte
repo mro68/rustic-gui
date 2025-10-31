@@ -1,20 +1,20 @@
 <script lang="ts">
   /**
    * CheckRepoDialog.svelte
-   * 
+   *
    * TODO.md: Phase 2 - Dialog-Workflow Repository (Zeile 249)
    * Status: ✅ KOMPLETT - API-Integration vollständig
-   * 
+   *
    * Backend-Command: src-tauri/src/commands/repository.rs:84 (check_repository)
    * API-Wrapper: src/lib/api/repositories.ts:41 (checkRepository)
-   * 
+   *
    * Implementierung:
    * - ✅ API-Integration mit checkRepository
    * - ✅ Error-Handling mit Toasts
    * - ✅ Success-Toast bei erfolgreichem Check
    * - ⏳ Progress-Events (Backend sendet noch keine Events)
    */
-  
+
   import { createEventDispatcher, onMount } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
@@ -78,43 +78,33 @@
           ];
         } else {
           currentStep = 'Abschlussprüfung läuft...';
-          logEntries = [
-            'Repository-Statistiken werden aktualisiert...',
-            ...logEntries,
-          ];
+          logEntries = ['Repository-Statistiken werden aktualisiert...', ...logEntries];
         }
       }, 500);
 
       // ✅ Tatsächliche API-Integration (TODO.md Phase 2 Zeile 249)
       const result = await checkRepository(repositoryId, readData);
-      
+
       // Abschluss
       if (progressInterval) clearInterval(progressInterval);
       progress = 100;
       currentStep = 'Überprüfung abgeschlossen';
-      logEntries = [
-        'Überprüfung erfolgreich abgeschlossen',
-        ...logEntries,
-      ];
-      
+      logEntries = ['Überprüfung erfolgreich abgeschlossen', ...logEntries];
+
       toastStore.success('Repository-Überprüfung erfolgreich abgeschlossen');
-      
+
       dispatch('check-complete', { repositoryId, result });
-      
+
       // Auto-close nach 2 Sekunden
       setTimeout(() => {
         dispatch('close');
       }, 2000);
-      
     } catch (error: any) {
       if (progressInterval) clearInterval(progressInterval);
       isRunning = false;
       currentStep = 'Überprüfung fehlgeschlagen';
       const errorMessage = error?.message || 'Unbekannter Fehler';
-      logEntries = [
-        `Fehler: ${errorMessage}`,
-        ...logEntries,
-      ];
+      logEntries = [`Fehler: ${errorMessage}`, ...logEntries];
       toastStore.error('Repository-Überprüfung fehlgeschlagen: ' + errorMessage);
       console.error('Check failed:', error);
     } finally {

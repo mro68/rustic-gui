@@ -1,20 +1,20 @@
 <script lang="ts">
   /**
    * ChangePasswordDialog.svelte
-   * 
+   *
    * TODO.md: Phase 2 - Dialog-Workflow Repository (Zeile 251)
    * Status: ✅ KOMPLETT - API-Integration vollständig
-   * 
+   *
    * Backend-Command: src-tauri/src/commands/repository.rs:151 (change_password)
    * API-Wrapper: src/lib/api/repositories.ts:57 (changePassword)
-   * 
+   *
    * Implementierung:
    * - ✅ API-Integration mit changePassword
    * - ✅ Error-Handling mit Toasts
    * - ✅ Success-Toast bei erfolgreichem Passwort-Wechsel
    * - ✅ Passwort-Stärke-Anzeige
    */
-  
+
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
@@ -104,18 +104,18 @@
     try {
       // ✅ Tatsächliche API-Integration (TODO.md Phase 2 Zeile 251)
       await changePassword(repositoryId, currentPassword, newPassword);
-      
+
       // TODO: Passwort im Keychain aktualisieren wenn savePassword = true
       // if (savePassword) {
       //   await storeRepositoryPassword(repositoryId, newPassword);
       // }
-      
+
       toastStore.success('Passwort erfolgreich geändert');
-      
+
       dispatch('password-changed', {
         repositoryId,
       });
-      
+
       dispatch('close');
     } catch (error: any) {
       const errorMessage = error?.message || 'Unbekannter Fehler';

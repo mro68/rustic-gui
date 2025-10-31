@@ -23,7 +23,7 @@
   import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
   import Toast from '../shared/Toast.svelte';
-  import { open } from '@tauri-apps/plugin-dialog';
+  import LocationPickerDialog from './LocationPickerDialog.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -34,38 +34,37 @@
   let password = '';
   let storePassword = true;
   let backendOptions = '';
+  let locationConfig: any = undefined;
 
   // UI state
   let isSubmitting = false;
   let showToast = false;
   let toastMessage = '';
   let toastType: 'success' | 'error' | 'info' = 'info';
-  
-  // ✅ File browser function (TODO.md Zeile 246)
-  async function browseDirectory() {
-    try {
-      const selected = await open({
-        directory: true,
-        multiple: false,
-        title: 'Repository-Verzeichnis auswählen',
-      });
-      
-      if (selected && typeof selected === 'string') {
-        repositoryPath = selected;
-      }
-    } catch (error) {
-      console.error('File browser error:', error);
-      showToastMessage('error', 'Fehler beim Öffnen des Datei-Dialogs');
-    }
+  let showLocationPicker = false;
+
+  // ✅ Enhanced location picker (TODO.md Zeile 246, uses LocationPickerDialog.svelte)
+  function openLocationPicker() {
+    showLocationPicker = true;
   }
 
-  // Repository types from mockup
+  function handleLocationSelect(event: CustomEvent<{ path: string; type: string; config?: any }>) {
+    const { path, type, config } = event.detail;
+    repositoryPath = path;
+    repositoryType = type;
+    locationConfig = config;
+    showLocationPicker = false;
+  }
+
+  function handleLocationCancel() {
+    showLocationPicker = false;
+  }
+
+  // Repository types (now handled by LocationPicker)
   const repositoryTypes = [
     { value: 'local', label: 'Lokal', icon: '💻', description: 'Lokales Dateisystem' },
-    { value: 'sftp', label: 'SFTP', icon: '🌐', description: 'Secure FTP Server' },
-    { value: 's3', label: 'S3', icon: '☁️', description: 'Amazon S3 oder kompatibel' },
-    { value: 'rest', label: 'REST', icon: '🔗', description: 'REST-API Backend' },
-    { value: 'rclone', label: 'Rclone', icon: '🚀', description: 'Rclone Remote' },
+    { value: 'network', label: 'Netzwerk', icon: '🌐', description: 'SFTP, SMB, NFS, WebDAV' },
+    { value: 'cloud', label: 'Cloud', icon: '☁️', description: 'S3, Azure, GCS, etc.' },
   ];
 
   let selectedType = repositoryTypes[0];
@@ -91,7 +90,7 @@
     try {
       const { initRepository } = await import('$lib/api/repositories');
       const { store_repository_password } = await import('@tauri-apps/api/core');
-      
+
       // Initialize repository
       const backendOpts = backendOptions.trim() ? JSON.parse(backendOptions.trim()) : undefined;
       const repo = await initRepository(
@@ -182,44 +181,24 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label" for="repo-path">
-        {#if selectedType.value === 'local'}
-          Lokaler Pfad
-        {:else if selectedType.value === 'sftp'}
-          SFTP URL
-        {:else if selectedType.value === 's3'}
-          S3 Bucket URL
-        {:else if selectedType.value === 'rest'}
-          REST API URL
-        {:else}
-          Rclone Remote
-        {/if}
-      </label>
+      <label class="form-label" for="repo-path"> Repository-Speicherort </label>
       <div class="input-with-button">
         <Input
           id="repo-path"
           bind:value={repositoryPath}
-          placeholder={selectedType.value === 'local'
-            ? '/pfad/zum/repository'
-            : selectedType.value === 'sftp'
-              ? 'sftp://user@host/path'
-              : selectedType.value === 's3'
-                ? 's3://bucket/path'
-                : selectedType.value === 'rest'
-                  ? 'https://api.example.com/repo'
-                  : 'remote:path'}
+          placeholder="Pfad auswählen..."
           required
+          readonly
         />
-        {#if selectedType.value === 'local'}
-          <Button
-            variant="secondary"
-            size="sm"
-            on:click={browseDirectory}
-          >
-            Durchsuchen
-          </Button>
-        {/if}
+        <Button variant="secondary" size="sm" on:click={openLocationPicker}>
+          📁 Speicherort wählen
+        </Button>
       </div>
+      {#if repositoryType && repositoryType !== 'local'}
+        <div class="form-help">
+          Typ: {repositoryType.toUpperCase()} • {repositoryPath}
+        </div>
+      {/if}
     </div>
 
     <!-- Password -->
@@ -286,6 +265,15 @@
 {#if showToast}
   <Toast type={toastType} message={toastMessage} onClose={() => (showToast = false)} />
 {/if}
+
+<!-- Location Picker Dialog -->
+<LocationPickerDialog
+  bind:isOpen={showLocationPicker}
+  mode="init"
+  title="Repository-Speicherort auswählen"
+  on:select={handleLocationSelect}
+  on:cancel={handleLocationCancel}
+/>
 
 <style>
   .add-repo-dialog {

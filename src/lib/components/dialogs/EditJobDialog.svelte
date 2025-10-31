@@ -217,7 +217,7 @@
 
       try {
         const { updateBackupJob } = await import('$lib/api/backup-jobs');
-        
+
         // Konvertiere Schedule in Cron-Expression
         let cronSchedule: string | undefined;
         if (scheduleType !== 'manual') {
