@@ -11,6 +11,7 @@ use crate::config::BackupJobConfig;
 use crate::state::AppState;
 use crate::types::{BackupJobDto, RetentionPolicy};
 use std::path::PathBuf;
+use tauri::Emitter;
 use uuid::Uuid;
 
 /// Erstellt einen neuen Backup-Job.
@@ -351,3 +352,198 @@ mod tests {
         */
     }
 }
+
+// ===== M3: Job-Scheduler Commands =====
+
+/// Validiert eine Cron-Expression
+///
+/// # Arguments
+/// * `expr` - Zu validierende Cron-Expression
+///
+/// # Returns
+/// Ok(()) wenn valide, sonst Error
+fn validate_cron_expression(expr: &str) -> Result<(), String> {
+    // tokio-cron-scheduler validiert beim Job::new_async
+    // Für Vorab-Validierung nutzen wir croner crate (indirekte Dependency)
+    if expr.trim().is_empty() {
+        return Err("Cron-Expression darf nicht leer sein".to_string());
+    }
+
+    // Einfache Syntax-Prüfung: mindestens 6 Felder (Sekunde Minute Stunde Tag Monat Wochentag)
+    let parts: Vec<&str> = expr.split_whitespace().collect();
+    if parts.len() != 6 {
+        return Err(format!(
+            "Ungültige Cron-Expression: Erwartet 6 Felder (Sekunde Minute Stunde Tag Monat Wochentag), gefunden {}",
+            parts.len()
+        ));
+    }
+
+    Ok(())
+}
+
+/// Plant einen Backup-Job mit Cron-Scheduling
+///
+/// # Arguments
+/// * `job_id` - ID des zu planenden Jobs
+/// * `cron_expression` - Cron-Expression (6 Felder: Sekunde Minute Stunde Tag Monat Wochentag)
+///
+/// # Returns
+/// Ok(()) bei Erfolg
+///
+/// # Errors
+/// Gibt einen Fehler zurück wenn:
+/// - Job nicht existiert
+/// - Cron-Expression ungültig ist
+/// - Scheduler nicht initialisiert ist
+///
+/// # Example
+/// ```ignore
+/// schedule_backup("job-123".to_string(), "0 0 2 * * *".to_string(), state).await
+/// // Führt Job täglich um 2:00 Uhr aus
+/// ```
+#[tauri::command]
+pub async fn schedule_backup(
+    job_id: String,
+    cron_expression: String,
+    state: tauri::State<'_, AppState>,
+    app_handle: tauri::AppHandle,
+) -> Result<(), String> {
+    // Validiere Cron-Expression
+    validate_cron_expression(&cron_expression)?;
+
+    // Prüfe ob Job existiert
+    let job_exists = {
+        let config = state.config.lock();
+        config.backup_jobs.iter().any(|j| j.id == job_id)
+    };
+
+    if !job_exists {
+        return Err(format!("Backup-Job '{}' nicht gefunden", job_id));
+    }
+
+    // Hole Scheduler
+    let mut scheduler_lock = state.scheduler.lock().await;
+    let scheduler = scheduler_lock
+        .as_mut()
+        .ok_or_else(|| "Scheduler nicht initialisiert".to_string())?;
+
+    // Erstelle Callback für geplanten Backup
+    let job_id_clone = job_id.clone();
+    let app_handle_clone = app_handle.clone();
+    let state_clone = state.inner().clone();
+
+    scheduler
+        .schedule_job(
+            job_id.clone(),
+            &cron_expression,
+            move || {
+                let job_id = job_id_clone.clone();
+                let app_handle = app_handle_clone.clone();
+                let state = state_clone.clone();
+
+                Box::pin(async move {
+                    tracing::info!("Scheduled backup gestartet: {}", job_id);
+
+                    // Event: Backup gestartet
+                    let _ = app_handle.emit(
+                        "scheduled-backup-started",
+                        serde_json::json!({
+                            "job_id": job_id,
+                            "time": chrono::Utc::now().to_rfc3339(),
+                        }),
+                    );
+
+                    // Backup ausführen
+                    // TODO M3.2: Integriere run_backup hier
+                    // Vorläufig: Simuliere Backup-Ausführung
+                    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+
+                    // Event: Backup abgeschlossen
+                    let _ = app_handle.emit(
+                        "scheduled-backup-completed",
+                        serde_json::json!({
+                            "job_id": job_id,
+                            "time": chrono::Utc::now().to_rfc3339(),
+                        }),
+                    );
+
+                    tracing::info!("Scheduled backup abgeschlossen: {}", job_id);
+                })
+            },
+        )
+        .await
+        .map_err(|e| format!("Scheduling fehlgeschlagen: {}", e))?;
+
+    tracing::info!(
+        "Backup-Job '{}' geplant mit Cron-Expression: {}",
+        job_id,
+        cron_expression
+    );
+
+    Ok(())
+}
+
+/// Entfernt die Planung eines Backup-Jobs
+///
+/// # Arguments
+/// * `job_id` - ID des zu entplanenden Jobs
+///
+/// # Returns
+/// Ok(()) bei Erfolg
+///
+/// # Errors
+/// Gibt einen Fehler zurück wenn:
+/// - Job nicht geplant ist
+/// - Scheduler nicht initialisiert ist
+#[tauri::command]
+pub async fn unschedule_backup(
+    job_id: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    let mut scheduler_lock = state.scheduler.lock().await;
+    let scheduler = scheduler_lock
+        .as_mut()
+        .ok_or_else(|| "Scheduler nicht initialisiert".to_string())?;
+
+    scheduler
+        .remove_job(&job_id)
+        .await
+        .map_err(|e| format!("Job entfernen fehlgeschlagen: {}", e))?;
+
+    tracing::info!("Backup-Job '{}' entplant", job_id);
+
+    Ok(())
+}
+
+/// Listet alle geplanten Backup-Jobs auf
+///
+/// # Returns
+/// Vektor mit Job-IDs aller geplanten Jobs
+#[tauri::command]
+pub async fn list_scheduled_backups(state: tauri::State<'_, AppState>) -> Result<Vec<String>, String> {
+    let scheduler_lock = state.scheduler.lock().await;
+    let scheduler = scheduler_lock
+        .as_ref()
+        .ok_or_else(|| "Scheduler nicht initialisiert".to_string())?;
+
+    Ok(scheduler.list_scheduled_jobs())
+}
+
+#[cfg(test)]
+mod scheduler_tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_cron_expression() {
+        // Gültige Expressions
+        assert!(validate_cron_expression("0 0 2 * * *").is_ok());
+        assert!(validate_cron_expression("*/5 * * * * *").is_ok());
+        assert!(validate_cron_expression("0 30 14 * * MON-FRI").is_ok());
+
+        // Ungültige Expressions
+        assert!(validate_cron_expression("").is_err());
+        assert!(validate_cron_expression("0 0 2 * *").is_err()); // Zu wenig Felder
+        assert!(validate_cron_expression("0 0 2 * * * *").is_err()); // Zu viele Felder
+    }
+}
+

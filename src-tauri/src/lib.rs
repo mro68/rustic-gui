@@ -592,6 +592,10 @@ pub fn run() {
             commands::backup::delete_backup_job,
             commands::backup::get_backup_job,
             commands::backup::list_backup_jobs,
+            // M3: Job-Scheduler
+            commands::backup::schedule_backup,
+            commands::backup::unschedule_backup,
+            commands::backup::list_scheduled_backups,
             // --- Snapshot Management ---
             list_snapshots_command,
             get_snapshot_command,
