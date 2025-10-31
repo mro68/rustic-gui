@@ -1,16 +1,21 @@
 <script lang="ts">
   /**
-   * Toast/Notification-Komponente für Rustic GUI
+   * Toast/Notification-Komponente für Rustic GUI.
    *
-   * Props:
-   * - type: 'success' | 'error' | 'warning' | 'info' (default: 'info')
-   * - title: string (optional)
-   * - message: string
-   * - duration: number (ms, default: 3500)
-   * - onClose: () => void (optional)
+   * Zeigt zeitlich begrenzte Benachrichtigungen mit Auto-Dismiss.
    *
-   * Slots:
-   * - default: Optionaler eigener Inhalt
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <Toast
+   *   type="success"
+   *   title="Erfolg"
+   *   message="Backup erfolgreich erstellt"
+   *   duration={3500}
+   *   onClose={handleClose}
+   * />
+   * ```
    */
 
   let {

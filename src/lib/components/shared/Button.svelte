@@ -1,31 +1,56 @@
 <script lang="ts">
   /**
-   * Universelle Button-Komponente für Rustic GUI
+   * Universelle Button-Komponente für Rustic GUI.
    *
-   * Props:
-   * - variant: 'primary' | 'secondary' | 'danger' (default: 'primary')
-   * - size: 'sm' | 'md' | 'lg' (default: 'md')
-   * - loading: boolean (default: false)
-   * - disabled: boolean (default: false)
-   * - icon: SvelteComponent | string (optional)
-   * - tooltip: string (optional)
+   * Bietet verschiedene Varianten, Größen und States (Loading, Disabled).
+   * Unterstützt Icons und Tooltips für bessere UX.
    *
-   * Slots:
-   * - default: Button-Inhalt
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <Button variant="primary" onclick={() => save()}>Speichern</Button>
+   * <Button variant="danger" loading={isSaving}>Löschen</Button>
+   * <Button size="sm" icon="📁">Öffnen</Button>
+   * ```
    */
   import Tooltip from '$lib/components/shared/Tooltip.svelte';
-  export let variant: 'primary' | 'secondary' | 'danger' = 'primary';
-  export let size: 'sm' | 'md' | 'lg' = 'md';
-  export let loading: boolean = false;
-  export let disabled: boolean = false;
-  export let icon: any = null;
-  export let type: 'button' | 'submit' | 'reset' = 'button';
-  export let ariaLabel: string | undefined = undefined;
-  export let tooltip: string | undefined = undefined;
-  export let onclick: (() => void) | undefined = undefined;
+
+  interface ButtonProps {
+    /** Button-Variante für visuelles Styling */
+    variant?: 'primary' | 'secondary' | 'danger';
+    /** Button-Größe */
+    size?: 'sm' | 'md' | 'lg';
+    /** Zeigt Loading-Spinner und deaktiviert Button */
+    loading?: boolean;
+    /** Deaktiviert den Button */
+    disabled?: boolean;
+    /** Icon (Emoji-String oder Svelte-Component) */
+    icon?: any;
+    /** HTML Button-Type */
+    type?: 'button' | 'submit' | 'reset';
+    /** Aria-Label für Accessibility */
+    ariaLabel?: string;
+    /** Tooltip-Text bei Hover */
+    tooltip?: string;
+    /** Click-Handler */
+    onclick?: (() => void) | undefined;
+  }
+
+  let {
+    variant = 'primary',
+    size = 'md',
+    loading = false,
+    disabled = false,
+    icon = null,
+    type = 'button',
+    ariaLabel = undefined,
+    tooltip = undefined,
+    onclick = undefined,
+  }: ButtonProps = $props();
 
   // Kombinierte Klassen
-  $: btnClass = `btn btn-${variant} btn-${size} ${loading ? 'is-loading' : ''}`;
+  let btnClass = $derived(`btn btn-${variant} btn-${size} ${loading ? 'is-loading' : ''}`);
 </script>
 
 <Tooltip text={tooltip}>

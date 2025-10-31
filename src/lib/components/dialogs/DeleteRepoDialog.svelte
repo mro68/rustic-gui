@@ -1,15 +1,36 @@
 <script lang="ts">
+  /**
+   * Bestätigungsdialog für Repository-Löschung.
+   *
+   * Erfordert Eingabe des Repository-Namens zur Bestätigung.
+   * Optional: Löschung der Backup-Daten.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <DeleteRepoDialog
+   *   {repository}
+   *   on:delete-repo={handleRepoDeleted}
+   * />
+   * ```
+   */
+  import { toastStore } from '$lib/stores/toast';
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
   import Modal from '../shared/Modal.svelte';
-  import { toastStore } from '$lib/stores/toast';
 
   const dispatch = createEventDispatcher();
 
   import type { RepositoryDto } from '$lib/types';
 
-  export let repository: RepositoryDto | null = null;
+  interface DeleteRepoDialogProps {
+    /** Zu löschendes Repository */
+    repository?: RepositoryDto | null;
+  }
+
+  let { repository = null }: DeleteRepoDialogProps = $props();
 
   let confirmName = '';
   let deleteData = false;

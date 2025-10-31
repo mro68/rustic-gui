@@ -67,6 +67,7 @@ npm test
 Wir nutzen [Conventional Commits](https://www.conventionalcommits.org/) **in Deutsch**:
 
 **Format:**
+
 ```
 <type>(<scope>): <Beschreibung>
 
@@ -76,6 +77,7 @@ Wir nutzen [Conventional Commits](https://www.conventionalcommits.org/) **in Deu
 ```
 
 **Types:**
+
 - `feat` – Neues Feature
 - `fix` – Bugfix
 - `docs` – Nur Dokumentation
@@ -85,6 +87,7 @@ Wir nutzen [Conventional Commits](https://www.conventionalcommits.org/) **in Deu
 - `chore` – Build-System, Dependencies
 
 **Scopes (Beispiele):**
+
 - `snapshots` – Snapshot-Feature
 - `backup` – Backup-Logik
 - `ui` – UI-Komponenten
@@ -92,6 +95,7 @@ Wir nutzen [Conventional Commits](https://www.conventionalcommits.org/) **in Deu
 - `frontend` – Svelte-Frontend
 
 **Beispiele:**
+
 ```bash
 git commit -m "feat(snapshots): Tag-Filterung implementiert"
 git commit -m "fix(backup): Progress-Event-Handling korrigiert"
@@ -164,6 +168,7 @@ async fn backup(r: String, p: Vec<String>) -> Result<String, String> {
 ```
 
 **Conventions:**
+
 - Snake_case für Funktionen/Variablen
 - PascalCase für Typen/Structs
 - Clippy-Warnings beheben (`cargo clippy`)
@@ -191,6 +196,7 @@ export async function load(id: string) {
 ```
 
 **Conventions:**
+
 - CamelCase für Funktionen/Variablen
 - PascalCase für Typen/Interfaces
 - ESLint-Rules beachten (`npm run lint`)
@@ -198,7 +204,7 @@ export async function load(id: string) {
 
 ### Svelte (UI)
 
-```svelte
+````svelte
 <!-- ✅ Gut -->
 <script lang="ts">
   /**
@@ -212,12 +218,12 @@ export async function load(id: string) {
    * </Button>
    * ```
    */
-  
+
   interface ButtonProps {
     variant?: 'primary' | 'secondary' | 'danger';
     disabled?: boolean;
   }
-  
+
   let { variant = 'primary', disabled = false, children }: ButtonProps & { children: any } = $props();
 </script>
 
@@ -230,9 +236,10 @@ export async function load(id: string) {
   let { v, d, children } = $props(); // Unklar
 </script>
 <button class={v}>{@render children()}</button>
-```
+````
 
 **Conventions:**
+
 - Immer TSDoc-Kommentare für Komponenten
 - Props mit Interfaces definieren
 - **UI muss Mockups in `docs/mockups/` entsprechen**
@@ -261,6 +268,7 @@ npm run test:coverage
 ```
 
 **Beispiel:**
+
 ```typescript
 // src/lib/components/shared/Button.test.ts
 import { describe, it, expect } from 'vitest';
@@ -276,9 +284,11 @@ describe('Button Component', () => {
   it('should call onClick handler', async () => {
     let clicked = false;
     const { getByRole } = render(Button, {
-      onclick: () => { clicked = true; }
+      onclick: () => {
+        clicked = true;
+      },
     });
-    
+
     await fireEvent.click(getByRole('button'));
     expect(clicked).toBe(true);
   });
@@ -293,6 +303,7 @@ cargo test
 ```
 
 **Beispiel:**
+
 ```rust
 // src-tauri/src/commands/snapshot.rs
 #[cfg(test)]
@@ -396,6 +407,7 @@ Closes #123
 Vielen Dank für deinen Beitrag! Jeder PR hilft das Projekt besser zu machen.
 
 Bei Fragen:
+
 - **Issues:** [GitHub Issues](https://github.com/rustic-rs/rustic-gui/issues)
 - **Discord:** [discord.gg/WRUWENZnzQ](https://discord.gg/WRUWENZnzQ)
 

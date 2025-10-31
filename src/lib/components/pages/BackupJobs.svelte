@@ -1,5 +1,8 @@
 <!-- BackupJobs.svelte: Backup-Job-Management Seite (gemäß Mockup) -->
 <!--
+  @component
+  Backup-Job-Verwaltungs-Seite mit CRUD-Operationen.
+  
   TODO.md: Phase 2 - Daten-Initialisierung (Stores & Pages) ✅ KOMPLETT
   Referenz: TODO.md Zeile 219, 342
   

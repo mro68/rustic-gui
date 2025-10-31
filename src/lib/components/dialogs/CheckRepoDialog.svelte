@@ -1,38 +1,41 @@
 <script lang="ts">
   /**
-   * CheckRepoDialog.svelte
+   * Dialog für Repository-Integritätsprüfung.
+   *
+   * Führt Check-Command aus mit Optionen:
+   * - Read-Data (vollständige Datenprüfung)
+   * - Progress-Anzeige
+   * - Log-Ausgabe
    *
    * TODO.md: Phase 2 - Dialog-Workflow Repository (Zeile 249)
    * Status: ✅ KOMPLETT - API-Integration vollständig
    *
-   * Backend-Command: src-tauri/src/commands/repository.rs:84 (check_repository)
-   * API-Wrapper: src/lib/api/repositories.ts:41 (checkRepository)
+   * @component
    *
-   * Implementierung:
-   * - ✅ API-Integration mit checkRepository
-   * - ✅ Error-Handling mit Toasts
-   * - ✅ Success-Toast bei erfolgreichem Check
-   * - ⏳ Progress-Events (Backend sendet noch keine Events)
+   * @example
+   * ```svelte
+   * <CheckRepoDialog
+   *   {repositoryId}
+   *   on:checked={handleCheckComplete}
+   * />
+   * ```
    */
 
-  import { createEventDispatcher, onMount } from 'svelte';
-  import Button from '../shared/Button.svelte';
-  import Checkbox from '../shared/Checkbox.svelte';
-  import Modal from '../shared/Modal.svelte';
-  import { toastStore } from '$lib/stores/toast';
-
-  const dispatch = createEventDispatcher();
-
-  import { createEventDispatcher, onMount } from 'svelte';
-  import Button from '../shared/Button.svelte';
-  import Checkbox from '../shared/Checkbox.svelte';
-  import Modal from '../shared/Modal.svelte';
-  import { toastStore } from '$lib/stores/toast';
   import { checkRepository } from '$lib/api/repositories';
+  import { toastStore } from '$lib/stores/toast';
+  import { createEventDispatcher, onMount } from 'svelte';
+  import Button from '../shared/Button.svelte';
+  import Checkbox from '../shared/Checkbox.svelte';
+  import Modal from '../shared/Modal.svelte';
 
   const dispatch = createEventDispatcher();
 
-  export let repositoryId: string = '';
+  interface CheckRepoDialogProps {
+    /** Repository-ID */
+    repositoryId?: string;
+  }
+
+  let { repositoryId = '' }: CheckRepoDialogProps = $props();
 
   let isRunning = false;
   let progress = 0;

@@ -13,22 +13,54 @@
   - cancel: void
 -->
 <script lang="ts">
+  /**
+   * Unified Location Picker für Repository-Pfade.
+   *
+   * 4-Tab-Interface (gemäß rustic_location_picker.html):
+   * - Local: File/Directory Browser
+   * - Network: SFTP, SMB, NFS, WebDAV
+   * - Cloud: S3, B2, Azure, GCS, Wasabi, MinIO, Rclone
+   * - Recent: Zuletzt verwendete Locations
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <LocationPickerDialog
+   *   bind:isOpen={showPicker}
+   *   mode="init"
+   *   title="Repository-Speicherort auswählen"
+   *   on:select={handleLocationSelect}
+   *   on:cancel={handleCancel}
+   * />
+   * ```
+   */
+  import { open } from '@tauri-apps/plugin-dialog';
   import { createEventDispatcher } from 'svelte';
-  import Modal from '../shared/Modal.svelte';
   import Button from '../shared/Button.svelte';
   import Input from '../shared/Input.svelte';
+  import Modal from '../shared/Modal.svelte';
   import Select from '../shared/Select.svelte';
-  import { open } from '@tauri-apps/plugin-dialog';
 
   const dispatch = createEventDispatcher<{
     select: { path: string; type: string; config?: any };
     cancel: void;
   }>();
 
-  // Props
-  export let isOpen = false;
-  export let mode: 'init' | 'open' = 'init';
-  export let title = 'Repository-Speicherort auswählen';
+  interface LocationPickerDialogProps {
+    /** Steuert Sichtbarkeit */
+    isOpen?: boolean;
+    /** Modus: 'init' für neues Repo, 'open' für bestehendes */
+    mode?: 'init' | 'open';
+    /** Dialog-Titel */
+    title?: string;
+  }
+
+  let {
+    isOpen = $bindable(false),
+    mode = 'init',
+    title = 'Repository-Speicherort auswählen',
+  }: LocationPickerDialogProps = $props();
 
   // Tab state
   let activeTab: 'local' | 'network' | 'cloud' | 'recent' = 'local';

@@ -15,6 +15,26 @@
   - ✅ Log-Anzeige
 -->
 <script lang="ts">
+  /**
+   * Progress-Dialog für laufende Backup-Jobs.
+   *
+   * Zeigt Echtzeit-Progress via Tauri Events mit:
+   * - Fortschrittsbalken (Dateien/Bytes)
+   * - Error-Handling & Retry
+   * - Log-Anzeige
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <RunBackupDialog
+   *   bind:open={showProgress}
+   *   jobId={activeJobId}
+   *   jobName={activeJobName}
+   *   on:completed={handleBackupComplete}
+   * />
+   * ```
+   */
   import { runBackup } from '$lib/api/backup';
   import { onBackupCompleted, onBackupFailed, onBackupProgress } from '$lib/api/events';
   import { setError, setLoading, setRunningJobId } from '$lib/stores/backup-jobs';
@@ -24,6 +44,25 @@
   import { onDestroy, onMount } from 'svelte';
   import Modal from '../shared/Modal.svelte';
   import ProgressBar from '../shared/ProgressBar.svelte';
+
+  interface RunBackupDialogProps {
+    /** Steuert Sichtbarkeit */
+    open?: boolean;
+    /** Job-Name für Anzeige */
+    jobName?: string;
+    /** Job-ID für Backend-Commands */
+    jobId?: string;
+    /** Callback bei Cancel */
+    onCancel?: (() => void) | undefined;
+  }
+
+  let {
+    open = $bindable(false),
+    jobName = '',
+    jobId = '',
+    onCancel = undefined,
+  }: RunBackupDialogProps = $props();
+
   // Retry-Handler
   async function handleRetry() {
     error = null;
@@ -42,11 +81,6 @@
       toastStore.error(`Backup-Retry fehlgeschlagen: ${error}`);
     }
   }
-
-  export let open: boolean = false;
-  export let jobName: string = '';
-  export let jobId: string = '';
-  export let onCancel: (() => void) | undefined = undefined;
 
   let progress: BackupProgress | null = null;
   let error: string | null = null;

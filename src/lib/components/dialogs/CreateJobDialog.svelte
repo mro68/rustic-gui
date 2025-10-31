@@ -18,12 +18,38 @@ Verwendung:
 - src/lib/components/pages/RepositoryCard.svelte
 -->
 <script lang="ts">
+  /**
+   * 4-Tab-Wizard für Backup-Job-Erstellung.
+   *
+   * Implementiert nach rustic_backup_dialogs.html mit Tabs:
+   * - General (Name, Repository, Tags)
+   * - Paths & Exclusions
+   * - Schedule (Cron-Builder)
+   * - Retention Policy
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <CreateJobDialog
+   *   bind:open={showDialog}
+   *   {repositories}
+   *   on:created={handleJobCreated}
+   * />
+   * ```
+   */
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Modal from '../shared/Modal.svelte';
 
-  export let open = false;
-  export let repositories: any[] = [];
+  interface CreateJobDialogProps {
+    /** Steuert Sichtbarkeit */
+    open?: boolean;
+    /** Verfügbare Repositories */
+    repositories?: any[];
+  }
+
+  let { open = $bindable(false), repositories = [] }: CreateJobDialogProps = $props();
 
   const dispatch = createEventDispatcher();
 

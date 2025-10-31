@@ -101,13 +101,13 @@ src/
 
 ### Component-Template
 
-```svelte
+````svelte
 <script lang="ts">
   /**
    * Wiederverwendbarer Button mit verschiedenen Varianten.
-   * 
+   *
    * @component
-   * 
+   *
    * @example
    * ```svelte
    * <Button variant="primary" on:click={handleSave}>
@@ -115,29 +115,29 @@ src/
    * </Button>
    * ```
    */
-  
+
   // 1. Imports
   import { createEventDispatcher } from 'svelte';
   import type { HTMLButtonAttributes } from 'svelte/elements';
-  
+
   // 2. Props (Svelte 5 mit $props())
   interface Props extends HTMLButtonAttributes {
     /** Button-Text */
     label?: string;
-    
+
     /** Button-Variante */
     variant?: 'primary' | 'secondary' | 'danger';
-    
+
     /** Größe des Buttons */
     size?: 'small' | 'medium' | 'large';
-    
+
     /** Zeigt Loading-Spinner */
     loading?: boolean;
-    
+
     /** Icon links vom Text (optional) */
     icon?: string;
   }
-  
+
   let {
     label,
     variant = 'primary',
@@ -147,18 +147,18 @@ src/
     disabled = false,
     ...restProps
   }: Props = $props();
-  
+
   // 3. State (Svelte 5 mit $state())
   let isHovered = $state(false);
-  
+
   // 4. Derived State (Svelte 5 mit $derived())
   let isDisabled = $derived(disabled || loading);
-  
+
   // 5. Event Dispatcher
   const dispatch = createEventDispatcher<{
     click: MouseEvent;
   }>();
-  
+
   // 6. Functions
   function handleClick(event: MouseEvent) {
     if (!isDisabled) {
@@ -174,16 +174,16 @@ src/
   class:loading
   disabled={isDisabled}
   on:click={handleClick}
-  on:mouseenter={() => isHovered = true}
-  on:mouseleave={() => isHovered = false}
+  on:mouseenter={() => (isHovered = true)}
+  on:mouseleave={() => (isHovered = false)}
   {...restProps}
 >
   {#if loading}
-    <span class="spinner" />
+    <span class="spinner"></span>
   {:else if icon}
     <span class="icon">{icon}</span>
   {/if}
-  
+
   {#if label}
     <span>{label}</span>
   {:else}
@@ -204,42 +204,42 @@ src/
     gap: 0.5rem;
     transition: all 0.2s;
   }
-  
+
   .btn-primary {
     background: var(--color-primary);
     color: white;
   }
-  
+
   .btn-primary:hover:not(.disabled) {
     background: var(--color-primary-dark);
   }
-  
+
   .btn-secondary {
     background: var(--color-secondary);
     color: var(--color-text);
   }
-  
+
   .btn-danger {
     background: var(--color-danger);
     color: white;
   }
-  
+
   .btn-small {
     padding: 0.25rem 0.5rem;
     font-size: 0.875rem;
   }
-  
+
   .btn-large {
     padding: 0.75rem 1.5rem;
     font-size: 1.125rem;
   }
-  
+
   .btn.disabled,
   .btn.loading {
     opacity: 0.6;
     cursor: not-allowed;
   }
-  
+
   .spinner {
     width: 1rem;
     height: 1rem;
@@ -248,12 +248,14 @@ src/
     border-radius: 50%;
     animation: spin 0.6s linear infinite;
   }
-  
+
   @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 </style>
-```
+````
 
 ### Dialog-Pattern
 
@@ -261,28 +263,28 @@ src/
 <script lang="ts">
   /**
    * Dialog zum Erstellen eines neuen Backup-Jobs.
-   * 
+   *
    * Mehrstufiger Wizard mit folgenden Schritten:
    * 1. Allgemeine Einstellungen (Name, Repository)
    * 2. Quellpfade und Exclusions
    * 3. Zeitplan (optional)
    * 4. Retention-Policy
    */
-  
+
   import { createEventDispatcher } from 'svelte';
   import type { BackupJob, BackupJobConfig } from '$lib/types';
   import Button from '$lib/components/shared/Button.svelte';
   import TabContainer from '$lib/components/layout/TabContainer.svelte';
-  
+
   // Props
   let {
     isOpen = $bindable(false),
-    initialData
+    initialData,
   }: {
     isOpen?: boolean;
     initialData?: Partial<BackupJobConfig>;
   } = $props();
-  
+
   // State
   let activeTab = $state(0);
   let jobName = $state(initialData?.name ?? '');
@@ -290,42 +292,36 @@ src/
   let sourcePaths = $state<string[]>(initialData?.sourcePaths ?? []);
   let excludePatterns = $state<string[]>(initialData?.excludePatterns ?? []);
   let schedule = $state<string | null>(initialData?.schedule ?? null);
-  
+
   // Validation
-  let isStep1Valid = $derived(
-    jobName.trim().length > 0 && repositoryId.length > 0
-  );
-  
-  let isStep2Valid = $derived(
-    sourcePaths.length > 0
-  );
-  
-  let canSave = $derived(
-    isStep1Valid && isStep2Valid
-  );
-  
+  let isStep1Valid = $derived(jobName.trim().length > 0 && repositoryId.length > 0);
+
+  let isStep2Valid = $derived(sourcePaths.length > 0);
+
+  let canSave = $derived(isStep1Valid && isStep2Valid);
+
   // Events
   const dispatch = createEventDispatcher<{
     save: BackupJobConfig;
     cancel: void;
   }>();
-  
+
   // Functions
   function nextStep() {
     if (activeTab < 3) {
       activeTab++;
     }
   }
-  
+
   function prevStep() {
     if (activeTab > 0) {
       activeTab--;
     }
   }
-  
+
   function handleSave() {
     if (!canSave) return;
-    
+
     const config: BackupJobConfig = {
       name: jobName,
       repositoryId,
@@ -339,11 +335,11 @@ src/
         keepMonthly: 6,
       },
     };
-    
+
     dispatch('save', config);
     handleClose();
   }
-  
+
   function handleClose() {
     isOpen = false;
     // Reset state
@@ -358,25 +354,13 @@ src/
 
 {#if isOpen}
   <div class="modal-overlay" on:click={handleClose}>
-    <dialog
-      open
-      on:click|stopPropagation
-      on:keydown={(e) => e.key === 'Escape' && handleClose()}
-    >
+    <dialog open on:click|stopPropagation on:keydown={(e) => e.key === 'Escape' && handleClose()}>
       <header>
         <h2>Neuen Backup-Job erstellen</h2>
         <button class="close" on:click={handleClose}>×</button>
       </header>
-      
-      <TabContainer
-        tabs={[
-          'Allgemein',
-          'Pfade',
-          'Zeitplan',
-          'Retention'
-        ]}
-        bind:activeTab
-      >
+
+      <TabContainer tabs={['Allgemein', 'Pfade', 'Zeitplan', 'Retention']} bind:activeTab>
         {#snippet tab0()}
           <!-- Schritt 1: Allgemein -->
           <div class="form-group">
@@ -388,7 +372,7 @@ src/
               placeholder="z.B. Dokumente täglich"
             />
           </div>
-          
+
           <div class="form-group">
             <label for="repository">Repository</label>
             <select id="repository" bind:value={repositoryId}>
@@ -397,40 +381,30 @@ src/
             </select>
           </div>
         {/snippet}
-        
+
         {#snippet tab1()}
           <!-- Schritt 2: Pfade -->
           <!-- TODO: Path selector -->
         {/snippet}
-        
+
         {#snippet tab2()}
           <!-- Schritt 3: Zeitplan -->
           <!-- TODO: Cron editor -->
         {/snippet}
-        
+
         {#snippet tab3()}
           <!-- Schritt 4: Retention -->
           <!-- TODO: Retention config -->
         {/snippet}
       </TabContainer>
-      
+
       <footer>
-        <Button
-          variant="secondary"
-          on:click={handleClose}
-        >
-          Abbrechen
-        </Button>
-        
+        <Button variant="secondary" on:click={handleClose}>Abbrechen</Button>
+
         {#if activeTab > 0}
-          <Button
-            variant="secondary"
-            on:click={prevStep}
-          >
-            Zurück
-          </Button>
+          <Button variant="secondary" on:click={prevStep}>Zurück</Button>
         {/if}
-        
+
         {#if activeTab < 3}
           <Button
             variant="primary"
@@ -440,13 +414,7 @@ src/
             Weiter
           </Button>
         {:else}
-          <Button
-            variant="primary"
-            on:click={handleSave}
-            disabled={!canSave}
-          >
-            Erstellen
-          </Button>
+          <Button variant="primary" on:click={handleSave} disabled={!canSave}>Erstellen</Button>
         {/if}
       </footer>
     </dialog>
@@ -463,7 +431,7 @@ src/
     justify-content: center;
     z-index: 1000;
   }
-  
+
   dialog {
     background: var(--bg-primary);
     border-radius: 0.5rem;
@@ -474,7 +442,7 @@ src/
     display: flex;
     flex-direction: column;
   }
-  
+
   header {
     display: flex;
     justify-content: space-between;
@@ -482,7 +450,7 @@ src/
     padding: 1.5rem;
     border-bottom: 1px solid var(--border-color);
   }
-  
+
   .close {
     background: none;
     border: none;
@@ -490,11 +458,11 @@ src/
     cursor: pointer;
     color: var(--text-secondary);
   }
-  
+
   .close:hover {
     color: var(--text-primary);
   }
-  
+
   footer {
     display: flex;
     justify-content: flex-end;
@@ -502,17 +470,17 @@ src/
     padding: 1rem 1.5rem;
     border-top: 1px solid var(--border-color);
   }
-  
+
   .form-group {
     margin-bottom: 1rem;
   }
-  
+
   label {
     display: block;
     margin-bottom: 0.25rem;
     font-weight: 500;
   }
-  
+
   input,
   select {
     width: 100%;
@@ -539,7 +507,7 @@ import type { Repository } from '$lib/types';
 
 /**
  * Store für Repository-Verwaltung.
- * 
+ *
  * Enthält alle konfigurierten Repositories und das aktuell aktive.
  */
 
@@ -560,7 +528,7 @@ export const activeRepository = derived(
   [_repositories, _activeRepositoryId],
   ([$repos, $activeId]) => {
     if (!$activeId) return null;
-    return $repos.find(r => r.id === $activeId) ?? null;
+    return $repos.find((r) => r.id === $activeId) ?? null;
   }
 );
 
@@ -570,7 +538,7 @@ export const activeRepository = derived(
 export async function loadRepositories(): Promise<void> {
   _loading.set(true);
   _error.set(null);
-  
+
   try {
     const repos = await invoke<Repository[]>('get_all_repositories');
     _repositories.set(repos);
@@ -587,9 +555,9 @@ export async function loadRepositories(): Promise<void> {
  */
 export async function addRepository(repo: Repository): Promise<void> {
   await invoke('add_repository', { repo });
-  
+
   // Update Store
-  _repositories.update(repos => [...repos, repo]);
+  _repositories.update((repos) => [...repos, repo]);
 }
 
 /**
@@ -597,12 +565,12 @@ export async function addRepository(repo: Repository): Promise<void> {
  */
 export async function removeRepository(id: string): Promise<void> {
   await invoke('remove_repository', { id });
-  
+
   // Update Store
-  _repositories.update(repos => repos.filter(r => r.id !== id));
-  
+  _repositories.update((repos) => repos.filter((r) => r.id !== id));
+
   // Deselect wenn aktiv
-  _activeRepositoryId.update(activeId => activeId === id ? null : activeId);
+  _activeRepositoryId.update((activeId) => (activeId === id ? null : activeId));
 }
 
 /**
@@ -630,7 +598,7 @@ export function reset(): void {
 <script lang="ts">
   import { repositories, activeRepository, loadRepositories } from '$lib/stores/repositories';
   import { onMount } from 'svelte';
-  
+
   // Load on mount
   onMount(() => {
     loadRepositories();
@@ -639,7 +607,7 @@ export function reset(): void {
 
 <div>
   <h2>Repositories</h2>
-  
+
   {#if $repositories.length === 0}
     <p>Keine Repositories konfiguriert</p>
   {:else}
@@ -669,21 +637,18 @@ import type { BackupJob, BackupResult, BackupProgress } from '$lib/types';
 
 /**
  * API-Wrapper für Backup-Operationen.
- * 
+ *
  * Kapselt alle Tauri-Commands und Events für Backups.
  */
 
 /**
  * Startet einen Backup-Job.
- * 
+ *
  * @param jobId - ID des auszuführenden Jobs
  * @param password - Repository-Passwort
  * @returns Promise mit Backup-Ergebnis
  */
-export async function runBackup(
-  jobId: string,
-  password: string
-): Promise<BackupResult> {
+export async function runBackup(jobId: string, password: string): Promise<BackupResult> {
   return await invoke<BackupResult>('run_backup', {
     jobId,
     password,
@@ -692,7 +657,7 @@ export async function runBackup(
 
 /**
  * Bricht einen laufenden Backup ab.
- * 
+ *
  * @param jobId - ID des abzubrechenden Jobs
  */
 export async function cancelBackup(jobId: string): Promise<void> {
@@ -701,7 +666,7 @@ export async function cancelBackup(jobId: string): Promise<void> {
 
 /**
  * Hört auf Backup-Progress-Events.
- * 
+ *
  * @param jobId - Job-ID für die Progress-Events
  * @param callback - Callback für Progress-Updates
  * @returns Unlisten-Funktion zum Cleanup
@@ -710,7 +675,7 @@ export async function onBackupProgress(
   jobId: string,
   callback: (progress: BackupProgress) => void
 ): Promise<UnlistenFn> {
-  return await listen<BackupProgress>(`backup-progress-${jobId}`, event => {
+  return await listen<BackupProgress>(`backup-progress-${jobId}`, (event) => {
     callback(event.payload);
   });
 }
@@ -751,7 +716,7 @@ export async function deleteBackupJob(jobId: string): Promise<void> {
   import { runBackup, onBackupProgress, cancelBackup } from '$lib/api/backup';
   import ProgressBar from '$lib/components/shared/ProgressBar.svelte';
   import { onDestroy } from 'svelte';
-  
+
   let isRunning = $state(false);
   let progress = $state({
     filesProcessed: 0,
@@ -760,38 +725,36 @@ export async function deleteBackupJob(jobId: string): Promise<void> {
     bytesTotal: 0,
   });
   let unlistenProgress: (() => void) | null = null;
-  
+
   async function handleStartBackup(jobId: string, password: string) {
     try {
       isRunning = true;
-      
+
       // Listen for progress
       unlistenProgress = await onBackupProgress(jobId, (p) => {
         progress = p;
       });
-      
+
       // Start backup
       const result = await runBackup(jobId, password);
-      
+
       console.log('Backup erfolgreich:', result);
       showToast('success', 'Backup abgeschlossen');
-      
     } catch (error) {
       console.error('Backup fehlgeschlagen:', error);
       showToast('error', 'Backup fehlgeschlagen', error.message);
-      
     } finally {
       isRunning = false;
       unlistenProgress?.();
       unlistenProgress = null;
     }
   }
-  
+
   async function handleCancelBackup(jobId: string) {
     await cancelBackup(jobId);
     showToast('info', 'Backup wird abgebrochen...');
   }
-  
+
   // Cleanup on destroy
   onDestroy(() => {
     unlistenProgress?.();
@@ -805,10 +768,8 @@ export async function deleteBackupJob(jobId: string): Promise<void> {
       max={progress.bytesTotal}
       label="{progress.filesProcessed} / {progress.filesTotal} Dateien"
     />
-    
-    <button on:click={() => handleCancelBackup(currentJobId)}>
-      Abbrechen
-    </button>
+
+    <button on:click={() => handleCancelBackup(currentJobId)}> Abbrechen </button>
   </div>
 {/if}
 ```
@@ -826,18 +787,18 @@ export async function deleteBackupJob(jobId: string): Promise<void> {
 <script lang="ts">
   /**
    * Toast-Notification-Komponente.
-   * 
+   *
    * Zeigt temporäre Benachrichtigungen an.
    */
-  
+
   export let type: 'success' | 'error' | 'warning' | 'info' = 'info';
   export let title: string;
   export let message: string = '';
   export let duration: number = 3000;
   export let onClose: (() => void) | undefined = undefined;
-  
+
   let visible = $state(true);
-  
+
   // Auto-dismiss after duration
   $effect(() => {
     if (duration > 0) {
@@ -845,11 +806,11 @@ export async function deleteBackupJob(jobId: string): Promise<void> {
         visible = false;
         onClose?.();
       }, duration);
-      
+
       return () => clearTimeout(timer);
     }
   });
-  
+
   function handleClose() {
     visible = false;
     onClose?.();
@@ -864,14 +825,14 @@ export async function deleteBackupJob(jobId: string): Promise<void> {
       {#if type === 'warning'}⚠{/if}
       {#if type === 'info'}ℹ{/if}
     </div>
-    
+
     <div class="toast-content">
       <div class="toast-title">{title}</div>
       {#if message}
         <div class="toast-message">{message}</div>
       {/if}
     </div>
-    
+
     <button class="toast-close" on:click={handleClose}>×</button>
   </div>
 {/if}
@@ -887,46 +848,46 @@ export async function deleteBackupJob(jobId: string): Promise<void> {
     min-width: 300px;
     max-width: 500px;
   }
-  
+
   .toast-success {
     background: var(--color-success-bg);
     border-left: 4px solid var(--color-success);
   }
-  
+
   .toast-error {
     background: var(--color-error-bg);
     border-left: 4px solid var(--color-error);
   }
-  
+
   .toast-warning {
     background: var(--color-warning-bg);
     border-left: 4px solid var(--color-warning);
   }
-  
+
   .toast-info {
     background: var(--color-info-bg);
     border-left: 4px solid var(--color-info);
   }
-  
+
   .toast-icon {
     font-size: 1.5rem;
     font-weight: bold;
   }
-  
+
   .toast-content {
     flex: 1;
   }
-  
+
   .toast-title {
     font-weight: 600;
     margin-bottom: 0.25rem;
   }
-  
+
   .toast-message {
     font-size: 0.875rem;
     opacity: 0.9;
   }
-  
+
   .toast-close {
     background: none;
     border: none;
@@ -934,7 +895,7 @@ export async function deleteBackupJob(jobId: string): Promise<void> {
     cursor: pointer;
     opacity: 0.6;
   }
-  
+
   .toast-close:hover {
     opacity: 1;
   }
@@ -967,7 +928,7 @@ export function showToast(
   duration = 3000
 ): void {
   const id = crypto.randomUUID();
-  
+
   const toast: Toast = {
     id,
     type,
@@ -975,9 +936,9 @@ export function showToast(
     message,
     duration,
   };
-  
-  _toasts.update(t => [...t, toast]);
-  
+
+  _toasts.update((t) => [...t, toast]);
+
   // Auto-remove after duration
   if (duration > 0) {
     setTimeout(() => {
@@ -987,7 +948,7 @@ export function showToast(
 }
 
 export function removeToast(id: string): void {
-  _toasts.update(t => t.filter(toast => toast.id !== id));
+  _toasts.update((t) => t.filter((toast) => toast.id !== id));
 }
 ```
 
@@ -998,12 +959,12 @@ export function removeToast(id: string): void {
 <script lang="ts">
   /**
    * Hierarchische Dateibaum-Komponente.
-   * 
+   *
    * Verwendet für Restore-Browser und Pfad-Auswahl.
    */
-  
+
   import { createEventDispatcher } from 'svelte';
-  
+
   interface TreeNode {
     path: string;
     name: string;
@@ -1011,33 +972,28 @@ export function removeToast(id: string): void {
     size?: number;
     children?: TreeNode[];
   }
-  
+
   interface Props {
     nodes: TreeNode[];
     selectedPaths?: Set<string>;
     onSelect?: (path: string) => void;
     onExpand?: (path: string) => Promise<TreeNode[]>;
   }
-  
-  let {
-    nodes,
-    selectedPaths = new Set(),
-    onSelect,
-    onExpand
-  }: Props = $props();
-  
+
+  let { nodes, selectedPaths = new Set(), onSelect, onExpand }: Props = $props();
+
   let expandedPaths = $state(new Set<string>());
   let loadingPaths = $state(new Set<string>());
-  
+
   const dispatch = createEventDispatcher<{
     select: string;
   }>();
-  
+
   async function toggleExpand(node: TreeNode) {
     if (!node.isDir) return;
-    
+
     const isExpanded = expandedPaths.has(node.path);
-    
+
     if (isExpanded) {
       expandedPaths.delete(node.path);
       expandedPaths = expandedPaths;
@@ -1046,7 +1002,7 @@ export function removeToast(id: string): void {
       if (!node.children && onExpand) {
         loadingPaths.add(node.path);
         loadingPaths = loadingPaths;
-        
+
         try {
           node.children = await onExpand(node.path);
         } finally {
@@ -1054,12 +1010,12 @@ export function removeToast(id: string): void {
           loadingPaths = loadingPaths;
         }
       }
-      
+
       expandedPaths.add(node.path);
       expandedPaths = expandedPaths;
     }
   }
-  
+
   function handleSelect(node: TreeNode) {
     onSelect?.(node.path);
     dispatch('select', node.path);
@@ -1075,10 +1031,7 @@ export function removeToast(id: string): void {
         class:directory={node.isDir}
       >
         {#if node.isDir}
-          <button
-            class="expand-btn"
-            on:click={() => toggleExpand(node)}
-          >
+          <button class="expand-btn" on:click={() => toggleExpand(node)}>
             {#if loadingPaths.has(node.path)}
               ⟳
             {:else if expandedPaths.has(node.path)}
@@ -1090,11 +1043,8 @@ export function removeToast(id: string): void {
         {:else}
           <span class="expand-placeholder"></span>
         {/if}
-        
-        <button
-          class="node-label"
-          on:click={() => handleSelect(node)}
-        >
+
+        <button class="node-label" on:click={() => handleSelect(node)}>
           <span class="icon">
             {node.isDir ? '📁' : '📄'}
           </span>
@@ -1104,14 +1054,9 @@ export function removeToast(id: string): void {
           {/if}
         </button>
       </div>
-      
+
       {#if node.isDir && expandedPaths.has(node.path) && node.children}
-        <svelte:self
-          nodes={node.children}
-          {selectedPaths}
-          {onSelect}
-          {onExpand}
-        />
+        <svelte:self nodes={node.children} {selectedPaths} {onSelect} {onExpand} />
       {/if}
     </li>
   {/each}
@@ -1123,22 +1068,22 @@ export function removeToast(id: string): void {
     padding: 0;
     margin: 0;
   }
-  
+
   .tree-node {
     display: flex;
     align-items: center;
     padding: 0.25rem;
     border-radius: 0.25rem;
   }
-  
+
   .tree-node:hover {
     background: var(--bg-hover);
   }
-  
+
   .tree-node.selected {
     background: var(--bg-selected);
   }
-  
+
   .expand-btn {
     background: none;
     border: none;
@@ -1149,11 +1094,11 @@ export function removeToast(id: string): void {
     align-items: center;
     justify-content: center;
   }
-  
+
   .expand-placeholder {
     width: 1.5rem;
   }
-  
+
   .node-label {
     background: none;
     border: none;
@@ -1165,13 +1110,13 @@ export function removeToast(id: string): void {
     text-align: left;
     padding: 0.25rem;
   }
-  
+
   .size {
     margin-left: auto;
     font-size: 0.875rem;
     opacity: 0.7;
   }
-  
+
   ul ul {
     padding-left: 1.5rem;
   }
@@ -1192,49 +1137,49 @@ export function removeToast(id: string): void {
   --color-primary: #3b82f6;
   --color-primary-dark: #2563eb;
   --color-primary-light: #60a5fa;
-  
+
   --color-secondary: #6b7280;
   --color-secondary-dark: #4b5563;
-  
+
   --color-success: #10b981;
   --color-success-bg: #d1fae5;
-  
+
   --color-error: #ef4444;
   --color-error-bg: #fee2e2;
-  
+
   --color-warning: #f59e0b;
   --color-warning-bg: #fef3c7;
-  
+
   --color-info: #3b82f6;
   --color-info-bg: #dbeafe;
-  
+
   /* Backgrounds */
   --bg-primary: #ffffff;
   --bg-secondary: #f3f4f6;
   --bg-tertiary: #e5e7eb;
   --bg-hover: #f9fafb;
   --bg-selected: #e0f2fe;
-  
+
   /* Text */
   --text-primary: #111827;
   --text-secondary: #6b7280;
   --text-tertiary: #9ca3af;
-  
+
   /* Borders */
   --border-color: #e5e7eb;
   --border-radius: 0.375rem;
-  
+
   /* Spacing */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
-  
+
   /* Typography */
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Fira Code', 'Courier New', monospace;
-  
+
   /* Transitions */
   --transition-fast: 150ms ease;
   --transition-normal: 200ms ease;
@@ -1249,11 +1194,11 @@ export function removeToast(id: string): void {
     --bg-tertiary: #374151;
     --bg-hover: #1f2937;
     --bg-selected: #1e3a8a;
-    
+
     --text-primary: #f9fafb;
     --text-secondary: #d1d5db;
     --text-tertiary: #9ca3af;
-    
+
     --border-color: #374151;
   }
 }
@@ -1301,40 +1246,40 @@ import Button from './Button.svelte';
 describe('Button Component', () => {
   it('rendert Button mit Label', () => {
     const { getByText } = render(Button, {
-      props: { label: 'Klick mich' }
+      props: { label: 'Klick mich' },
     });
-    
+
     expect(getByText('Klick mich')).toBeInTheDocument();
   });
-  
+
   it('feuert click-Event beim Klicken', async () => {
     const handleClick = vi.fn();
     const { getByRole } = render(Button, {
-      props: { label: 'Test' }
+      props: { label: 'Test' },
     });
-    
+
     const button = getByRole('button');
     button.addEventListener('click', handleClick);
-    
+
     await fireEvent.click(button);
-    
+
     expect(handleClick).toHaveBeenCalledOnce();
   });
-  
+
   it('zeigt Loading-Spinner wenn loading=true', () => {
     const { container } = render(Button, {
-      props: { label: 'Test', loading: true }
+      props: { label: 'Test', loading: true },
     });
-    
+
     const spinner = container.querySelector('.spinner');
     expect(spinner).toBeInTheDocument();
   });
-  
+
   it('ist disabled wenn disabled=true', () => {
     const { getByRole } = render(Button, {
-      props: { label: 'Test', disabled: true }
+      props: { label: 'Test', disabled: true },
     });
-    
+
     const button = getByRole('button') as HTMLButtonElement;
     expect(button.disabled).toBe(true);
   });
@@ -1348,12 +1293,12 @@ describe('Button Component', () => {
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { get } from 'svelte/store';
-import { 
-  repositories, 
-  loadRepositories, 
+import {
+  repositories,
+  loadRepositories,
   addRepository,
   removeRepository,
-  reset
+  reset,
 } from './repositories';
 
 // Mock Tauri invoke
@@ -1366,33 +1311,33 @@ describe('repositories store', () => {
     reset();
     vi.clearAllMocks();
   });
-  
+
   it('startet mit leerem Array', () => {
     const repos = get(repositories);
     expect(repos).toEqual([]);
   });
-  
+
   it('lädt Repositories von Backend', async () => {
     const mockRepos = [
       { id: '1', name: 'Repo 1', path: '/path/1' },
       { id: '2', name: 'Repo 2', path: '/path/2' },
     ];
-    
+
     vi.mocked(invoke).mockResolvedValue(mockRepos);
-    
+
     await loadRepositories();
-    
+
     const repos = get(repositories);
     expect(repos).toEqual(mockRepos);
   });
-  
+
   it('fügt Repository hinzu', async () => {
     const newRepo = { id: '3', name: 'New Repo', path: '/path/3' };
-    
+
     vi.mocked(invoke).mockResolvedValue(undefined);
-    
+
     await addRepository(newRepo);
-    
+
     const repos = get(repositories);
     expect(repos).toContainEqual(newRepo);
   });
@@ -1408,10 +1353,12 @@ describe('repositories store', () => {
 Vereinheitlichter Location-Picker für alle Repository-Backend-Typen.
 
 **Verwendung:**
+
 - In `AddRepositoryDialog.svelte` als Haupt-Input
 - Ersetzt separate Inputs für Local/SFTP/S3/rclone
 
 **Features:**
+
 - **4 Tabs:**
   - Local: Filesystem-Browser (mit OS-native Dialoge)
   - Network: SFTP-Konfiguration (Host, Port, User, Path)
@@ -1431,25 +1378,30 @@ Vereinheitlichter Location-Picker für alle Repository-Backend-Typen.
   - Dropdown zur schnellen Auswahl
 
 **Props:**
+
 ```svelte
-export let open = false;                 // Dialog-Sichtbarkeit
-export let initialLocation = '';         // Vorausgefüllte Location
-export let allowedTypes = ['local', 'sftp', 's3', 'rclone']; // Erlaubte Typen
+export let open = false; // Dialog-Sichtbarkeit export let initialLocation = ''; // Vorausgefüllte
+Location export let allowedTypes = ['local', 'sftp', 's3', 'rclone']; // Erlaubte Typen
 ```
 
 **Events:**
+
 ```svelte
-on:select={(e) => { location = e.detail.location }}
+on:select={(e) => {
+  location = e.detail.location;
+}}
 on:cancel
 ```
 
 **Backend-Integration:**
+
 - Backend-Command: `test_repository_connection(location: String)`
 - Settings-API: `save_favorite_location()`, `list_favorite_locations()`
 
 **Mockup:** `docs/mockups/rustic_location_picker.html`
 
 **Beispiel:**
+
 ```svelte
 <script lang="ts">
   import LocationPickerDialog from '$lib/components/dialogs/LocationPickerDialog.svelte';
@@ -1463,9 +1415,7 @@ on:cancel
   }
 </script>
 
-<Button on:click={() => showLocationPicker = true}>
-  Repository-Location wählen
-</Button>
+<Button on:click={() => (showLocationPicker = true)}>Repository-Location wählen</Button>
 
 <LocationPickerDialog
   bind:open={showLocationPicker}
@@ -1481,6 +1431,7 @@ on:cancel
 Prune-Dialog für Repository-Bereinigung (Löschen ungenutzter Daten).
 
 **Features:**
+
 - **Dry-Run-Modus:**
   - Checkbox "Nur Vorschau (kein Löschen)"
   - Backend-Command mit `dry_run: bool`-Flag
@@ -1498,18 +1449,20 @@ Prune-Dialog für Repository-Bereinigung (Löschen ungenutzter Daten).
   - Keep snapshots (Retention-Policy)
 
 **Props:**
+
 ```svelte
-export let open = false;
-export let repositoryId: string;
+export let open = false; export let repositoryId: string;
 ```
 
 **Backend-Integration:**
+
 - Backend-Command: `prune_repository(repo_id: String, dry_run: bool, options: PruneOptions)`
 - Event: `prune-progress` (für Live-Updates)
 
 **Mockup:** `docs/mockups/rustic_advanced_functions.html` (Prune-Section)
 
 **Beispiel:**
+
 ```svelte
 <PruneRepoDialog
   bind:open={showPruneDialog}
@@ -1528,6 +1481,7 @@ export let repositoryId: string;
 Detail-Ansicht für einzelnen Snapshot mit vollständigen Metadaten.
 
 **Features:**
+
 - **Metadaten-Anzeige:**
   - Snapshot-ID (mit Copy-Button)
   - Timestamp (formatiert)
@@ -1550,18 +1504,20 @@ Detail-Ansicht für einzelnen Snapshot mit vollständigen Metadaten.
   - Original Paths
 
 **Props:**
+
 ```svelte
-export let open = false;
-export let snapshotId: string;
+export let open = false; export let snapshotId: string;
 ```
 
 **Backend-Integration:**
+
 - Backend-Command: `get_snapshot_info(snapshot_id: String)`
 - Returns: `SnapshotInfo` (vollständiges Objekt)
 
 **Mockup:** `docs/mockups/rustic_restore_dialogs.html` (Snapshot Info-Section)
 
 **Beispiel:**
+
 ```svelte
 <SnapshotInfoDialog
   bind:open={showSnapshotInfo}
@@ -1576,12 +1532,14 @@ export let snapshotId: string;
 ## ✅ Frontend-Checkliste
 
 ### Vor Implementierung
+
 - [ ] Mockup existiert und geprüft
 - [ ] Komponenten-Struktur geplant
 - [ ] Types definiert
 - [ ] API-Integration geplant
 
 ### Während Implementierung
+
 - [ ] UI folgt Mockup
 - [ ] Responsive Design
 - [ ] Keyboard-Navigation funktioniert
@@ -1591,6 +1549,7 @@ export let snapshotId: string;
 - [ ] Kommentare auf Deutsch
 
 ### Nach Implementierung
+
 - [ ] Component Tests geschrieben
 - [ ] Manuell getestet
 - [ ] Dark Mode geprüft

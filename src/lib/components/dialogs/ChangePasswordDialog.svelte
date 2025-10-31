@@ -1,34 +1,44 @@
 <script lang="ts">
   /**
-   * ChangePasswordDialog.svelte
+   * Dialog für Passwort-Wechsel.
+   *
+   * Features:
+   * - Aktuelles Passwort-Validierung
+   * - Neues Passwort mit Bestätigung
+   * - Passwort-Stärke-Indikator
+   * - Keychain-Integration
    *
    * TODO.md: Phase 2 - Dialog-Workflow Repository (Zeile 251)
    * Status: ✅ KOMPLETT - API-Integration vollständig inkl. Keychain
    *
-   * Backend-Command: src-tauri/src/commands/repository.rs:151 (change_password)
-   * API-Wrapper: src/lib/api/repositories.ts:57 (changePassword)
-   * Keychain: src/lib/api/keychain.ts (storeRepositoryPassword)
+   * @component
    *
-   * Implementierung:
-   * - ✅ API-Integration mit changePassword
-   * - ✅ Error-Handling mit Toasts
-   * - ✅ Success-Toast bei erfolgreichem Passwort-Wechsel
-   * - ✅ Passwort-Stärke-Anzeige
-   * - ✅ Keychain-Integration für savePassword (2025-10-31)
+   * @example
+   * ```svelte
+   * <ChangePasswordDialog
+   *   {repositoryId}
+   *   on:changed={handlePasswordChanged}
+   * />
+   * ```
    */
 
+  import { storeRepositoryPassword } from '$lib/api/keychain';
+  import { changePassword } from '$lib/api/repositories';
+  import { toastStore } from '$lib/stores/toast';
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
   import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
-  import { toastStore } from '$lib/stores/toast';
-  import { changePassword } from '$lib/api/repositories';
-  import { storeRepositoryPassword } from '$lib/api/keychain';
 
   const dispatch = createEventDispatcher();
 
-  export let repositoryId: string = '';
+  interface ChangePasswordDialogProps {
+    /** Repository-ID */
+    repositoryId?: string;
+  }
+
+  let { repositoryId = '' }: ChangePasswordDialogProps = $props();
 
   let currentPassword = '';
   let newPassword = '';

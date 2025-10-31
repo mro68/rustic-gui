@@ -1,5 +1,8 @@
 <!-- src/lib/components/pages/Snapshots.svelte -->
 <!--
+  @component
+  Snapshots-Verwaltungs-Seite mit Filter, Vergleich, Restore.
+  
   TODO.md: Phase 2 - Seiten mit Daten-Loading ✅ Implementiert
   Status: ✅ Seite erstellt, ⏳ Erweiterte Features fehlen noch
   Referenz: TODO.md Zeile 62, 118, Integration-Zusammenfassung Zeile 367

@@ -1,14 +1,47 @@
 <!-- ContextMenu.svelte: Rechtsklick-Kontextmenü für Snapshots (siehe rustic_advanced_ui_mockup.html) -->
 <script lang="ts">
+  /**
+   * Kontextmenü-Komponente für Rechtsklick-Aktionen.
+   *
+   * Zeigt Menü an Position (x, y) mit konfigurierbaren Actions.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <ContextMenu
+   *   bind:visible={showMenu}
+   *   x={menuX}
+   *   y={menuY}
+   *   {actions}
+   *   on:close={handleClose}
+   * />
+   * ```
+   */
   import { createEventDispatcher } from 'svelte';
-  export let x = 0;
-  export let y = 0;
-  export let visible = false;
+
   type ContextMenuAction =
     | { label: string; icon: string; danger?: boolean; action: () => void }
     | 'divider';
   export type { ContextMenuAction };
-  export let actions: ContextMenuAction[] = [];
+
+  interface ContextMenuProps {
+    /** X-Position des Menüs */
+    x?: number;
+    /** Y-Position des Menüs */
+    y?: number;
+    /** Sichtbarkeit */
+    visible?: boolean;
+    /** Menü-Aktionen */
+    actions?: ContextMenuAction[];
+  }
+
+  let {
+    x = $bindable(0),
+    y = $bindable(0),
+    visible = $bindable(false),
+    actions = [],
+  }: ContextMenuProps = $props();
 
   const dispatch = createEventDispatcher();
   let containerRef: HTMLDivElement | null = null;

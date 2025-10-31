@@ -1,9 +1,29 @@
 <script lang="ts">
+  /**
+   * Status-Badge-Komponente.
+   *
+   * Zeigt farbige Status-Indikatoren mit Icon und Text.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <Badge variant="healthy" text="OK" icon="✅" />
+   * <Badge variant="error" text="Fehler" icon="❌" />
+   * ```
+   */
   import { createEventDispatcher } from 'svelte';
 
-  export let variant: 'healthy' | 'warning' | 'error' | 'info' = 'healthy';
-  export let text: string = '';
-  export let icon: string = '●';
+  interface BadgeProps {
+    /** Variante für Farbe */
+    variant?: 'healthy' | 'warning' | 'error' | 'info';
+    /** Badge-Text */
+    text?: string;
+    /** Icon (Emoji oder Symbol) */
+    icon?: string;
+  }
+
+  let { variant = 'healthy', text = '', icon = '●' }: BadgeProps = $props();
 
   const dispatch = createEventDispatcher();
 

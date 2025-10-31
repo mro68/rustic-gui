@@ -15,18 +15,42 @@
   - src/lib/components/pages/BackupJobs.svelte
 -->
 <script lang="ts">
+  /**
+   * Dialog zum Bearbeiten bestehender Backup-Jobs.
+   *
+   * Ermöglicht Änderungen an Name, Schedule, Paths, Retention-Policies.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <EditJobDialog
+   *   bind:open={showEdit}
+   *   {job}
+   *   {repositories}
+   *   on:saved={handleJobUpdated}
+   * />
+   * ```
+   */
   import Button from '$lib/components/shared/Button.svelte';
   import Checkbox from '$lib/components/shared/Checkbox.svelte';
   import Input from '$lib/components/shared/Input.svelte';
   import Modal from '$lib/components/shared/Modal.svelte';
   import Select from '$lib/components/shared/Select.svelte';
   import { toastStore } from '$lib/stores/toast';
-  import type { RepositoryDto, BackupJobDto } from '$lib/types';
+  import type { BackupJobDto, RepositoryDto } from '$lib/types';
   import { createEventDispatcher } from 'svelte';
 
-  export let open: boolean = false;
-  export let job: BackupJobDto | null = null;
-  export let repositories: RepositoryDto[] = [];
+  interface EditJobDialogProps {
+    /** Steuert Sichtbarkeit */
+    open?: boolean;
+    /** Zu bearbeitender Job */
+    job?: BackupJobDto | null;
+    /** Verfügbare Repositories */
+    repositories?: RepositoryDto[];
+  }
+
+  let { open = $bindable(false), job = null, repositories = [] }: EditJobDialogProps = $props();
 
   const dispatch = createEventDispatcher();
 

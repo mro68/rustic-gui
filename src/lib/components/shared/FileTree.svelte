@@ -4,6 +4,18 @@
    * FileTree-Komponente für hierarchische Datei-Anzeige.
    *
    * Verwendet für Restore-Browser und Pfad-Auswahl.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <FileTree
+   *   {nodes}
+   *   {selectedPaths}
+   *   onSelect={handleSelect}
+   *   onExpand={handleExpand}
+   * />
+   * ```
    */
 
   export interface TreeNode {

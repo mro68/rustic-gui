@@ -1,5 +1,8 @@
 <!-- Settings.svelte: App-Einstellungen (gemäß rustic_gui_mockup.html Settings-Tab) -->
 <!--
+  @component
+  Einstellungs-Seite für Theme, Logging, Auto-Update, Passwort-Speicherung.
+  
   TODO.md: Phase 2 - Daten-Initialisierung (Stores & Pages) ✅ KOMPLETT
   Referenz: TODO.md Zeile 220, 343
   

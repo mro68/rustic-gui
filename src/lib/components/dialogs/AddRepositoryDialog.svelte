@@ -17,6 +17,28 @@
   - src/lib/components/pages/DashboardPage.svelte
 -->
 <script lang="ts">
+  /**
+   * Dialog zum Hinzufügen/Initialisieren eines neuen Repositories.
+   *
+   * Unterstützt alle Repository-Typen via LocationPickerDialog:
+   * - Lokal (Verzeichnis)
+   * - Netzwerk (SFTP, SMB, NFS, WebDAV)
+   * - Cloud (S3, B2, Azure, GCS, Wasabi, MinIO, Rclone)
+   *
+   * Features:
+   * - Repository-Initialisierung
+   * - Passwort-Setup mit Keychain
+   * - Location Picker Integration
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <AddRepositoryDialog
+   *   on:repo-added={handleRepoAdded}
+   * />
+   * ```
+   */
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';

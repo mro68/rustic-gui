@@ -1,16 +1,28 @@
-/* eslint-env browser */
 <script lang="ts">
   /**
-   * LoadingSpinner-Komponente für Ladezustände
+   * LoadingSpinner-Komponente für Ladezustände.
    *
-   * Props:
-   * - size: number (px, default: 40)
-   * - color: string (CSS, default: var(--color-primary))
+   * Animierter Spinner mit konfigurierbarer Größe und Farbe.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <LoadingSpinner size={60} color="var(--color-primary)" />
+   * ```
    */
-  export let size: number = 40;
-  export let color: string = 'var(--color-primary)';
+
+  interface LoadingSpinnerProps {
+    /** Spinner-Größe in Pixel */
+    size?: number;
+    /** Spinner-Farbe (CSS) */
+    color?: string;
+  }
+
+  let { size = 40, color = 'var(--color-primary)' }: LoadingSpinnerProps = $props();
 </script>
 
+/* eslint-env browser */
 <div class="spinner" style="width: {size}px; height: {size}px; border-top-color: {color};"></div>
 
 <style>
@@ -22,6 +34,8 @@
     display: inline-block;
   }
   @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 </style>

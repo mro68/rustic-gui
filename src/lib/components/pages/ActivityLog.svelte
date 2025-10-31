@@ -5,11 +5,31 @@
 -->
 
 <script lang="ts">
-  export let logEntries: { time: string; type: 'info' | 'warning' | 'error'; message: string }[] = [
-    { time: '12:01', type: 'info', message: 'Backup erfolgreich abgeschlossen' },
-    { time: '11:45', type: 'warning', message: 'Warnung: Verbindung langsam' },
-    { time: '11:30', type: 'error', message: 'Fehler: Passwort falsch' },
-  ];
+  /**
+   * Activity-Log-Komponente für Dashboard.
+   *
+   * Zeigt chronologische Liste von Events (Info/Warning/Error).
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <ActivityLog {logEntries} />
+   * ```
+   */
+
+  interface ActivityLogProps {
+    /** Log-Einträge mit Zeit, Typ, Nachricht */
+    logEntries?: { time: string; type: 'info' | 'warning' | 'error'; message: string }[];
+  }
+
+  let {
+    logEntries = [
+      { time: '12:01', type: 'info', message: 'Backup erfolgreich abgeschlossen' },
+      { time: '11:45', type: 'warning', message: 'Warnung: Verbindung langsam' },
+      { time: '11:30', type: 'error', message: 'Fehler: Passwort falsch' },
+    ],
+  }: ActivityLogProps = $props();
 
   function getIcon(type: 'info' | 'warning' | 'error') {
     if (type === 'info') return '✔️';

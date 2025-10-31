@@ -13,18 +13,59 @@
   - ⏳ Backend-Command ist noch ein Stub
 -->
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import { toastStore } from '$lib/stores/toast';
+  /**
+   * Side-by-Side Snapshot-Vergleich-Dialog.
+   *
+   * Zeigt Unterschiede zwischen zwei Snapshots mit:
+   * - Datei-Level Diffs (Added/Removed/Modified)
+   * - Größen-Statistiken
+   * - Filter-Optionen
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <CompareSnapshotsDialog
+   *   bind:open={showCompare}
+   *   {snapshots}
+   *   bind:snapshotA
+   *   bind:snapshotB
+   *   bind:diff
+   *   on:compare={handleCompareComplete}
+   * />
+   * ```
+   */
   import { compareSnapshots } from '$lib/api/snapshots';
+  import { toastStore } from '$lib/stores/toast';
   import type { DiffResultDto } from '$lib/types';
+  import { createEventDispatcher } from 'svelte';
 
-  export let snapshots: any[] = [];
-  export let open = false;
-  export let snapshotA: any = null;
-  export let snapshotB: any = null;
-  export let diff: any[] = [];
-  export let statsA: any = {};
-  export let statsB: any = {};
+  interface CompareSnapshotsDialogProps {
+    /** Liste aller Snapshots zur Auswahl */
+    snapshots?: any[];
+    /** Steuert Sichtbarkeit */
+    open?: boolean;
+    /** Erster Snapshot für Vergleich */
+    snapshotA?: any;
+    /** Zweiter Snapshot für Vergleich */
+    snapshotB?: any;
+    /** Diff-Ergebnis */
+    diff?: any[];
+    /** Statistiken für Snapshot A */
+    statsA?: any;
+    /** Statistiken für Snapshot B */
+    statsB?: any;
+  }
+
+  let {
+    snapshots = [],
+    open = $bindable(false),
+    snapshotA = $bindable(null),
+    snapshotB = $bindable(null),
+    diff = $bindable([]),
+    statsA = $bindable({}),
+    statsB = $bindable({}),
+  }: CompareSnapshotsDialogProps = $props();
 
   const dispatch = createEventDispatcher();
 

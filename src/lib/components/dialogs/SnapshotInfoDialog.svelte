@@ -1,12 +1,37 @@
 <script lang="ts">
+  /**
+   * Snapshot-Info-Dialog mit Details.
+   *
+   * Zeigt vollständige Snapshot-Metadaten:
+   * - Erstellungsdatum
+   * - Hostname
+   * - Tags
+   * - Größe
+   * - Anzahl Dateien
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <SnapshotInfoDialog
+   *   {snapshot}
+   *   on:close={handleClose}
+   * />
+   * ```
+   */
+  import type { SnapshotDto } from '$lib/types';
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Modal from '../shared/Modal.svelte';
-  import type { SnapshotDto } from '$lib/types';
 
   const dispatch = createEventDispatcher();
 
-  export let snapshot: SnapshotDto | null = null;
+  interface SnapshotInfoDialogProps {
+    /** Anzuzeigender Snapshot */
+    snapshot?: SnapshotDto | null;
+  }
+
+  let { snapshot = null }: SnapshotInfoDialogProps = $props();
 
   function formatDate(dateString: string): string {
     if (!dateString) return '-';

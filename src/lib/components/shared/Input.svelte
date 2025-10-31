@@ -1,5 +1,23 @@
 <!-- Input.svelte: Einfache Input-Komponente -->
 <script lang="ts">
+  /**
+   * Universelle Input-Komponente mit Label und Validation.
+   *
+   * Unterstützt alle HTML-Input-Typen mit bidirektionalem Binding.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <Input
+   *   bind:value={name}
+   *   label="Repository-Name"
+   *   type="text"
+   *   required
+   *   placeholder="Mein Backup"
+   * />
+   * ```
+   */
   let {
     label = '',
     type = 'text',

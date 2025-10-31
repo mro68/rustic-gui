@@ -1,5 +1,19 @@
 <!-- Tooltip.svelte: Einfache Tooltip-Komponente -->
 <script lang="ts">
+  /**
+   * Tooltip-Komponente für Hover-Informationen.
+   *
+   * Zeigt Text bei Mouse-Hover über dem Slot-Content.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <Tooltip text="Klicken Sie hier zum Speichern">
+   *   <Button>Speichern</Button>
+   * </Tooltip>
+   * ```
+   */
   let {
     text = '',
     position = 'top',

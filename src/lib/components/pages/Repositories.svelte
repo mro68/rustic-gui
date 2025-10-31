@@ -1,6 +1,9 @@
 <!--
   Repositories.svelte
   ------------------
+  @component
+  Repository-Verwaltungs-Seite mit Add, Check, Prune, Delete.
+  
   TODO.md: Phase 2 - Daten-Initialisierung (Stores & Pages) ✅ KOMPLETT
   Referenz: TODO.md Zeile 215-221, 342
   

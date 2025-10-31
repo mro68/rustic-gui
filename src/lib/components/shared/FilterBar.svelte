@@ -1,12 +1,51 @@
 <!-- FilterBar.svelte: Advanced Filter UI for Snapshots Page (see rustic_advanced_ui_mockup.html) -->
 <script lang="ts">
+  /**
+   * Filter-Leiste für Snapshots mit Such-, Hostname-, Zeitraum-, Größen- und Tag-Filtern.
+   *
+   * Ermöglicht Filterung von Snapshots nach verschiedenen Kriterien.
+   * Alle Filter sind kombinierbar und werden via Events propagiert.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <FilterBar
+   *   bind:search
+   *   bind:hostname
+   *   bind:dateRange
+   *   bind:size
+   *   bind:tags
+   *   allTags={availableTags}
+   *   on:change={handleFilterChange}
+   * />
+   * ```
+   */
   import { createEventDispatcher } from 'svelte';
-  export let search = '';
-  export let hostname = '';
-  export let dateRange = '';
-  export let size = '';
-  export let tags: string[] = [];
-  export let allTags: string[] = [];
+
+  interface FilterBarProps {
+    /** Suchbegriff für Snapshot-Namen/Pfade */
+    search?: string;
+    /** Filter nach Hostname */
+    hostname?: string;
+    /** Zeitraum-Filter (Format: ISO-Datum) */
+    dateRange?: string;
+    /** Größen-Filter */
+    size?: string;
+    /** Ausgewählte Tags */
+    tags?: string[];
+    /** Alle verfügbaren Tags zur Auswahl */
+    allTags?: string[];
+  }
+
+  let {
+    search = $bindable(''),
+    hostname = $bindable(''),
+    dateRange = $bindable(''),
+    size = $bindable(''),
+    tags = $bindable([]),
+    allTags = [],
+  }: FilterBarProps = $props();
 
   const dispatch = createEventDispatcher();
 

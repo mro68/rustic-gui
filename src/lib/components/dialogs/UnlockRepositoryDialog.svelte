@@ -1,35 +1,50 @@
 <script lang="ts">
   /**
-   * UnlockRepositoryDialog.svelte
-   * 
+   * Dialog zum Entsperren eines gesperrten Repositories.
+   *
+   * Fragt nach Passwort und bietet Keychain-Integration.
+   *
    * TODO.md: Phase 2 - Dialog-Workflow Repository (Zeile 248)
    * Status: ✅ KOMPLETT - API-Integration vollständig inkl. Keychain
-   * 
-   * Backend-Command: src-tauri/src/lib.rs:392 (open_repository)
-   * API-Wrapper: src/lib/api/repositories.ts:37 (openRepository)
-   * Keychain: src/lib/api/keychain.ts (storeRepositoryPassword)
-   * 
-   * Implementierung:
-   * - ✅ API-Integration mit openRepository
-   * - ✅ Error-Toasts für alle Fehlerfälle
-   * - ✅ Success-Toast bei erfolgreichem Unlock
-   * - ✅ Keychain-Integration für rememberPassword (2025-10-31)
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <UnlockRepositoryDialog
+   *   {repositoryName}
+   *   {repositoryPath}
+   *   {repositoryId}
+   *   on:unlocked={handleUnlocked}
+   * />
+   * ```
    */
-  
+
+  import { storeRepositoryPassword } from '$lib/api/keychain';
+  import { openRepository } from '$lib/api/repositories';
+  import { toastStore } from '$lib/stores/toast';
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
   import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
-  import { openRepository } from '$lib/api/repositories';
-  import { storeRepositoryPassword } from '$lib/api/keychain';
-  import { toastStore } from '$lib/stores/toast';
 
   const dispatch = createEventDispatcher();
 
-  export let repositoryName = '';
-  export let repositoryPath = '';
-  export let repositoryId = '';
+  interface UnlockRepositoryDialogProps {
+    /** Name des Repositories */
+    repositoryName?: string;
+    /** Pfad zum Repository */
+    repositoryPath?: string;
+    /** Repository-ID */
+    repositoryId?: string;
+  }
+
+  let {
+    repositoryName = '',
+    repositoryPath = '',
+    repositoryId = '',
+  }: UnlockRepositoryDialogProps = $props();
 
   // Form state
   let password = '';
@@ -88,7 +103,7 @@
     try {
       // ✅ Tatsächliche API-Integration (TODO.md Phase 2 Zeile 248)
       await openRepository(repositoryPath, password.trim());
-      
+
       // ✅ Passwort im Keychain speichern wenn rememberPassword = true
       if (rememberPassword) {
         try {
@@ -98,9 +113,9 @@
           // Fehler nicht kritisch - Repository ist trotzdem entsperrt
         }
       }
-      
+
       toastStore.success('Repository erfolgreich entsperrt');
-      
+
       dispatch('unlock', {
         repositoryId,
         password: password.trim(),

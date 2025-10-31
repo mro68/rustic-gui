@@ -5,6 +5,19 @@
 -->
 
 <script lang="ts">
+  /**
+   * Repository-Karte für Dashboard.
+   *
+   * Zeigt Repository-Status, Snapshot-Count, Größe.
+   * Mit Quick-Actions (Backup starten, Details, etc.).
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <RepositoryCard {repo} />
+   * ```
+   */
   import { onDestroy, onMount } from 'svelte';
   import { get } from 'svelte/store';
   import { cancelBackup, runBackup } from '../../api/backup';
@@ -13,16 +26,23 @@
   import RunBackupDialog from '../dialogs/RunBackupDialog.svelte';
   import Tooltip from '../shared/Tooltip.svelte';
 
-  export let repo: RepositoryDto = {
-    id: '',
-    name: 'Unknown Repository',
-    path: '/',
-    repository_type: 'Local',
-    status: 'Healthy',
-    snapshot_count: 0,
-    total_size: 0,
-    created_at: new Date().toISOString(),
-  };
+  interface RepositoryCardProps {
+    /** Repository-Daten */
+    repo?: RepositoryDto;
+  }
+
+  let {
+    repo = {
+      id: '',
+      name: 'Unknown Repository',
+      path: '/',
+      repository_type: 'Local',
+      status: 'Healthy',
+      snapshot_count: 0,
+      total_size: 0,
+      created_at: new Date().toISOString(),
+    },
+  }: RepositoryCardProps = $props();
 
   // Status-Badge dynamisch (Platzhalter-Logik)
   let status: 'healthy' | 'warning' | 'error' = 'healthy';

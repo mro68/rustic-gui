@@ -1,31 +1,42 @@
 <script lang="ts">
   /**
-   * PruneRepoDialog.svelte
+   * Dialog für Repository-Prune-Operation.
+   *
+   * Entfernt unnötige Pack-Dateien:
+   * - Max-Unused-Option
+   * - Progress-Anzeige
+   * - Statistiken nach Prune
+   * - Log-Ausgabe
    *
    * TODO.md: Phase 2 - Dialog-Workflow Repository (Zeile 250)
    * Status: ✅ KOMPLETT - API-Integration vollständig
    *
-   * Backend-Command: src-tauri/src/commands/repository.rs:124 (prune_repository)
-   * API-Wrapper: src/lib/api/repositories.ts:45 (pruneRepository)
+   * @component
    *
-   * Implementierung:
-   * - ✅ API-Integration mit pruneRepository
-   * - ✅ Error-Handling mit Toasts
-   * - ✅ Success-Toast bei erfolgreichem Prune
-   * - ✅ Statistiken-Anzeige nach Prune
-   * - ⏳ Progress-Events (Backend sendet noch keine Events)
+   * @example
+   * ```svelte
+   * <PruneRepoDialog
+   *   {repositoryId}
+   *   on:pruned={handlePruneComplete}
+   * />
+   * ```
    */
 
+  import { pruneRepository } from '$lib/api/repositories';
+  import { toastStore } from '$lib/stores/toast';
   import { createEventDispatcher, onMount } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
   import Modal from '../shared/Modal.svelte';
-  import { toastStore } from '$lib/stores/toast';
-  import { pruneRepository } from '$lib/api/repositories';
 
   const dispatch = createEventDispatcher();
 
-  export let repositoryId: string = '';
+  interface PruneRepoDialogProps {
+    /** Repository-ID */
+    repositoryId?: string;
+  }
+
+  let { repositoryId = '' }: PruneRepoDialogProps = $props();
 
   let isRunning = false;
   let progress = 0;
@@ -164,11 +175,12 @@
       <div class="warning-section">
         <div class="warning-icon">⚠️</div>
         <div class="warning-text">
-          <strong>Wichtig:</strong> Die Bereinigung entfernt unwiderruflich nicht mehr benötigte Daten
-          aus dem Repository. Stellen Sie sicher, dass keine Backups oder Snapshots parallel laufen.
+          <strong>Wichtig:</strong> Die Bereinigung entfernt unwiderruflich nicht mehr benötigte
+          Daten aus dem Repository. Stellen Sie sicher, dass keine Backups oder Snapshots parallel
+          laufen.
           <br /><br />
-          <strong>Empfehlung:</strong> Führen Sie vorher eine Repository-Überprüfung durch, um die
-          Integrität sicherzustellen.
+          <strong>Empfehlung:</strong> Führen Sie vorher eine Repository-Überprüfung durch, um die Integrität
+          sicherzustellen.
         </div>
       </div>
     {:else if isRunning}
@@ -226,8 +238,8 @@
         </div>
 
         <p class="result-message">
-          Das Repository wurde erfolgreich bereinigt und optimiert. Nicht mehr benötigte Daten wurden
-          entfernt.
+          Das Repository wurde erfolgreich bereinigt und optimiert. Nicht mehr benötigte Daten
+          wurden entfernt.
         </p>
       </div>
     {/if}

@@ -5,10 +5,36 @@
 -->
 
 <script lang="ts">
-  export let totalSpace: number; // in GB
-  export let usedSpace: number; // in GB
-  export let label: string;
-  export let sublabel: string;
+  /**
+   * Donut-Chart für Speicher-Nutzung.
+   *
+   * Visualisiert Used/Total Space als SVG-Donut.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <StorageChart
+   *   totalSpace={500}
+   *   usedSpace={350}
+   *   label="Lokaler Speicher"
+   *   sublabel="70% belegt"
+   * />
+   * ```
+   */
+
+  interface StorageChartProps {
+    /** Gesamtspeicher in GB */
+    totalSpace?: number;
+    /** Genutzter Speicher in GB */
+    usedSpace?: number;
+    /** Haupt-Label */
+    label?: string;
+    /** Sub-Label */
+    sublabel?: string;
+  }
+
+  let { totalSpace = 0, usedSpace = 0, label = '', sublabel = '' }: StorageChartProps = $props();
 
   // Berechne Prozentsatz für SVG
   $: percentage = totalSpace > 0 ? (usedSpace / totalSpace) * 100 : 0;

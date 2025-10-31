@@ -1,29 +1,49 @@
 <script lang="ts">
   /* eslint-env browser */
   /**
-   * Universelle Modal-Komponente für Rustic GUI
+   * Universelle Modal-Komponente für Rustic GUI.
    *
-   * Props:
-   * - open: boolean (default: false)
-   * - closeOnEsc: boolean (default: true)
-   * - closeOnBackdrop: boolean (default: true)
-   * - size: 'small' | 'medium' | 'large' (default: 'medium')
-   * - ariaLabel: string (optional)
+   * Bietet Backdrop-Overlay, ESC-Schließen, verschiedene Größen
+   * und Accessibility-Features (Focus-Trap, ARIA).
    *
-   * Events:
-   * - on:close
+   * @component
    *
-   * Slots:
-   * - default: Modal-Inhalt
-   * - header: Optionaler Header
-   * - footer: Optionaler Footer
+   * @example
+   * ```svelte
+   * <Modal bind:open={showDialog} size="medium" on:close={handleClose}>
+   *   <svelte:fragment slot="header">
+   *     <h2>Bestätigung</h2>
+   *   </svelte:fragment>
+   *   <p>Möchten Sie wirklich fortfahren?</p>
+   *   <svelte:fragment slot="footer">
+   *     <Button onclick={handleClose}>Abbrechen</Button>
+   *     <Button variant="primary">Bestätigen</Button>
+   *   </svelte:fragment>
+   * </Modal>
+   * ```
    */
   import { createEventDispatcher, onMount, tick } from 'svelte';
-  export let open: boolean = false;
-  export let closeOnEsc: boolean = true;
-  export let closeOnBackdrop: boolean = true;
-  export let size: 'small' | 'medium' | 'large' = 'medium';
-  export let ariaLabel: string | undefined = undefined;
+
+  interface ModalProps {
+    /** Steuert Sichtbarkeit des Modals */
+    open?: boolean;
+    /** Schließt Modal bei ESC-Taste */
+    closeOnEsc?: boolean;
+    /** Schließt Modal bei Klick auf Backdrop */
+    closeOnBackdrop?: boolean;
+    /** Modal-Größe */
+    size?: 'small' | 'medium' | 'large';
+    /** Aria-Label für Accessibility */
+    ariaLabel?: string;
+  }
+
+  let {
+    open = false,
+    closeOnEsc = true,
+    closeOnBackdrop = true,
+    size = 'medium',
+    ariaLabel = undefined,
+  }: ModalProps = $props();
 
   const dispatch = createEventDispatcher();
   let modalRef: HTMLDivElement | null = null;

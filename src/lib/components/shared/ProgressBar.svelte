@@ -1,13 +1,30 @@
 <script lang="ts">
   /**
-   * ProgressBar-Komponente für Fortschrittsanzeigen
+   * ProgressBar-Komponente für Fortschrittsanzeige.
    *
-   * Props:
-   * - value: number | undefined (0-100, determiniert; undefined = indeterminiert)
-   * - label: string (optional)
+   * Unterstützt bestimmte (0-100) und unbestimmte (spinning) Progress.
+   * Mit optionalem Label für Kontext.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <!-- Bestimmter Progress -->
+   * <ProgressBar value={75} label="Backup läuft..." />
+   *
+   * <!-- Unbestimmter Progress -->
+   * <ProgressBar label="Initialisiere..." />
+   * ```
    */
-  export let value: number | undefined = undefined;
-  export let label: string = '';
+
+  interface ProgressBarProps {
+    /** Progress-Wert (0-100), undefined = unbestimmter Progress */
+    value?: number;
+    /** Optionales Label */
+    label?: string;
+  }
+
+  let { value = undefined, label = '' }: ProgressBarProps = $props();
 </script>
 
 /* eslint-env browser */

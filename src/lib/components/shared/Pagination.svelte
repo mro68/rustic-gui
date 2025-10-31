@@ -1,10 +1,42 @@
 <!-- Pagination.svelte: Pagination Controls für Snapshots (siehe rustic_advanced_ui_mockup.html) -->
 <script lang="ts">
+  /**
+   * Pagination-Komponente für Tabellen.
+   *
+   * Bietet Seitenwechsel und Größen-Selektion.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <Pagination
+   *   bind:page
+   *   bind:pageSize
+   *   {total}
+   *   on:page={handlePageChange}
+   *   on:pageSize={handlePageSizeChange}
+   * />
+   * ```
+   */
   import { createEventDispatcher } from 'svelte';
-  export let page = 1;
-  export let pageSize = 25;
-  export let total = 0;
-  export let pageSizes = [10, 25, 50, 100];
+
+  interface PaginationProps {
+    /** Aktuelle Seite */
+    page?: number;
+    /** Einträge pro Seite */
+    pageSize?: number;
+    /** Gesamt-Anzahl */
+    total?: number;
+    /** Verfügbare Seiten-Größen */
+    pageSizes?: number[];
+  }
+
+  let {
+    page = $bindable(1),
+    pageSize = $bindable(25),
+    total = 0,
+    pageSizes = [10, 25, 50, 100],
+  }: PaginationProps = $props();
 
   const dispatch = createEventDispatcher();
 

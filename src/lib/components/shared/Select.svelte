@@ -1,5 +1,22 @@
 <!-- Select.svelte: Einfache Select-Komponente -->
 <script lang="ts">
+  /**
+   * Select-Dropdown-Komponente mit Label.
+   *
+   * Unterstützt bidirektionales Binding.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <Select bind:value={selectedRepo} label="Repository" required>
+   *   <option value="">-- Auswählen --</option>
+   *   {#each repositories as repo}
+   *     <option value={repo.id}>{repo.name}</option>
+   *   {/each}
+   * </Select>
+   * ```
+   */
   let {
     label = '',
     value = $bindable(''),

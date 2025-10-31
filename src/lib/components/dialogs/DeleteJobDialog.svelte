@@ -15,14 +15,36 @@
   - src/lib/components/pages/BackupJobs.svelte
 -->
 <script lang="ts">
+  /**
+   * Bestätigungsdialog für Backup-Job-Löschung.
+   *
+   * Zeigt Job-Details und erfordert Bestätigung vor Löschung.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <DeleteJobDialog
+   *   bind:open={showDelete}
+   *   {job}
+   *   on:deleted={handleJobDeleted}
+   * />
+   * ```
+   */
   import Button from '$lib/components/shared/Button.svelte';
   import Modal from '$lib/components/shared/Modal.svelte';
   import { toastStore } from '$lib/stores/toast';
   import type { BackupJobDto } from '$lib/types';
   import { createEventDispatcher } from 'svelte';
 
-  export let open: boolean = false;
-  export let job: BackupJobDto | null = null;
+  interface DeleteJobDialogProps {
+    /** Steuert Sichtbarkeit */
+    open?: boolean;
+    /** Zu löschender Job */
+    job?: BackupJobDto | null;
+  }
+
+  let { open = $bindable(false), job = null }: DeleteJobDialogProps = $props();
 
   const dispatch = createEventDispatcher();
 

@@ -1,14 +1,22 @@
-/* eslint-env browser */
 <script lang="ts">
   /**
-   * ToastContainer-Komponente für globale Toast-Notifications
+   * ToastContainer-Komponente für globale Toast-Notifications.
    *
    * Zeigt alle aktiven Toasts aus dem toastStore an.
+   * Wird einmal im Root-Layout eingebunden.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <!-- In +layout.svelte -->
+   * <ToastContainer />
+   * ```
    */
 
   import type { Toast as ToastType } from '$lib/stores/toast';
-  import Toast from './Toast.svelte';
   import { toastStore } from '$lib/stores/toast';
+  import Toast from './Toast.svelte';
 
   let toasts = $state<ToastType[]>([]);
 
@@ -20,6 +28,7 @@
   });
 </script>
 
+/* eslint-env browser */
 <div class="toast-container">
   {#each toasts as toast (toast.id)}
     <Toast

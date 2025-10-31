@@ -1,5 +1,18 @@
 <!-- Checkbox.svelte: Einfache Checkbox-Komponente -->
 <script lang="ts">
+  /**
+   * Checkbox-Komponente mit Label und bidirektionalem Binding.
+   *
+   * @component
+   *
+   * @example
+   * ```svelte
+   * <Checkbox
+   *   bind:checked={rememberPassword}
+   *   label="Passwort speichern"
+   * />
+   * ```
+   */
   let {
     label = '',
     checked = $bindable(false),
