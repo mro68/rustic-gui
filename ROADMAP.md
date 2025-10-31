@@ -973,23 +973,26 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 
 #### Tasks
 
-- [ ] **User-Dokumentation** (12h)
-  - [ ] Installation Guide
-  - [ ] Quick-Start Tutorial
-  - [ ] Feature-Dokumentation
+- [~] **User-Dokumentation** (12h) ⏰ **IN ARBEIT** (2025-10-31)
+  - [x] Installation Guide (README.md)
+  - [x] Quick-Start Tutorial (README.md)
+  - [x] Feature-Übersicht (README.md)
   - [ ] Screenshots/GIFs
   - [ ] FAQ
-- [ ] **Developer-Dokumentation** (8h)
-  - [ ] Architecture Overview
+- [~] **Developer-Dokumentation** (8h) ⏰ **IN ARBEIT** (2025-10-31)
+  - [x] Architecture Overview (.github/instructions/architecture.instructions.md)
   - [ ] API-Dokumentation (TypeDoc)
   - [ ] Rustdoc Comments vervollständigen
-  - [ ] Contributing Guidelines
-- [ ] **Code-Kommentare** (6h)
-  - [ ] Alle Public APIs dokumentiert
+  - [x] Contributing Guidelines (CONTRIBUTING.md) ✅ (2025-10-31)
+  - [x] Projekt-Analyse (PROJEKT_ANALYSE.md) ✅ (2025-10-31)
+  - [x] Anpassungs-Empfehlungen (ANPASSUNGS_EMPFEHLUNGEN.md) ✅ (2025-10-31)
+- [~] **Code-Kommentare** (6h) ⏰ **IN ARBEIT**
+  - [x] Alle Public APIs dokumentiert (Backend)
+  - [~] Frontend-Komponenten dokumentiert (teilweise)
   - [ ] Komplexe Algorithmen erklärt
-  - [ ] TODOs aufräumen
+  - [x] TODOs in TODO.md integriert
 
-**Subtotal:** 26 Stunden
+**Subtotal:** 26 Stunden (ca. 50% abgeschlossen)
 
 ### 5.7 Bug-Fixing & Stabilität
 
@@ -1039,10 +1042,12 @@ Vollständige Desktop-Anwendung für rustic Backup-Management mit modernem UI, J
 - [ ] **LICENSE prüfen** (1h)
   - [ ] License-Headers in Source-Files
   - [ ] Third-Party Licenses
-- [ ] **README aktualisieren** (2h)
-  - [ ] Features-Liste
-  - [ ] Screenshots
-  - [ ] Installation-Links
+- [x] **README aktualisieren** ✅ (2025-10-31)
+  - [x] Features-Liste
+  - [x] Installation-Anleitungen (Linux/Windows)
+  - [x] Erste-Schritte-Guide
+  - [x] Development-Setup
+  - [x] Links zu Dokumentation
 
 **Subtotal:** 6 Stunden
 

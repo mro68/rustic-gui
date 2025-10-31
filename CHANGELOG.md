@@ -9,6 +9,31 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+#### 2025-10-31
+
+- **Dokumentations-Infrastruktur erweitert:**
+  - `PROJEKT_ANALYSE.md`: Umfassende Tiefen-Analyse des kompletten Projekts (97% Konsistenz-Score)
+  - `ANPASSUNGS_EMPFEHLUNGEN.md`: Konkrete Änderungsvorschläge für Instructions (3 Prioritätsstufen)
+  - `CONTRIBUTING.md`: Vollständige Contribution-Guidelines für neue Contributors
+  - LocationPickerDialog, PruneRepoDialog, SnapshotInfoDialog in frontend.instructions.md dokumentiert
+  - Neue Mockups (rustic_location_picker.html, rustic_advanced_functions.html) in copilot-instructions.md ergänzt
+
+### Changed
+
+- **README.md komplett überarbeitet:**
+  - Features-Übersicht mit Emojis
+  - Installation-Anleitungen für Linux/Windows
+  - Erste-Schritte-Guide
+  - Development-Setup und Build-Instruktionen
+  - Links zu Dokumentation & Support
+  - Ersetzt Tauri-Template mit vollständiger Projekt-Doku
+
+### Fixed
+
+- **Instructions-Dateiname korrigiert:**
+  - `backup-restore-snapshots.instructions.md.md` → `backup-restore-snapshots.instructions.md`
+  - Links in copilot-instructions.md aktualisiert (3 Vorkommen)
+
 #### 2025-10-29
 
 - **Snapshots Page (Frontend) abgeschlossen:**
