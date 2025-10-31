@@ -98,6 +98,11 @@
   let testing = false;
   let testResult: { success: boolean; message: string; latency_ms?: number } | null = null;
 
+  // Credential prompt state (M2 Task 2.3.3)
+  let showCredentialPrompt = false;
+  let saveCredentialsChecked = true;
+  let saveFavoriteChecked = true;
+
   // Recent locations (M2 Task 2.3.2: Now loaded from backend)
   let recentLocations: Array<{
     id: string;
@@ -467,6 +472,18 @@
       });
 
       testResult = result;
+
+      // M2 Task 2.3.3: Zeige Credential-Prompt bei erfolgreichem Test
+      if (result.success && (activeTab === 'cloud' || activeTab === 'network')) {
+        // Zeige Prompt nur wenn Credentials vorhanden sind
+        const hasCredentials =
+          (activeTab === 'cloud' && cloudAccessKey && cloudSecretKey) ||
+          (activeTab === 'network' && networkPassword);
+
+        if (hasCredentials) {
+          showCredentialPrompt = true;
+        }
+      }
     } catch (error: any) {
       testResult = {
         success: false,
@@ -474,6 +491,55 @@
       };
     } finally {
       testing = false;
+    }
+  }
+
+  /**
+   * Speichert Credentials nach erfolgreichem Connection-Test.
+   * M2 Task 2.3.3: Credential-Prompt-Integration
+   */
+  async function handleCredentialPrompt(save: boolean) {
+    showCredentialPrompt = false;
+
+    if (!save) {
+      return;
+    }
+
+    try {
+      // Generiere eine temporäre Repo-ID (wird später beim Init ersetzt)
+      const tempRepoId = `temp_${Date.now()}`;
+
+      if (activeTab === 'cloud' && saveCredentialsChecked) {
+        // Speichere Cloud-Credentials in Keychain
+        await invoke('save_cloud_credentials', {
+          repoId: tempRepoId,
+          provider: selectedCloudProvider,
+          accessKey: cloudAccessKey,
+          secretKey: cloudSecretKey,
+        });
+
+        console.log('Cloud-Credentials gespeichert im Keychain');
+      } else if (activeTab === 'network' && saveCredentialsChecked) {
+        // Speichere Network-Credentials in Keychain
+        await invoke('save_cloud_credentials', {
+          repoId: tempRepoId,
+          provider: `sftp_${networkHost}`,
+          accessKey: networkUsername,
+          secretKey: networkPassword,
+        });
+
+        console.log('Network-Credentials gespeichert im Keychain');
+      }
+
+      // Optional: Als Favorit speichern
+      if (saveFavoriteChecked) {
+        await saveCurrentAsFavorite();
+      }
+
+      alert('Zugangsdaten sicher gespeichert!');
+    } catch (error) {
+      console.error('Fehler beim Speichern der Credentials:', error);
+      alert('Fehler beim Speichern: ' + error);
     }
   }
 
@@ -812,6 +878,46 @@
   </svelte:fragment>
 </Modal>
 
+<!-- M2 Task 2.3.3: Credential-Prompt Dialog -->
+{#if showCredentialPrompt}
+  <Modal isOpen={true} title="Zugangsdaten speichern?" size="small">
+    <div class="credential-prompt">
+      <p class="prompt-message">
+        Die Verbindung war erfolgreich! Möchten Sie die Zugangsdaten sicher im System-Keychain
+        speichern?
+      </p>
+
+      <div class="prompt-options">
+        <label class="checkbox-label">
+          <input type="checkbox" bind:checked={saveCredentialsChecked} />
+          <span>Zugangsdaten im Keychain speichern</span>
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" bind:checked={saveFavoriteChecked} />
+          <span>Als Favorit speichern</span>
+        </label>
+      </div>
+
+      <div class="prompt-info">
+        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 16px;">
+          🔒 Zugangsdaten werden verschlüsselt im System-Keychain gespeichert. Sie werden nicht in
+          der Konfigurationsdatei abgelegt.
+        </p>
+      </div>
+    </div>
+
+    <svelte:fragment slot="footer">
+      <Button variant="secondary" on:click={() => handleCredentialPrompt(false)}>
+        Nicht speichern
+      </Button>
+      <Button variant="primary" on:click={() => handleCredentialPrompt(true)}>
+        Speichern
+      </Button>
+    </svelte:fragment>
+  </Modal>
+{/if}
+
 <style>
   .location-picker {
     min-height: 400px;
@@ -1046,5 +1152,52 @@
   .result-latency {
     font-size: 12px;
     opacity: 0.8;
+  }
+
+  /* Credential Prompt (M2 Task 2.3.3) */
+  .credential-prompt {
+    padding: 16px 0;
+  }
+
+  .prompt-message {
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .prompt-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .checkbox-label:hover {
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  .checkbox-label input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  .checkbox-label span {
+    font-size: 14px;
+  }
+
+  .prompt-info {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(59, 130, 246, 0.05);
+    border-radius: 6px;
   }
 </style>

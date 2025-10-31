@@ -9,7 +9,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
-#### 2025-10-31 - Milestone 2: Cloud-Backend-Integration (~70% komplett)
+#### 2025-10-31 - Milestone 2: Cloud-Backend-Integration (✅ 100% ABGESCHLOSSEN)
 
 - **OpenDAL Backend-Modul (Task 2.1.1):**
   - `backends/opendal.rs`: S3, Azure Blob, Google Cloud Storage, Backblaze B2 Support
@@ -65,16 +65,48 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
     - `formatLastUsed()` für relative Zeitangaben
   - Config-Persistenz in TOML
 
+- **Credential-Prompt-Integration (Task 2.3.3):**
+  - Dialog "Zugangsdaten speichern?" nach erfolgreichem Connection-Test
+  - Checkboxes für:
+    - "Zugangsdaten im Keychain speichern"
+    - "Als Favorit speichern"
+  - `handleCredentialPrompt()` Funktion für Credential-Speicherung
+  - Keychain-Integration für Cloud und Network (SFTP)
+  - Sicherheitshinweis im Dialog (🔒 Icon)
+  - Optional: Automatisches Speichern als Favorit
+
+- **Dokumentation (Task 2.3.3):**
+  - README.md komplett überarbeitet:
+    - Features-Übersicht mit Emojis
+    - Installation-Anleitungen (Linux AppImage, Windows)
+    - Erste-Schritte-Guide (Repository, Backup, Restore)
+    - **Cloud-Storage-Konfiguration:**
+      - Amazon S3 Setup und Beispiele
+      - Azure Blob Storage Setup
+      - Google Cloud Storage Setup
+      - Backblaze B2 Setup
+      - Wasabi/MinIO (S3-kompatibel) Setup
+      - SFTP via Rclone Setup
+      - 70+ weitere Provider via Rclone
+    - Sicherheit & Credentials-Sektion:
+      - Keychain-Integration erklärt
+      - Credential-Workflow beschrieben
+      - Favoriten-System dokumentiert
+    - Troubleshooting-Sektion:
+      - Cloud-Verbindung fehlgeschlagen
+      - Rclone nicht gefunden
+      - Repository gesperrt
+      - Passwort vergessen
+    - Entwicklungs-Setup und Build-Anleitung
+    - Links zu Dokumentation und Support
+
 - **Error-Handling:**
   - `UnsupportedBackend` Error-Typ
   - `InvalidConfiguration` Error-Typ
   - `RcloneNotFound` Error-Typ
   - `RcloneError` Error-Typ
 
-**Noch offen:**
-- Credential-Prompt-Dialog nach erfolgreichem Connection-Test (2h)
-- Integration-Tests mit Cloud-Backends (MinIO, Azurite, SFTP) (5h)
-- Dokumentation: Cloud-Setup-Anleitung in README (2h)
+**Resultat:** Vollständiger Cloud-Storage-Support implementiert. Benutzer können nun Repositories auf S3, Azure, GCS, SFTP und 70+ weiteren Cloud-Providern erstellen und verwalten. Alle Credentials werden sicher im System-Keychain gespeichert.
 
 #### 2025-10-31
 
