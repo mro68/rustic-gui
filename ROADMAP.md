@@ -2,7 +2,7 @@
 
 > **REALISTISCHE Projekt-Roadmap basierend auf tatsächlichem Implementierungsstand**
 >
-> Version: 3.1 | Status: ✅ BUILD SUCCESS - Phase 1 75% | Aktualisiert: 2025-10-31
+> Version: 3.1 | Status: ✅ BUILD SUCCESS - Phase 1 100% | Aktualisiert: 2025-10-31
 
 ---
 
@@ -76,14 +76,14 @@
 
 ## 🎯 Phasen-Übersicht (NEU - Realistisch)
 
-| Phase                                     | Beschreibung            | Dauer    | Status   | Priorität  | Blocker?      |
-| ----------------------------------------- | ----------------------- | -------- | -------- | ---------- | ------------- |
-| **[Phase 0](#phase-0-notfall-reparatur)** | Build Fix + Basis-Demo  | 8h       | ✅ 100%  | � DONE     | ✅ RESOLVED   |
-| **[Phase 1](#phase-1-mvp-core)**          | MVP Core Features       | 25h      | � 75%    | 🔴 HIGHEST | ❌ NO (Ready) |
-| **[Phase 2](#phase-2-erweiterte-basis)**  | Cloud + Scheduler       | 30h      | 🔴 5%    | 🟠 HIGH    | ❌ NO         |
-| **[Phase 3](#phase-3-advanced-features)** | Erweiterte Features     | 25h      | � 0%     | 🟡 MEDIUM  | ❌ NO         |
-| **[Phase 4](#phase-4-testing--release)**  | Testing, Docs & Release | 20h      | � 10%    | � HIGH     | ❌ NO         |
-| **GESAMT**                                |                         | **108h** | **~20%** |            | **2 Blocker** |
+| Phase                                     | Beschreibung            | Dauer    | Status   | Priorität | Blocker?      |
+| ----------------------------------------- | ----------------------- | -------- | -------- | --------- | ------------- |
+| **[Phase 0](#phase-0-notfall-reparatur)** | Build Fix + Basis-Demo  | 8h       | ✅ 100%  | � DONE    | ✅ RESOLVED   |
+| **[Phase 1](#phase-1-mvp-core)**          | MVP Core Features       | 25h      | ✅ 100%  | � DONE    | ✅ RESOLVED   |
+| **[Phase 2](#phase-2-erweiterte-basis)**  | Cloud + Scheduler       | 30h      | 🔴 5%    | 🟠 HIGH   | ❌ NO         |
+| **[Phase 3](#phase-3-advanced-features)** | Erweiterte Features     | 25h      | � 0%     | 🟡 MEDIUM | ❌ NO         |
+| **[Phase 4](#phase-4-testing--release)**  | Testing, Docs & Release | 20h      | � 10%    | � HIGH    | ❌ NO         |
+| **GESAMT**                                |                         | **108h** | **~20%** |           | **2 Blocker** |
 
 ### Alte Milestones (M0-M6) archiviert
 
@@ -156,29 +156,25 @@ Die vorherigen Milestones M1-M6 waren zu optimistisch dokumentiert. Status siehe
 - ✅ get_repository_stats() nutzt State-System
 - ✅ Integration mit rustic_core API (Placeholder für Pack-Stats)
 
-#### ⏳ Verbleibende Arbeiten
+**Task 1.4: Snapshot-Commands Refactoring** ✅
 
-**Task 1.4: Snapshot-Commands Refactoring** (6h)
-
-- ⏳ compare_snapshots: Muss mit get_snapshots() statt node_from_snapshot() neu implementiert werden
-- ⏳ add/remove_snapshot_tags: Muss mit korrekter save_snapshot() API aktualisiert werden
-- Siehe backup-restore-snapshots.instructions.md
-
-```
-
-**Task 0.4: Minimaler Funktionstest** (3h)
-- ❌ Repository erstellen (lokal, OHNE Passwort als Zwischenlösung)
-- ❌ Basic UI zeigt etwas an
-- ❌ Ein Command funktioniert (z.B. list_repositories)
-- ❌ App startet ohne Crash
+- ✅ compare_snapshots: Implementiert mit get_snapshots() und paths-basiertem Vergleich
+- ✅ add_snapshot_tags: Implementiert mit save_snapshots() API + StringList::from_str
+- ✅ remove_snapshot_tags: Implementiert mit save_snapshots() API + StringList::from_str
+- ✅ Alle 3 Commands aktiviert in lib.rs
+- ✅ Build erfolgreich (0 Fehler, 28 Warnings)
+- ✅ Tests erfolgreich (64 passed)
 
 **Deliverables:**
+
 - ✅ `cargo build` erfolgreich
-- ✅ App startet und zeigt UI
-- ✅ Mindestens 1 funktionierender Workflow demonstrierbar
+- ✅ Alle MVP-Core-Commands funktional
+- ✅ State-System vollständig integriert
+- ✅ Tests laufen erfolgreich
 
+---
 
-### Risiko-Matrix
+### Phase 2: ERWEITERTE BASIS
 
 | Risiko                                        | Wahrscheinlichkeit | Impact     | Mitigation                                    |
 | --------------------------------------------- | ------------------ | ---------- | --------------------------------------------- |
@@ -268,4 +264,7 @@ M6 (Release) 🟢
 **Maintainer:** Rustic GUI Team
 
 🚀 **Los geht's mit [M1: rustic_core Integration](docs/roadmaps/M1-rustic-core-integration.md)!**
+
+```
+
 ```

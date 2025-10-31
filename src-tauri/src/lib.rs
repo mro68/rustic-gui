@@ -715,9 +715,9 @@ pub fn run() {
             get_snapshot_command,
             delete_snapshot_command,
             commands::snapshot::forget_snapshots,
-            // commands::snapshot::compare_snapshots, // TODO Phase 1: Refactoring benötigt - API geändert
-            // commands::snapshot::add_snapshot_tags, // TODO Phase 1: Refactoring benötigt - API geändert
-            // commands::snapshot::remove_snapshot_tags, // TODO Phase 1: Refactoring benötigt - API geändert
+            commands::snapshot::compare_snapshots,
+            commands::snapshot::add_snapshot_tags,
+            commands::snapshot::remove_snapshot_tags,
             // --- Restore ---
             get_file_tree_command,
             restore_files_v1,

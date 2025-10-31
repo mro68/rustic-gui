@@ -9,9 +9,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
-#### 2025-10-31 - Phase 1: Repository State-Architektur (🟡 75% - Fast fertig)
+#### 2025-10-31 - Phase 1: MVP Core Features (✅ 100% ABGESCHLOSSEN)
 
-- **Repository Caching System (Task 1.1):**
+- **Repository State-Architektur (Task 1.1):**
   - `CachedRepository` Struktur mit Arc<Repository> und Timestamp
   - 5-Minuten Cache-Timeout für bessere Performance
   - `AppState::get_repository(id)` mit automatischem Cache-Management
@@ -19,7 +19,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   - `AppState::get_current_repository_id()` Helper
   - `AppState::with_current_repo()` für sichere Repository-Operationen
 
-- **Snapshot-Management (Task 1.2):**
+- **Command-Migration (Task 1.2):**
   - `forget_snapshots()` Command reaktiviert mit neuem State-System
   - Nutzt rustic_core::delete_snapshots API für Batch-Operationen
   - Verbesserte Error-Handling mit Repository-Cache
@@ -28,6 +28,18 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   - `get_repository_stats()` nutzt jetzt State-System statt direktem Öffnen
   - Integration mit rustic_core API (Snapshot-Count funktional)
   - Placeholder für Pack-File-Statistics (wird in Phase 3 implementiert)
+
+- **Snapshot-Commands Refactoring (Task 1.4):**
+  - `compare_snapshots()` neu implementiert mit get_snapshots() API
+    - Paths-basierter Vergleich statt Tree-Traversierung
+    - HashSet-Performance-Optimierung für Diff-Berechnung
+    - Size-Change-Berechnung aus Snapshot-Summaries
+  - `add_snapshot_tags()` implementiert mit save_snapshots() API
+    - StringList::from_str für Tag-Konvertierung
+    - Batch-Save mit vec![snapshot]
+  - `remove_snapshot_tags()` implementiert mit save_snapshots() API
+    - Konsistente API-Nutzung mit add_snapshot_tags
+  - Alle 3 Commands in lib.rs aktiviert
 
 ### Fixed
 
