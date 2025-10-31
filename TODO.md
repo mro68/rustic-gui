@@ -100,10 +100,10 @@
     - 🕐 Recent Tab: Zuletzt verwendete Speicherorte
     - Referenz: `docs/mockups/rustic_location_picker.html`
   - ✅ DeleteRepoDialog.svelte (API-integriert + Error-Toast) **KOMPLETT 2025-10-30**
-  - ✅ UnlockRepositoryDialog.svelte (API-integriert + Toasts) **KOMPLETT 2025-10-30**
+  - ✅ UnlockRepositoryDialog.svelte (API-integriert + Toasts + Keychain) **KOMPLETT 2025-10-31**
   - ✅ CheckRepoDialog.svelte (API-integriert + Progress) **KOMPLETT 2025-10-30**
   - ✅ PruneRepoDialog.svelte (API-integriert + Toasts + Statistiken) **KOMPLETT 2025-10-31**
-  - ✅ ChangePasswordDialog.svelte (API-integriert + Validierung) **KOMPLETT 2025-10-30**
+  - ✅ ChangePasswordDialog.svelte (API-integriert + Validierung + Keychain) **KOMPLETT 2025-10-31**
   - ✅ CreateJobDialog.svelte (API-integriert)
   - ✅ EditJobDialog.svelte (API-integriert)
   - ✅ DeleteJobDialog.svelte (API-integriert)
@@ -430,8 +430,8 @@ Der wichtigste Schritt ist die Implementierung der Rust-Seite, die die in `src/l
 **Code-TODO-Verteilung:**
 - Rust-Backend: 44 TODOs in 10 Dateien (hauptsächlich rustic_core Integration)
 - TypeScript: 3 TODOs in 2 Dateien (Tracking-Kommentare + Hinweise)
-- Svelte: ~18 TODOs in 11 Dateien (Features + erweiterte Funktionen) **REDUZIERT**
-- **Gesamt: 65 TODOs** (ohne node_modules) **REDUZIERT von 75**
+- Svelte: ~15 TODOs in 9 Dateien (Features + erweiterte Funktionen) **REDUZIERT**
+- **Gesamt: 62 TODOs** (ohne node_modules) **REDUZIERT von 65**
 
 ### 🎯 Nächste Schritte (Priorität) - **AKTUALISIERT 2025-10-30**
 
@@ -556,6 +556,46 @@ _Svelte (28 TODOs):_
 - ✅ Command registriert und aktiviert
 - ⏳ Vollständige rustic_core Integration ausstehend
 
+### ✅ Keychain-Integration für Passwort-Verwaltung
+
+**Neue API:** `src/lib/api/keychain.ts` (39 Zeilen)
+
+**Funktionen:**
+- `storeRepositoryPassword(repoId, password)` - Speichert Passwort im System-Keychain
+- `getRepositoryPassword(repoId)` - Lädt Passwort aus Keychain
+- `deleteRepositoryPassword(repoId)` - Löscht Passwort aus Keychain
+
+**Integration in Dialogs:**
+- **UnlockRepositoryDialog:** 
+  - Speichert Passwort bei "Passwort merken"
+  - Non-blocking Error-Handling (Unlock funktioniert auch wenn Keychain fehlschlägt)
+- **ChangePasswordDialog:**
+  - Aktualisiert gespeichertes Passwort bei "Passwort speichern"
+  - Non-blocking Error-Handling
+
+**Backend:**
+- Commands bereits vorhanden in `src-tauri/src/lib.rs`:
+  - `store_repository_password` (Zeile 314)
+  - `get_repository_password` (Zeile 326)
+  - `delete_repository_password` (Zeile 335)
+
+**Status:**
+- ✅ API-Wrapper erstellt
+- ✅ Integration in UnlockRepositoryDialog
+- ✅ Integration in ChangePasswordDialog
+- ✅ Error-Handling implementiert
+
+### ✅ Code-Qualität Verbesserungen
+
+**TODOs behoben:**
+- ✅ SnapshotInfoDialog: Proper TypeScript typing (SnapshotDto statt any)
+- ✅ UnlockRepositoryDialog: Keychain-Integration implementiert
+- ✅ ChangePasswordDialog: Keychain-Integration implementiert
+
+**Metriken:**
+- TODO-Count: 62 (vorher 65) - **Reduktion um 3**
+- Svelte-TODOs: ~15 (vorher ~18)
+
 ### 📊 Aktualisierte Metriken
 
 **Backend:**
@@ -565,9 +605,11 @@ _Svelte (28 TODOs):_
 **Frontend:**
 - 13 Dialogs alle vollständig implementiert
 - PruneRepoDialog von 0 auf 464 Zeilen
+- Neue keychain.ts API (39 Zeilen)
 
 **Code-Qualität:**
 - Cargo fmt auf Rust-Code angewendet
+- TODO-Count: 62 (Ziel: <20)
 - TODO-Count: 65 (Ziel: <20)
 
 ---
