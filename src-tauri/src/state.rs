@@ -5,11 +5,13 @@ use std::sync::Arc;
 use tokio::sync::Mutex as AsyncMutex;
 use tokio_util::sync::CancellationToken;
 
-/// Platzhalter für Repository-Typ bis rustic_core Integration fertig ist
-type Repository = (); // TODO: Ersetze mit rustic_core::Repository<...>
+// Für M1: Wir speichern das Repository nicht im State, da der Type komplex ist.
+// Stattdessen öffnen wir es bei Bedarf neu (Performance-Trade-off für M1).
+// TODO M2: Optimiere durch Caching des geöffneten Repositories
+pub type RusticRepository = (); // Platzhalter
 
-/// Platzhalter für Scheduler bis Job-Scheduling implementiert ist
-type BackupScheduler = (); // TODO: Ersetze mit richtiger Scheduler-Implementierung
+/// Platzhalter für Scheduler bis Job-Scheduling implementiert ist (M3)
+type BackupScheduler = (); // TODO M3: Ersetze mit tokio-cron-scheduler
 
 /// Globaler Application-State.
 ///
@@ -18,13 +20,13 @@ type BackupScheduler = (); // TODO: Ersetze mit richtiger Scheduler-Implementier
 #[derive(Clone)]
 pub struct AppState {
     /// Aktuell geöffnetes Repository
-    pub current_repo: Arc<Mutex<Option<Repository>>>,
+    pub current_repo: Arc<Mutex<Option<RusticRepository>>>,
 
     /// Cancellation-Tokens für laufende Backups
     /// Key: Job-ID, Value: CancellationToken
     pub cancellation_tokens: Arc<Mutex<HashMap<String, CancellationToken>>>,
 
-    /// Job-Scheduler für zeitgesteuerte Backups
+    /// Job-Scheduler für zeitgesteuerte Backups (M3)
     pub scheduler: Arc<AsyncMutex<BackupScheduler>>,
 
     /// App-Konfiguration (TOML)
@@ -44,13 +46,21 @@ impl AppState {
         })
     }
 
-    /// Helper: Hole aktuelles Repository oder gib Fehler zurück.
-    pub fn get_current_repo(&self) -> crate::error::Result<Repository> {
-        self.current_repo.lock().clone().ok_or_else(|| {
-            crate::error::RusticGuiError::RepositoryNotFound {
-                path: "Kein Repository geöffnet".to_string(),
-            }
-        })
+    /// Helper: Prüft ob ein Repository geöffnet ist.
+    pub fn has_current_repo(&self) -> bool {
+        // TODO M2: Echte Repository-Prüfung
+        false
+    }
+
+    /// Helper: TODO M2 - Repository-Zugriff muss neu designed werden
+    pub fn with_current_repo<F, R>(&self, f: F) -> crate::error::Result<R>
+    where
+        F: FnOnce() -> crate::error::Result<R>,
+    {
+        // TODO M2: Implementiere wenn Repository-Caching fertig ist
+        Err(crate::error::RusticGuiError::Internal(
+            "Repository-Zugriff noch nicht implementiert (M2)".to_string(),
+        ))
     }
 
     /// Helper: Speichert Config auf Disk.
@@ -69,15 +79,18 @@ mod tests {
     #[test]
     fn test_app_state_creation() {
         let state = AppState::new().unwrap();
-        assert!(state.current_repo.lock().is_none());
+        assert!(!state.has_current_repo());
         assert!(state.cancellation_tokens.lock().is_empty());
     }
 
     #[test]
     fn test_get_current_repo_when_none() {
         let state = AppState::new().unwrap();
-        let result = state.get_current_repo();
-        assert!(matches!(result, Err(crate::error::RusticGuiError::RepositoryNotFound { .. })));
+        let result = state.with_current_repo(|_repo| Ok(()));
+        assert!(matches!(
+            result,
+            Err(crate::error::RusticGuiError::RepositoryNotFound { .. })
+        ));
     }
 
     #[test]

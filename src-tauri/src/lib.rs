@@ -212,9 +212,59 @@ fn init_repository(
     password: String,
     backend_type: String,
     backend_options: Option<serde_json::Value>,
+    state: tauri::State<'_, state::AppState>,
 ) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
-    rustic::repository::init_repository(&path, &password, &backend_type, backend_options)
-        .map_err(|e| crate::types::ErrorDto::from(&e))
+    // 1. Repository initialisieren mit rustic_core
+    let dto = rustic::repository::init_repository(&path, &password, &backend_type, backend_options)
+        .map_err(|e| crate::types::ErrorDto::from(&e))?;
+
+    // 2. Repository-ID generieren
+    let repo_id = dto.id.clone();
+
+    // 3. Passwort in Keychain speichern
+    let password_stored = match keychain::store_password(&repo_id, &password) {
+        Ok(_) => {
+            tracing::info!("Passwort für Repository '{}' in Keychain gespeichert", repo_id);
+            true
+        }
+        Err(e) => {
+            tracing::warn!(
+                "Passwort konnte nicht in Keychain gespeichert werden: {}. Repository kann trotzdem verwendet werden.",
+                e
+            );
+            false
+        }
+    };
+
+    // 4. Repository in Config speichern
+    {
+        let mut config = state.config.lock();
+        let repo_config = crate::config::RepositoryConfig {
+            id: repo_id.clone(),
+            name: dto.name.clone(),
+            path: dto.path.clone(),
+            backend_type: match backend_type.as_str() {
+                "local" => crate::config::BackendType::Local,
+                "sftp" => crate::config::BackendType::Sftp,
+                "s3" => crate::config::BackendType::S3,
+                "rest" => crate::config::BackendType::Rest,
+                "rclone" => crate::config::BackendType::Rclone,
+                _ => crate::config::BackendType::Local,
+            },
+            backend_options: None,
+            password_stored,
+        };
+        config.add_repository(repo_config);
+    }
+
+    // 5. Config speichern
+    state.save_config().map_err(|e| crate::types::ErrorDto {
+        code: "ConfigError".to_string(),
+        message: format!("Config-Speicherung fehlgeschlagen: {}", e),
+        details: None,
+    })?;
+
+    Ok(dto)
 }
 
 #[tauri::command]
@@ -222,8 +272,22 @@ fn open_repository(
     path: String,
     password: String,
 ) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
-    rustic::repository::open_repository(&path, &password)
-        .map_err(|e| crate::types::ErrorDto::from(&e))
+    // Öffne das Repository intern
+    let _repo = rustic::repository::open_repository(&path, &password).map_err(|e| crate::types::ErrorDto::from(&e))?;
+
+    // Gib ein DTO zurück (ohne das Repository zu speichern)
+    // Das eigentliche Speichern geschieht via switch_repository
+    Ok(RepositoryDto {
+        id: format!("repo-{}", std::path::Path::new(&path).file_name().and_then(|n| n.to_str()).unwrap_or("unknown")),
+        name: std::path::Path::new(&path).file_name().and_then(|n| n.to_str()).unwrap_or("Unknown Repository").to_string(),
+        path: path.clone(),
+        repository_type: crate::types::RepositoryType::Local,
+        status: crate::types::RepositoryStatus::Healthy,
+        snapshot_count: 0, // TODO: Get from repo
+        total_size: 0,
+        last_accessed: Some(chrono::Utc::now().to_rfc3339()),
+        created_at: chrono::Utc::now().to_rfc3339(),
+    })
 }
 
 #[tauri::command]
@@ -247,43 +311,56 @@ fn get_repository_info(
 #[tauri::command]
 fn switch_repository(
     repository_id: String,
+    password: String,
     state: tauri::State<'_, state::AppState>,
 ) -> std::result::Result<types::RepositoryDto, crate::types::ErrorDto> {
-    // TODO: Implementiere vollständiges Repository-Switching
-    // Für jetzt nur ein Platzhalter mit vereinfachter Logik
+    // 1. Altes Repository schließen (TODO M2: Wenn Caching implementiert ist)
+    // Für M1: Wir öffnen Repositories bei Bedarf, kein Caching
 
-    // 1. Altes Repository schließen
-    {
-        let mut current = state.current_repo.lock();
-        if let Some(_old_repo) = current.take() {
-            // drop(old_repo) - automatisch via take()
-            tracing::debug!("Altes Repository geschlossen");
-        }
-    }
+    // 2. Repo-Config laden
+    let (path, repo_name, backend_type) = {
+        let config = state.config.lock();
+        let repo = config
+            .get_repository(&repository_id)
+            .ok_or_else(|| crate::error::RusticGuiError::RepositoryNotFound {
+                path: format!("Repository-ID: {}", repository_id),
+            })
+            .map_err(|e| crate::types::ErrorDto::from(&e))?;
 
-    // 2. TODO: Repo-Config laden (Milestone 1.4)
-    // Für jetzt simulieren wir eine Config
+        (repo.path.clone(), repo.name.clone(), repo.backend_type.clone())
+    };
 
-    // 3. TODO: Neues Repository öffnen (richtige rustic_core Integration)
-    // Für jetzt nur Platzhalter
+    // 3. Repository öffnen und validieren (aber nicht im State speichern für M1)
+    let opened = rustic::repository::open_repository(&path, &password).map_err(|e| crate::types::ErrorDto::from(&e))?;
 
     // 4. Repository-Info für Frontend erstellen
     let info = types::RepositoryDto {
         id: repository_id.clone(),
-        name: format!("Repository {}", repository_id),
-        path: format!("/tmp/repo-{}", repository_id), // Platzhalter
-        repository_type: types::RepositoryType::Local,
+        name: repo_name,
+        path: path.clone(),
+        repository_type: match backend_type {
+            crate::config::BackendType::Local => types::RepositoryType::Local,
+            crate::config::BackendType::Sftp => types::RepositoryType::Sftp,
+            crate::config::BackendType::S3 => types::RepositoryType::S3,
+            crate::config::BackendType::Rest => types::RepositoryType::Rest,
+            crate::config::BackendType::Rclone => types::RepositoryType::Rclone,
+        },
         status: types::RepositoryStatus::Healthy,
-        snapshot_count: 0, // TODO: Aus Repository lesen
-        total_size: 0,     // TODO: Berechnen
+        snapshot_count: opened.snapshot_count,
+        total_size: opened.total_size,
         last_accessed: Some(chrono::Utc::now().to_rfc3339()),
         created_at: chrono::Utc::now().to_rfc3339(),
     };
 
-    // 5. TODO: Repository in State speichern (wenn rustic_core fertig)
-    // Für jetzt lassen wir current_repo None
+    // 6. TODO M2: Repository in State speichern für Performance
+    // Für jetzt lassen wir es weg wegen Type-Komplexität
 
-    tracing::info!("Repository gewechselt zu: {}", repository_id);
+    // 7. Passwort aktualisieren in Keychain
+    if let Err(e) = keychain::store_password(&repository_id, &password) {
+        tracing::warn!("Passwort konnte nicht in Keychain aktualisiert werden: {}", e);
+    }
+
+    tracing::info!("Repository gewechselt: {} ({})", repository_id, path);
 
     Ok(info)
 }

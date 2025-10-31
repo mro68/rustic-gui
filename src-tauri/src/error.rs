@@ -7,6 +7,9 @@ impl From<&RusticGuiError> for ErrorDto {
             RepositoryNotFound { path } => {
                 ("RepositoryNotFound", error.to_string(), Some(format!("path: {}", path)))
             }
+            RepositoryAlreadyExists { path } => {
+                ("RepositoryAlreadyExists", error.to_string(), Some(format!("path: {}", path)))
+            }
             RepositoryLocked => ("RepositoryLocked", error.to_string(), None),
             AuthenticationFailed => ("AuthenticationFailed", error.to_string(), None),
             SnapshotNotFound { id } => {
@@ -18,6 +21,7 @@ impl From<&RusticGuiError> for ErrorDto {
                 ("InvalidConfig", error.to_string(), Some(format!("field: {}", field)))
             }
             ConfigError { message } => ("ConfigError", error.to_string(), Some(message.clone())),
+            RusticError { message } => ("RusticError", error.to_string(), Some(message.clone())),
             IoError(e) => ("IoError", error.to_string(), Some(e.to_string())),
             JsonError(e) => ("JsonError", error.to_string(), Some(e.to_string())),
             TomlError(msg) => ("TomlError", error.to_string(), Some(msg.clone())),
@@ -36,6 +40,9 @@ use thiserror::Error;
 pub enum RusticGuiError {
     #[error("Repository nicht gefunden: {path}")]
     RepositoryNotFound { path: String },
+
+    #[error("Repository existiert bereits: {path}")]
+    RepositoryAlreadyExists { path: String },
 
     #[error("Repository ist gesperrt")]
     RepositoryLocked,
@@ -58,6 +65,9 @@ pub enum RusticGuiError {
     #[error("Konfigurationsfehler: {message}")]
     ConfigError { message: String },
 
+    #[error("rustic-Fehler: {message}")]
+    RusticError { message: String },
+
     #[error("IO-Fehler: {0}")]
     IoError(#[from] std::io::Error),
 
@@ -73,6 +83,15 @@ pub enum RusticGuiError {
 
 /// Typ-Alias für Results mit RusticGuiError
 pub type Result<T> = std::result::Result<T, RusticGuiError>;
+
+// Konvertierung von rustic_core Fehlern
+impl From<rustic_core::RusticError> for RusticGuiError {
+    fn from(error: rustic_core::RusticError) -> Self {
+        RusticGuiError::RusticError {
+            message: error.to_string(),
+        }
+    }
+}
 
 /// Konvertierung für Tauri (braucht String)
 impl From<RusticGuiError> for String {
