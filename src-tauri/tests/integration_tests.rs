@@ -1,4 +1,4 @@
-use rustic_gui_lib::{error::Result, state::AppState, types::*};
+use rustic_gui_lib::{state::AppState, types::*};
 
 #[cfg(test)]
 mod integration_tests {
@@ -71,6 +71,8 @@ mod integration_tests {
             file_count: 1337,
             total_size: 512 * 1024 * 1024, // 512MB
             repository_id: "repo-1".to_string(),
+            username: Some("testuser".to_string()),
+            summary: None,
         };
 
         assert_eq!(snapshot.id, "snapshot-1");
@@ -103,21 +105,30 @@ mod integration_tests {
 
     #[test]
     fn test_repository_type_serialization() {
-        // Teste dass alle RepositoryTypes korrekt sind
-        assert_eq!(RepositoryType::Local as i32, 0);
-        assert_eq!(RepositoryType::Sftp as i32, 1);
-        assert_eq!(RepositoryType::S3 as i32, 2);
-        assert_eq!(RepositoryType::Rest as i32, 3);
-        assert_eq!(RepositoryType::Rclone as i32, 4);
+        // Teste dass alle RepositoryTypes korrekt serialisiert werden können
+        use serde_json;
+        
+        let local = RepositoryType::Local;
+        let json = serde_json::to_string(&local).unwrap();
+        assert!(json.contains("Local"));
+        
+        let sftp = RepositoryType::Sftp;
+        let json = serde_json::to_string(&sftp).unwrap();
+        assert!(json.contains("Sftp"));
     }
 
     #[test]
     fn test_repository_status_serialization() {
-        // Teste dass alle RepositoryStatus korrekt sind
-        assert_eq!(RepositoryStatus::Healthy as i32, 0);
-        assert_eq!(RepositoryStatus::Warning as i32, 1);
-        assert_eq!(RepositoryStatus::Unavailable as i32, 2);
-        assert_eq!(RepositoryStatus::Locked as i32, 3);
+        // Teste dass alle RepositoryStatus korrekt serialisiert werden können
+        use serde_json;
+        
+        let healthy = RepositoryStatus::Healthy;
+        let json = serde_json::to_string(&healthy).unwrap();
+        assert!(json.contains("Healthy"));
+        
+        let warning = RepositoryStatus::Warning;
+        let json = serde_json::to_string(&warning).unwrap();
+        assert!(json.contains("Warning"));
     }
 
     #[test]

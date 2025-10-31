@@ -30,13 +30,13 @@
 //    - Job-Scheduler für zeitgesteuerte Backups
 //    - Vollständige Error-DTOs (types.rs:45-51)
 
-mod commands;
-mod config;
-mod error;
-mod keychain;
-mod rustic;
-mod state;
-mod types;
+pub mod commands;
+pub mod config;
+pub mod error;
+pub mod keychain;
+pub mod rustic;
+pub mod state;
+pub mod types;
 
 use serde::Serialize;
 use std::time::Duration;
