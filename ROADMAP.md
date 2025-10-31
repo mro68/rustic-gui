@@ -1,30 +1,53 @@
-# Rustic GUI - Development Roadmap v2.0
+# Rustic GUI - Development Roadmap v3.0
 
-> **Projekt-Roadmap mit Fokus auf vollständige rustic_core/rustic_backend Integration**
+> **REALISTISCHE Projekt-Roadmap basierend auf tatsächlichem Implementierungsstand**
 >
-> Version: 2.0 | Status: Backend-Integration Phase | Aktualisiert: 2025-10-31
+> Version: 3.0 | Status: 🔴 BUILD BROKEN - Phase 0 erforderlich | Aktualisiert: 2025-10-31
 
 ---
 
-## 📊 Projekt-Übersicht
+## � KRITISCHE WARNUNG
+
+**Das Projekt kompiliert aktuell NICHT!**
+
+```bash
+error[E0433]: failed to resolve: could not find `PackFile` in `repofile`
+   --> src-tauri/src/rustic/repository.rs:593:43
+```
+
+**Phase 0 (Notfall-Reparatur) MUSS zuerst durchgeführt werden!**
+
+---
+
+## �📊 Projekt-Übersicht
 
 ### Ziel
 
 **Produktionsreife Desktop-Anwendung** für rustic Backup-Management mit vollständiger rustic_core/rustic_backend Integration, Cloud-Storage-Support (S3, Azure, GCS via OpenDAL + Rclone), Job-Scheduling und Multi-Repository-Management.
 
-### Aktueller Status (2025-10-31)
+### Aktueller Status (2025-10-31) - KORRIGIERT
 
-- ✅ **UI-Layer:** ~95% komplett (alle Dialoge, Pages, Komponenten implementiert gemäß Mockups)
-- ✅ **Backend-Integration:** ~75% komplett (M1 vollständig, rustic_core voll integriert)
-- ✅ **Cloud-Backends:** 100% (M2 KOMPLETT - OpenDAL, Rclone, Credentials, Favoriten, Docs)
-- ✅ **Job-Scheduler:** 100% (M3 KOMPLETT - tokio-cron, Persistence, Commands implementiert)
-- ❌ **Testing:** ~55% (54 Backend-Tests, Frontend-Tests fehlen noch)
+- ✅ **UI-Layer:** ~90% vorhanden (Komponenten existieren, Backend-Integration fehlt)
+- 🔴 **Backend-Integration:** ~30% funktional (Code existiert, aber nicht getestet/vollständig)
+- 🔴 **Cloud-Backends:** 0% funktional (nur Code-Skelett vorhanden)
+- 🟡 **Job-Scheduler:** ~40% (Struktur da, nicht integriert/getestet)
+- 🔴 **Testing:** ~5% (Build broken = Tests laufen nicht)
 
-### Geschätzte verbleibende Dauer
+### Tatsächlicher Gesamtfortschritt: ~20-30%
 
-**~137 Stunden / 3.5 Wochen** (bei Vollzeit-Entwicklung)
+**NICHT** die vorher genannten ~53%! Die vorherige Roadmap war zu optimistisch.
 
-**Kritischer Pfad zu v1.0:** M4 → M5 → M6 (97h / 2.5 Wochen)
+### Geschätzte verbleibende Dauer bis v1.0
+
+**~108 Stunden / 3 Wochen** (bei Vollzeit-Entwicklung)
+
+- Phase 0 (Notfall): 8h
+- Phase 1 (MVP): 25h
+- Phase 2 (Erweitert): 30h
+- Phase 3 (Advanced): 25h
+- Phase 4 (Testing+Docs): 20h
+
+**Kritischer Pfad:** Phase 0 → Phase 1 → MVP (33h / 1 Woche)
 
 ### Technologie-Stack
 
@@ -50,290 +73,66 @@
 
 ---
 
-## 🎯 Milestone-Übersicht
+## 🎯 Phasen-Übersicht (NEU - Realistisch)
 
-| Milestone                                             | Beschreibung                    | Dauer    | Status   | Priorität  | Blocker?      |
-| ----------------------------------------------------- | ------------------------------- | -------- | -------- | ---------- | ------------- |
-| **M0**                                                | Projekt-Setup                   | 5 Tage   | ✅ 100%  | -          | -             |
-| **[M1](docs/roadmaps/M1-rustic-core-integration.md)** | rustic_core Integration         | 60h      | ✅ 100%  | ✅ DONE    | ✅ RESOLVED   |
-| **[M2](docs/roadmaps/M2-cloud-backends.md)**          | Cloud-Backends (OpenDAL/Rclone) | 30h      | ✅ 100%  | ✅ DONE    | ✅ RESOLVED   |
-| **[M3](docs/roadmaps/M3-job-scheduler.md)**           | Job-Scheduler (tokio-cron)      | 30h      | ✅ 100%  | ✅ DONE    | ✅ RESOLVED   |
-| **[M4](docs/roadmaps/M4-advanced-features.md)**       | Erweiterte Features             | 40h      | 🟡 20%   | 🟡 MEDIUM  | ❌ NO         |
-| **[M5](docs/roadmaps/M5-testing-qa.md)**              | Testing & QA                    | 54h      | 🟡 25%   | 🔴 HIGHEST | ✅ YES        |
-| **[M6](docs/roadmaps/M6-documentation-release.md)**   | Dokumentation & Release         | 13h      | 🟡 50%   | 🟢 LOW     | ❌ NO         |
-| **GESAMT**                                            |                                 | **227h** | **~53%** |            | **1 Blocker** |
+| Phase                                     | Beschreibung            | Dauer    | Status   | Priorität  | Blocker?         |
+| ----------------------------------------- | ----------------------- | -------- | -------- | ---------- | ---------------- |
+| **[Phase 0](#phase-0-notfall-reparatur)** | Build Fix + Basis-Demo  | 8h       | 🔴 0%    | 🔴 HIGHEST | ✅ YES (BUILD)   |
+| **[Phase 1](#phase-1-mvp-core)**          | MVP Core Features       | 25h      | 🔴 20%   | 🔴 HIGHEST | ✅ YES (Phase 0) |
+| **[Phase 2](#phase-2-erweiterte-basis)**  | Cloud + Scheduler       | 30h      | 🔴 5%    | 🟠 HIGH    | ❌ NO            |
+| **[Phase 3](#phase-3-advanced-features)** | Erweiterte Features     | 25h      | � 0%     | 🟡 MEDIUM  | ❌ NO            |
+| **[Phase 4](#phase-4-testing--release)**  | Testing, Docs & Release | 20h      | � 10%    | � HIGH     | ❌ NO            |
+| **GESAMT**                                |                         | **108h** | **~20%** |            | **2 Blocker**    |
 
----
+### Alte Milestones (M0-M6) archiviert
 
-## 📋 Detaillierte Milestones
+Die vorherigen Milestones M1-M6 waren zu optimistisch dokumentiert. Status siehe `docs/reports/archive/`.
 
-### Milestone 0: Projekt-Setup ✅ ABGESCHLOSSEN
+## 📋 Detaillierte Phasen
 
-**Dauer:** 5 Tage | **Status:** 100% komplett | **Abgeschlossen:** Oktober 2025
+### Phase 0: NOTFALL-REPARATUR 🚨 KRITISCH
 
-**Durchgeführte Arbeiten:**
+**Dauer:** 8h (1 Tag) | **Status:** 🔴 0% - NICHT GESTARTET  
+**Priorität:** 🔴 HÖCHSTE | **Blocker:** Ja (Projekt kompiliert nicht)
 
-- ✅ Tauri 2.0 + Svelte 5 Projekt initialisiert
-- ✅ Projekt-Struktur erstellt (`src/`, `src-tauri/`, `docs/`)
-- ✅ Dependencies konfiguriert (Cargo.toml, package.json)
-- ✅ Build-Pipeline eingerichtet (Vite, Cargo, Tauri CLI)
-- ✅ Grundlegende Typen definiert (DTOs, Error-Types)
-- ✅ AppState-Struktur erstellt
-- ✅ Config-System aufgesetzt (TOML-basiert)
-- ✅ Keychain-Integration für Passwörter
-- ✅ Development-Workflow etabliert
+**Ziel:** Projekt kompilierbar machen und minimalen Funktionsumfang demonstrieren können.
 
-**Resultat:** Funktionsfähiges Entwicklungs-Environment mit allen Dependencies.
+#### Tasks
 
----
+**Task 0.1: Build-Fehler beheben** (2h)
 
-### [Milestone 1: rustic_core Integration](docs/roadmaps/M1-rustic-core-integration.md) ✅ ABGESCHLOSSEN
+- ❌ PackFile-Error in `src-tauri/src/rustic/repository.rs:593,602` fixen
+- ❌ rustic_core 0.8.0 API-Änderungen nachvollziehen
+- ❌ Alternative API für Repository-Statistiken finden ODER
+- ❌ Feature temporär deaktivieren (get_repository_stats)
 
-**Dauer:** 60h (1.5 Wochen) | **Status:** 100% - KOMPLETT  
-**Priorität:** 🔴 HIGHEST | **Abgeschlossen:** 2025-10-31
+**Task 0.2: Warnings bereinigen** (1h)
 
-**Ziel:** Alle Backend-Stubs durch echte rustic_core/rustic_backend Calls ersetzen.
-
-**Implementierte Features:**
-
-- ✅ **Repository-Management** (src-tauri/src/rustic/repository.rs)
-  - init_repository() - Voll funktional mit rustic_core
-  - open_repository() - Voll funktional
-  - check_repository() - Mit Status-Ermittlung (Healthy/Locked/Unavailable)
-  - get_repository_info() - Mit echten Snapshot-Counts
-  - prune_repository() - Mit dry-run Support
-  - change_password() - Vollständig implementiert
-
-- ✅ **Backup-Execution** (src-tauri/src/rustic/backup.rs)
-  - run_backup_logic() - Mit rustic_core::Repository::backup()
-  - Progress-Callbacks über Tauri Events
-  - CancellationToken-Integration
-  - Tags und Exclude-Patterns Support
-  - Error-Handling mit RusticGuiError
-
-- ✅ **Restore-Funktionalität** (src-tauri/src/rustic/restore.rs)
-  - restore_files() - Echte Datei-Wiederherstellung
-  - get_file_tree() - File-Browser für Navigation
-  - Overwrite-Policy Support
-  - Progress-Events (Start, Completed, Failed)
-
-- ✅ **Snapshot-Management** (src-tauri/src/rustic/snapshot.rs)
-  - list_snapshots() - Mit Sortierung nach Datum
-  - get_snapshot() - Vollständige Metadaten
-  - delete_snapshot() - Voll funktional
-  - forget_snapshots() - Retention-Policy (keep_last)
-
-**Qualitäts-Metriken:**
-- ✅ 54 Tests erfolgreich (40 unit + 10 integration + 4 snapshot)
-- ✅ 26 Tauri Commands voll funktional
-- ✅ ~65% Test-Coverage (geschätzt)
-- ✅ Strukturiertes Error-Handling
-- ✅ Durchgängiges Logging mit tracing
-- ✅ Vollständige Rustdoc-Dokumentation
-
-**Resultat:** Alle Kern-Features nutzen jetzt rustic_core statt Mock-Daten. Backend ist produktionsreif für Haupt-Workflows (Init → Backup → Restore → Snapshot-Management).
+- ❌ Unused imports entfernen (3 Stellen)
+- ❌ Unused variables fixen (5+ Stellen)
 
 ---
 
-### [Milestone 2: Cloud-Backend-Integration](docs/roadmaps/M2-cloud-backends.md) ✅ 100% ABGESCHLOSSEN
+### Phase 1: MVP CORE FEATURES 🎯
 
-**Dauer:** 30h (1 Woche) | **Status:** 100% - KOMPLETT  
-**Priorität:** 🟠 HIGH
+**Dauer:** 25h (3-4 Tage) | **Status:** 🔴 20% - IN ARBEIT  
+**Priorität:** 🔴 HÖCHSTE | **Abhängigkeit:** Phase 0 MUSS abgeschlossen sein
 
-**Ziel:** OpenDAL + Rclone Backend-Support für Cloud-Storage.
+**Ziel:** Minimaler funktionsfähiger Prototyp - Backup/Restore für lokale Repositories.
 
-**Implementiert (2025-10-31):**
+```
 
-- ✅ OpenDAL-Modul (backends/opendal.rs) - S3, Azure, GCS, B2 Support
-- ✅ Rclone-Modul (backends/rclone.rs) - SFTP + 70+ Provider Support
-- ✅ Backend-Integration in repository.rs (init_repository erweitert)
-- ✅ Connection-Test Command (test_repository_connection)
-- ✅ Cloud-Credential-Management (Keychain-Integration)
-- ✅ LocationPickerDialog: Connection-Test UI
-- ✅ Favoriten-Management (Commands + UI komplett)
-- ✅ Recent-Tab mit Backend-Integration
-- ✅ Credential-Prompt nach erfolgreichem Connection-Test
-- ✅ Dokumentation: Cloud-Setup-Anleitung in README
+**Task 0.4: Minimaler Funktionstest** (3h)
+- ❌ Repository erstellen (lokal, OHNE Passwort als Zwischenlösung)
+- ❌ Basic UI zeigt etwas an
+- ❌ Ein Command funktioniert (z.B. list_repositories)
+- ❌ App startet ohne Crash
 
 **Deliverables:**
+- ✅ `cargo build` erfolgreich
+- ✅ App startet und zeigt UI
+- ✅ Mindestens 1 funktionierender Workflow demonstrierbar
 
-- ✅ 3 neue Backend-Module (backends/mod.rs, opendal.rs, rclone.rs)
-- ✅ 8 neue Tauri-Commands (Connection-Test, Favorites, Credentials)
-- ✅ 19 Unit-Tests (OpenDAL: 11, Rclone: 8)
-- ✅ Vollständige UI-Integration im LocationPickerDialog
-- ✅ Umfassende README-Dokumentation mit Cloud-Provider-Beispielen
-
-**UI vorhanden:** LocationPickerDialog mit Local/Network/Cloud/Recent Tabs
-
-➡️ **[Detaillierte Tasks anzeigen](docs/roadmaps/M2-cloud-backends.md)**
-
----
-
-### [Milestone 3: Job-Scheduler](docs/roadmaps/M3-job-scheduler.md) ✅ ABGESCHLOSSEN
-
-**Dauer:** 30h (1 Woche) | **Status:** 100% - KOMPLETT  
-**Priorität:** ✅ DONE | **Abgeschlossen:** 2025-10-31
-
-**Ziel:** Automatisierte Backup-Jobs mit Cron-Scheduling.
-
-**Implementierte Features:**
-
-- ✅ **BackupScheduler** (src-tauri/src/scheduler/mod.rs)
-  - tokio-cron-scheduler Integration
-  - schedule_job, remove_job, list_scheduled_jobs, has_job
-  - 6 Unit-Tests (alle erfolgreich)
-  
-- ✅ **AppState-Integration**
-  - Option<BackupScheduler> mit async Initialisierung
-  - setup-Hook für Scheduler-Start
-  
-- ✅ **Tauri Commands** (src-tauri/src/commands/backup.rs)
-  - schedule_backup - Plant Jobs mit Cron-Expressions
-  - unschedule_backup - Entfernt geplante Jobs
-  - list_scheduled_backups - Listet aktive Jobs
-  - list_job_history - Job-Execution-History
-  
-- ✅ **Job-State-Persistence**
-  - JobExecution und JobExecutionStatus Types
-  - job_executions in AppConfig (TOML)
-  - restore_scheduled_jobs beim App-Start
-  - Automatische History-Limitierung (1000 Einträge)
-  - cleanup_old_executions (Aufräumen alter Einträge)
-  
-- ✅ **Event-System**
-  - scheduled-backup-started Event
-  - scheduled-backup-completed Event
-  - Fehler-Tracking in JobExecution
-
-**Tests:** 6/6 Scheduler-Tests erfolgreich, alle Compilierungs-Fehler behoben
-
-**Resultat:** Vollständiges Job-Scheduling-System bereit für Automatisierung.
-
-➡️ **[Detaillierte Tasks anzeigen](docs/roadmaps/M3-job-scheduler.md)**
-
----
-
-### [Milestone 4: Erweiterte Features](docs/roadmaps/M4-advanced-features.md) ✅ KOMPLETT
-
-**Dauer:** 40h (1 Woche) | **Status:** 100% - ABGESCHLOSSEN  
-**Priorität:** 🟡 MEDIUM | **Abgeschlossen:** 2025-10-31
-
-**Ziel:** Erweiterte rustic_core Features nutzen.
-
-**Umfang:**
-
-- Snapshot-Tag-Management (8h) ✅ KOMPLETT
-- Snapshot-Diff/Vergleich (12h) ✅ KOMPLETT
-- Repository-Statistiken (10h) ✅ KOMPLETT
-- Settings-Backend-Integration (6h) ✅ KOMPLETT
-- Batch-Operations (4h) ✅ KOMPLETT
-
-**Implementierte Features:**
-
-✅ **Tag-Management** (M4.1)
-- Backend: add_snapshot_tags(), remove_snapshot_tags()
-- Frontend: TagEditorDialog mit voller UI-Integration
-- Snapshot-Filtering nach Tags, Hostname, Zeitraum
-- Kontext-Menü "Tags bearbeiten" in Snapshots-Seite
-
-✅ **Snapshot-Comparison** (M4.2)
-- Backend: compare_snapshots() mit Tree-Vergleich
-- Erkennt Added/Removed/Modified Files
-- Frontend: CompareSnapshotsDialog mit Two-Step-Selection
-- Farbcodierte Diff-Anzeige mit Statistiken
-
-✅ **Repository-Statistiken** (M4.3)
-- Backend: get_repository_stats() Command
-- Nutzt rustic_core::infos_files() API
-- Statistiken: Snapshots, Packs, Index-Files, Compression-Ratio, Deduplication-Ratio
-- Frontend: API-Wrapper bereit für Dashboard-Integration
-
-✅ **Settings-Persistence** (M4.4)
-- Backend: get_settings(), save_settings(), reset_settings(), update_theme()
-- AppSettings erweitert: Theme, Language, Notifications, Password-Storage, Lock-Timeout
-- Frontend: Settings-Seite voll funktional mit Backend-Integration
-- Auto-Speicherung in Config (TOML)
-
-✅ **Batch-Operations** (M4.5)
-- Backend: forget_snapshots() für Multi-Delete
-- Frontend: Bereits in Kontext-Menü integriert
-
-**Resultat:** Alle erweiterten Features implementiert und getestet.
-
-➡️ **[Detaillierte Tasks anzeigen](docs/roadmaps/M4-advanced-features.md)**
-
----
-
-### [Milestone 5: Testing & QA](docs/roadmaps/M5-testing-qa.md) 🧪 KRITISCH
-
-**Dauer:** 54h (1.5 Wochen) | **Status:** 25% - IN ARBEIT  
-**Priorität:** 🔴 HIGHEST | **Begonnen:** 2025-10-31
-
-**Ziel:** Produktionsreife durch Testing absichern.
-
-**Umfang:**
-
-- ✅ Frontend Build-Fehler beheben - KOMPLETT (2025-10-31)
-- ✅ Frontend Store-Tests (M5.2.1) - 63 Tests hinzugefügt ✅
-- ⏸️ Backend Unit-Tests (M5.1) - Blockiert (GTK-Dependencies)
-- ⏸️ Frontend Component-Tests (M5.2) - Svelte 5 Probleme
-- 🔴 Integration-Tests (M5.3) - Ausstehend
-- 🔴 E2E-Tests (M5.4) - Ausstehend
-
-**Erledigte Arbeiten:**
-
-✅ **Build-System stabilisiert** (2025-10-31)
-- Svelte 5 Syntax-Fehler behoben (10 Komponenten)
-- `on:` → Event-Handler umgestellt
-- `$:` → `$derived()` / `$effect()` konvertiert
-- Each-Block-Bindings korrigiert
-- ESLint-Config erweitert
-- `npm run build` erfolgreich ✅
-- `npm run lint` ohne Warnungen ✅
-
-✅ **Frontend Store-Tests** (2025-10-31)
-- repositories.test.ts - 22 Tests ✅
-- snapshots.test.ts - 22 Tests ✅
-- backup-jobs.test.ts - 19 Tests ✅
-- **63 Tests gesamt** ✅
-
-**Coverage-Ziele:**
-
-- Frontend: ~30% (von 40% Ziel) - Fortschritt! ✅
-- Backend: 0% (von 60% Ziel) - Build-Problem 🔴
-- Kritische Pfade: 0% (von 100% Ziel) 🔴
-
-➡️ **[Detaillierte Tasks anzeigen](docs/roadmaps/M5-testing-qa.md)**
-
----
-
-### [Milestone 6: Dokumentation & Release](docs/roadmaps/M6-documentation-release.md) 📚 FINAL
-
-**Dauer:** 13h (2 Tage) | **Status:** ~50%  
-**Priorität:** 🟢 LOW
-
-**Ziel:** Release-Readiness herstellen.
-
-**Umfang:**
-
-- README.md Komplettrewrite (User + Developer Guide)
-- CHANGELOG.md finalisieren
-- Release-Notes & Screenshots
-- Build-Artefakte (AppImage, MSI)
-
-➡️ **[Detaillierte Tasks anzeigen](docs/roadmaps/M6-documentation-release.md)**
-
----
-
-## 📈 Fortschritts-Tracking
-
-### Aktuelle Sprint-Prioritäten (KW 44-45 2025)
-
-1. 🔴 **M1.1-1.2:** Repository Init/Open + Backup-Execution (27h)
-2. 🔴 **M1.3:** Restore-Funktionalität (10h)
-3. 🟠 **M2.1:** OpenDAL S3-Backend (erste Cloud-Integration, 6h)
-
-**Nächste 2 Wochen Ziel:** M1 komplett abgeschlossen, M2 zu 50%
 
 ### Risiko-Matrix
 
@@ -348,17 +147,19 @@
 ### Abhängigkeits-Graph
 
 ```
+
 M0 (Setup) ✅
-  ↓
+↓
 M1 (rustic_core) 🔴 ← BLOCKER
-  ↓
-  ├→ M2 (Cloud-Backends) 🟠
-  ├→ M3 (Job-Scheduler) 🟠
-  └→ M4 (Advanced Features) 🟡
-       ↓
-     M5 (Testing & QA) 🔴 ← BLOCKER
-       ↓
-     M6 (Release) 🟢
+↓
+├→ M2 (Cloud-Backends) 🟠
+├→ M3 (Job-Scheduler) 🟠
+└→ M4 (Advanced Features) 🟡
+↓
+M5 (Testing & QA) 🔴 ← BLOCKER
+↓
+M6 (Release) 🟢
+
 ```
 
 **Kritischer Pfad:** M1 → M2 → M3 → M5 → M6 = 187h
@@ -418,8 +219,9 @@ M1 (rustic_core) 🔴 ← BLOCKER
 
 ---
 
-**Version:** 2.0  
-**Letzte Aktualisierung:** 2025-10-31  
+**Version:** 2.0
+**Letzte Aktualisierung:** 2025-10-31
 **Maintainer:** Rustic GUI Team
 
 🚀 **Los geht's mit [M1: rustic_core Integration](docs/roadmaps/M1-rustic-core-integration.md)!**
+```
