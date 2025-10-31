@@ -30,13 +30,13 @@
 //    - Job-Scheduler für zeitgesteuerte Backups
 //    - Vollständige Error-DTOs (types.rs:45-51)
 
-mod commands;
-mod config;
-mod error;
-mod keychain;
-mod rustic;
-mod state;
-mod types;
+pub mod commands;
+pub mod config;
+pub mod error;
+pub mod keychain;
+pub mod rustic;
+pub mod state;
+pub mod types;
 
 use serde::Serialize;
 use std::time::Duration;
@@ -309,6 +309,26 @@ fn get_repository_info(
 }
 
 #[tauri::command]
+fn prune_repository_v1(
+    path: String,
+    password: String,
+    dry_run: bool,
+) -> std::result::Result<(u32, u64), crate::types::ErrorDto> {
+    rustic::repository::prune_repository(&path, &password, dry_run)
+        .map_err(|e| crate::types::ErrorDto::from(&e))
+}
+
+#[tauri::command]
+fn change_password_v1(
+    path: String,
+    old_password: String,
+    new_password: String,
+) -> std::result::Result<(), crate::types::ErrorDto> {
+    rustic::repository::change_password(&path, &old_password, &new_password)
+        .map_err(|e| crate::types::ErrorDto::from(&e))
+}
+
+#[tauri::command]
 fn switch_repository(
     repository_id: String,
     password: String,
@@ -439,43 +459,84 @@ async fn restore_files_v1(
     target_path: String,
     options: RestoreOptionsDto,
 ) -> std::result::Result<(), String> {
-    use std::time::Duration;
-    use tokio::time::sleep;
     tracing::info!("restore_files_command aufgerufen");
+    
+    // Sende initialen Progress-Event
     let total = files.len().max(1) as u64;
-    for (i, file) in files.iter().enumerate() {
-        let progress = RestoreProgress {
-            base: types::ProgressInfo {
-                current: (i + 1) as u64,
-                total,
-                message: None,
-                percentage: Some((i + 1) as f32 / total as f32 * 100.0),
-            },
-            files_restored: (i + 1) as u64,
-            bytes_restored: ((i + 1) * 1024) as u64,
-            current_file: Some(file.clone()),
-        };
-        let event = RestoreEvent {
-            event_type: "progress".to_string(),
-            progress: Some(progress),
-            message: None,
-            snapshotId: snapshot_id.clone(),
-            targetPath: target_path.clone(),
-        };
-        let _ = app.emit("restore-progress", &event);
-        sleep(Duration::from_millis(200)).await;
-    }
-    // Simulierte Restore-Logik (ersetzt echten Restore-Aufruf)
-    // Bei echter Implementierung: Fehlerbehandlung und echten Fortschritt verwenden
-    let event = RestoreEvent {
-        event_type: "completed".to_string(),
-        progress: None,
-        message: Some("Restore erfolgreich abgeschlossen".to_string()),
-        snapshotId: snapshot_id,
-        targetPath: target_path,
+    let initial_progress = RestoreProgress {
+        base: types::ProgressInfo {
+            current: 0,
+            total,
+            message: Some("Starte Restore...".to_string()),
+            percentage: Some(0.0),
+        },
+        files_restored: 0,
+        bytes_restored: 0,
+        current_file: None,
     };
-    let _ = app.emit("restore-completed", &event);
-    Ok(())
+    let event = RestoreEvent {
+        event_type: "progress".to_string(),
+        progress: Some(initial_progress),
+        message: None,
+        snapshotId: snapshot_id.clone(),
+        targetPath: target_path.clone(),
+    };
+    let _ = app.emit("restore-progress", &event);
+    
+    // Führe echten Restore aus
+    match rustic::restore::restore_files(
+        &repository_path,
+        &password,
+        &snapshot_id,
+        files.clone(),
+        &target_path,
+        &options,
+    ).await {
+        Ok(_) => {
+            // Sende finalen Progress-Event
+            let final_progress = RestoreProgress {
+                base: types::ProgressInfo {
+                    current: total,
+                    total,
+                    message: None,
+                    percentage: Some(100.0),
+                },
+                files_restored: total,
+                bytes_restored: total * 1024, // Placeholder
+                current_file: None,
+            };
+            let event = RestoreEvent {
+                event_type: "progress".to_string(),
+                progress: Some(final_progress),
+                message: None,
+                snapshotId: snapshot_id.clone(),
+                targetPath: target_path.clone(),
+            };
+            let _ = app.emit("restore-progress", &event);
+            
+            // Sende Completed-Event
+            let event = RestoreEvent {
+                event_type: "completed".to_string(),
+                progress: None,
+                message: Some("Restore erfolgreich abgeschlossen".to_string()),
+                snapshotId: snapshot_id,
+                targetPath: target_path,
+            };
+            let _ = app.emit("restore-completed", &event);
+            Ok(())
+        }
+        Err(e) => {
+            let event = RestoreEvent {
+                event_type: "error".to_string(),
+                progress: None,
+                message: Some(format!("Restore fehlgeschlagen: {}", e)),
+                snapshotId: snapshot_id,
+                targetPath: target_path,
+            };
+            let _ = app.emit("restore-failed", &event);
+            Err(format!("Restore fehlgeschlagen: {}", e))
+        }
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -501,6 +562,8 @@ pub fn run() {
             open_repository,
             get_repository_info,
             check_repository_v1,
+            prune_repository_v1,
+            change_password_v1,
             switch_repository,
             store_repository_password,
             get_repository_password,
