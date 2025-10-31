@@ -198,6 +198,38 @@ pub struct ConnectionTestResult {
     pub latency_ms: Option<u64>,
 }
 
+/// Favorisierte Repository-Location
+/// M2 Task 2.3.2: Favoriten-Management
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FavoriteLocation {
+    /// Eindeutige ID
+    pub id: String,
+    /// Anzeige-Name
+    pub name: String,
+    /// Location-Pfad oder URL
+    pub path: String,
+    /// Location-Typ
+    pub location_type: FavoriteLocationType,
+    /// Backend-spezifische Konfiguration (JSON)
+    pub config: Option<serde_json::Value>,
+    /// Zeitpunkt der Erstellung
+    pub created_at: String,
+    /// Zeitpunkt der letzten Verwendung
+    pub last_used: Option<String>,
+}
+
+/// Typ der favorisierten Location
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum FavoriteLocationType {
+    Local,
+    Sftp,
+    S3,
+    Azure,
+    Gcs,
+    Rclone,
+}
+
 /// Fortschritt für Backup
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BackupProgress {

@@ -37,7 +37,7 @@
    */
   import { open } from '@tauri-apps/plugin-dialog';
   import { invoke } from '@tauri-apps/api/core';
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
@@ -98,27 +98,106 @@
   let testing = false;
   let testResult: { success: boolean; message: string; latency_ms?: number } | null = null;
 
-  // Recent locations (would come from config)
-  let recentLocations = [
-    {
-      path: '/home/user/backup',
-      type: 'Local',
-      icon: '💾',
-      lastUsed: 'Today 14:23',
-    },
-    {
-      path: 'sftp://backup.example.com/prod',
-      type: 'SFTP',
-      icon: '🌐',
-      lastUsed: 'Yesterday 02:00',
-    },
-    {
-      path: 's3:s3.amazonaws.com/my-backup',
-      type: 'Amazon S3',
-      icon: '☁️',
-      lastUsed: 'Oct 10',
-    },
-  ];
+  // Recent locations (M2 Task 2.3.2: Now loaded from backend)
+  let recentLocations: Array<{
+    id: string;
+    name: string;
+    path: string;
+    type: string;
+    icon: string;
+    lastUsed: string;
+  }> = [];
+
+  // Load favorites on mount
+  onMount(async () => {
+    await loadFavorites();
+  });
+
+  /**
+   * Lädt favorisierte Locations vom Backend.
+   * M2 Task 2.3.2: Favoriten-Management
+   */
+  async function loadFavorites() {
+    try {
+      const favorites = await invoke<
+        Array<{
+          id: string;
+          name: string;
+          path: string;
+          location_type: string;
+          config: any;
+          created_at: string;
+          last_used?: string;
+        }>
+      >('list_favorite_locations');
+
+      recentLocations = favorites.map((fav) => ({
+        id: fav.id,
+        name: fav.name,
+        path: fav.path,
+        type: getLocationTypeLabel(fav.location_type),
+        icon: getLocationIcon(fav.location_type),
+        lastUsed: fav.last_used ? formatLastUsed(fav.last_used) : formatLastUsed(fav.created_at),
+      }));
+    } catch (error) {
+      console.error('Fehler beim Laden der Favoriten:', error);
+      recentLocations = [];
+    }
+  }
+
+  /**
+   * Gibt ein Label für den Location-Typ zurück.
+   */
+  function getLocationTypeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      local: 'Local',
+      sftp: 'SFTP',
+      s3: 'Amazon S3',
+      azure: 'Azure Blob',
+      gcs: 'Google Cloud',
+      rclone: 'Rclone',
+    };
+    return labels[type] || type;
+  }
+
+  /**
+   * Gibt ein Icon für den Location-Typ zurück.
+   */
+  function getLocationIcon(type: string): string {
+    const icons: Record<string, string> = {
+      local: '💾',
+      sftp: '🌐',
+      s3: '☁️',
+      azure: '🔷',
+      gcs: '🌐',
+      rclone: '🔗',
+    };
+    return icons[type] || '📁';
+  }
+
+  /**
+   * Formatiert einen ISO-Timestamp für Anzeige.
+   */
+  function formatLastUsed(isoString: string): string {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Gerade eben';
+    if (diffMins < 60) return `Vor ${diffMins} Min`;
+    if (diffHours < 24) return `Vor ${diffHours} Std`;
+    if (diffDays === 0) return 'Heute';
+    if (diffDays === 1) return 'Gestern';
+    if (diffDays < 7) return `Vor ${diffDays} Tagen`;
+
+    return date.toLocaleDateString('de-DE', {
+      month: 'short',
+      day: 'numeric',
+    });
+  }
 
   // Cloud providers from mockup
   const cloudProviders = [
@@ -173,6 +252,11 @@
   }
 
   function selectRecentLocation(location: (typeof recentLocations)[0]) {
+    // Markiere als verwendet
+    invoke('update_favorite_last_used', { id: location.id }).catch((error) => {
+      console.error('Fehler beim Aktualisieren des Favoriten:', error);
+    });
+
     if (location.type === 'Local') {
       activeTab = 'local';
       selectedPath = location.path;
@@ -184,9 +268,75 @@
       const parts = url.split('/');
       networkHost = parts[0];
       networkPath = '/' + parts.slice(1).join('/');
-    } else if (location.type.includes('S3')) {
+    } else if (location.type.includes('S3') || location.type.includes('Amazon')) {
       activeTab = 'cloud';
       selectedCloudProvider = 's3';
+    } else if (location.type.includes('Azure')) {
+      activeTab = 'cloud';
+      selectedCloudProvider = 'azure';
+    } else if (location.type.includes('Google')) {
+      activeTab = 'cloud';
+      selectedCloudProvider = 'gcs';
+    }
+  }
+
+  /**
+   * Speichert aktuelle Konfiguration als Favorit.
+   * M2 Task 2.3.2: Favoriten-Management
+   */
+  async function saveCurrentAsFavorite() {
+    let name = '';
+    let path = '';
+    let locationType = '';
+    let config: any = null;
+
+    if (activeTab === 'local') {
+      name = `Local: ${selectedPath.split('/').pop() || 'Backup'}`;
+      path = selectedPath;
+      locationType = 'local';
+    } else if (activeTab === 'network') {
+      name = `${networkProtocol.toUpperCase()}: ${networkHost}`;
+      path = `${networkProtocol}://${networkUsername}@${networkHost}:${networkPort}${networkPath}`;
+      locationType = 'sftp';
+      config = {
+        protocol: networkProtocol,
+        host: networkHost,
+        port: networkPort,
+        username: networkUsername,
+        remotePath: networkPath,
+      };
+    } else if (activeTab === 'cloud') {
+      name = `${cloudProviders.find((p) => p.id === selectedCloudProvider)?.name}: ${cloudBucket}`;
+      path = `${selectedCloudProvider}:${cloudEndpoint}/${cloudBucket}`;
+      locationType = selectedCloudProvider;
+      config = {
+        provider: selectedCloudProvider,
+        endpoint: cloudEndpoint,
+        bucket: cloudBucket,
+        region: cloudRegion,
+      };
+    }
+
+    if (!name || !path) {
+      console.error('Ungültige Favoriten-Daten');
+      return;
+    }
+
+    try {
+      await invoke('save_favorite_location', {
+        name,
+        path,
+        locationType,
+        config,
+      });
+
+      // Favoriten neu laden
+      await loadFavorites();
+
+      alert('Als Favorit gespeichert!');
+    } catch (error) {
+      console.error('Fehler beim Speichern des Favoriten:', error);
+      alert('Fehler beim Speichern des Favoriten: ' + error);
     }
   }
 
@@ -643,6 +793,14 @@
         Bitte wählen Sie einen Speicherort
       {/if}
     </div>
+
+    <!-- M2 Task 2.3.2: Save as Favorite Button -->
+    {#if activeTab !== 'recent' && (selectedPath || networkHost || cloudBucket)}
+      <Button variant="secondary" size="small" on:click={saveCurrentAsFavorite}>
+        ⭐ Als Favorit speichern
+      </Button>
+    {/if}
+
     <Button variant="secondary" on:click={handleCancel}>Abbrechen</Button>
     <Button
       variant="primary"

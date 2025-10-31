@@ -282,3 +282,121 @@ pub async fn test_repository_connection(
         _ => Err(format!("Backend-Typ nicht unterstützt: {}", backend_type)),
     }
 }
+
+/// Speichert eine favorisierte Location
+/// M2 Task 2.3.2: Favoriten-Management
+#[tauri::command]
+pub async fn save_favorite_location(
+    name: String,
+    path: String,
+    location_type: String,
+    config: Option<serde_json::Value>,
+    state: tauri::State<'_, AppState>,
+) -> Result<crate::types::FavoriteLocation, String> {
+    use crate::types::{FavoriteLocation, FavoriteLocationType};
+
+    // Parse location type
+    let location_type: FavoriteLocationType = serde_json::from_value(serde_json::json!(location_type))
+        .map_err(|e| format!("Ungültiger Location-Typ: {}", e))?;
+
+    // Erstelle neue Favorite
+    let favorite = FavoriteLocation {
+        id: uuid::Uuid::new_v4().to_string(),
+        name,
+        path,
+        location_type,
+        config,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        last_used: None,
+    };
+
+    // Zur Config hinzufügen
+    {
+        let mut config = state.config.lock();
+        config.favorite_locations.push(favorite.clone());
+    }
+
+    // Config speichern
+    state.save_config()
+        .map_err(|e| format!("Config-Speicherung fehlgeschlagen: {}", e))?;
+
+    tracing::info!("Favorite Location gespeichert: {}", favorite.name);
+
+    Ok(favorite)
+}
+
+/// Listet alle favorisierten Locations
+/// M2 Task 2.3.2: Favoriten-Management
+#[tauri::command]
+pub async fn list_favorite_locations(
+    state: tauri::State<'_, AppState>,
+) -> Result<Vec<crate::types::FavoriteLocation>, String> {
+    let config = state.config.lock();
+    let mut favorites = config.favorite_locations.clone();
+
+    // Sortiere nach letzter Verwendung (neueste zuerst)
+    favorites.sort_by(|a, b| {
+        match (&b.last_used, &a.last_used) {
+            (Some(b_time), Some(a_time)) => b_time.cmp(a_time),
+            (Some(_), None) => std::cmp::Ordering::Less,
+            (None, Some(_)) => std::cmp::Ordering::Greater,
+            (None, None) => b.created_at.cmp(&a.created_at),
+        }
+    });
+
+    tracing::debug!("Liefere {} Favorite Locations", favorites.len());
+
+    Ok(favorites)
+}
+
+/// Aktualisiert das last_used Feld einer favorisierten Location
+/// M2 Task 2.3.2: Favoriten-Management
+#[tauri::command]
+pub async fn update_favorite_last_used(
+    id: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    {
+        let mut config = state.config.lock();
+
+        if let Some(favorite) = config.favorite_locations.iter_mut().find(|f| f.id == id) {
+            favorite.last_used = Some(chrono::Utc::now().to_rfc3339());
+        } else {
+            return Err(format!("Favorite Location mit ID '{}' nicht gefunden", id));
+        }
+    }
+
+    // Config speichern
+    state.save_config()
+        .map_err(|e| format!("Config-Speicherung fehlgeschlagen: {}", e))?;
+
+    tracing::debug!("Favorite Location {} als verwendet markiert", id);
+
+    Ok(())
+}
+
+/// Löscht eine favorisierte Location
+/// M2 Task 2.3.2: Favoriten-Management
+#[tauri::command]
+pub async fn delete_favorite_location(
+    id: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    {
+        let mut config = state.config.lock();
+        let original_len = config.favorite_locations.len();
+        config.favorite_locations.retain(|f| f.id != id);
+
+        if config.favorite_locations.len() == original_len {
+            return Err(format!("Favorite Location mit ID '{}' nicht gefunden", id));
+        }
+    }
+
+    // Config speichern
+    state.save_config()
+        .map_err(|e| format!("Config-Speicherung fehlgeschlagen: {}", e))?;
+
+    tracing::info!("Favorite Location {} gelöscht", id);
+
+    Ok(())
+}
