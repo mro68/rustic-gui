@@ -40,11 +40,9 @@ pub mod state;
 pub mod types;
 
 use serde::Serialize;
-use std::time::Duration;
 use tauri::Emitter;
-use tokio::time::sleep;
 use types::{
-    FileTreeNode, RepositoryDto, RestoreOptionsDto, RestoreProgress, RetentionPolicy, SnapshotDto,
+    FileTreeNode, RepositoryDto, RestoreOptionsDto, RestoreProgress, SnapshotDto,
 };
 
 /// Event-Format für Restore-Progress
@@ -54,8 +52,10 @@ struct RestoreEvent {
     event_type: String, // "progress" | "completed" | "error"
     progress: Option<RestoreProgress>,
     message: Option<String>,
-    snapshotId: String,
-    targetPath: String,
+    #[serde(rename = "snapshotId")]
+    snapshot_id: String,
+    #[serde(rename = "targetPath")]
+    target_path: String,
 }
 
 /// Event-Format für Backup-Abbruch
@@ -63,7 +63,8 @@ struct RestoreEvent {
 struct BackupCancelEvent {
     #[serde(rename = "type")]
     event_type: String, // "cancelled"
-    jobId: String,
+    #[serde(rename = "jobId")]
+    job_id: String,
     message: Option<String>,
 }
 
@@ -79,7 +80,7 @@ async fn cancel_backup(
         token.cancel();
         let event = BackupCancelEvent {
             event_type: "cancelled".to_string(),
-            jobId: job_id.clone(),
+            job_id: job_id.clone(),
             message: Some("Backup wurde abgebrochen".to_string()),
         };
         let _ = app.emit("backup-cancelled", &event);
@@ -94,6 +95,8 @@ async fn cancel_backup(
         })
     }
 }
+// TODO Phase 1: Reaktivieren wenn Repository State implementiert ist
+/*
 #[tauri::command]
 async fn forget_snapshots_command(
     repository_path: String,
@@ -104,6 +107,7 @@ async fn forget_snapshots_command(
         .await
         .map_err(|e| e.to_string())
 }
+*/
 
 #[tauri::command]
 async fn delete_snapshot_command(
@@ -155,7 +159,8 @@ struct BackupEvent {
     event_type: String, // "progress" | "completed" | "error"
     progress: Option<BackupProgress>,
     message: Option<String>,
-    jobId: String,
+    #[serde(rename = "jobId")]
+    job_id: String,
 }
 
 /// Tauri-Command: Startet ein Backup und sendet Progress-, Completed- und Error-Events im einheitlichen Format an das Frontend.
@@ -176,7 +181,7 @@ async fn run_backup_command(
             event_type: "progress".to_string(),
             progress: Some(progress.clone()),
             message: None,
-            jobId: job_id_progress.clone(),
+            job_id: job_id_progress.clone(),
         };
         let _ = app_progress.emit("backup-progress", &event);
         tracing::debug!(
@@ -194,7 +199,7 @@ async fn run_backup_command(
                 event_type: "completed".to_string(),
                 progress: None,
                 message: Some("Backup erfolgreich abgeschlossen".to_string()),
-                jobId: job_id.clone(),
+                job_id: job_id.clone(),
             };
             let _ = app.emit("backup-completed", &event);
             Ok(())
@@ -204,7 +209,7 @@ async fn run_backup_command(
                 event_type: "error".to_string(),
                 progress: None,
                 message: Some(format!("Backup fehlgeschlagen: {}", e)),
-                jobId: job_id.clone(),
+                job_id: job_id.clone(),
             };
             let _ = app.emit("backup-failed", &event);
             Err(crate::types::ErrorDto::from(&e))
@@ -490,8 +495,8 @@ async fn restore_files_v1(
         event_type: "progress".to_string(),
         progress: Some(initial_progress),
         message: None,
-        snapshotId: snapshot_id.clone(),
-        targetPath: target_path.clone(),
+        snapshot_id: snapshot_id.clone(),
+        target_path: target_path.clone(),
     };
     let _ = app.emit("restore-progress", &event);
     
@@ -521,8 +526,8 @@ async fn restore_files_v1(
                 event_type: "progress".to_string(),
                 progress: Some(final_progress),
                 message: None,
-                snapshotId: snapshot_id.clone(),
-                targetPath: target_path.clone(),
+                snapshot_id: snapshot_id.clone(),
+                target_path: target_path.clone(),
             };
             let _ = app.emit("restore-progress", &event);
             
@@ -531,8 +536,8 @@ async fn restore_files_v1(
                 event_type: "completed".to_string(),
                 progress: None,
                 message: Some("Restore erfolgreich abgeschlossen".to_string()),
-                snapshotId: snapshot_id,
-                targetPath: target_path,
+                snapshot_id: snapshot_id,
+                target_path: target_path,
             };
             let _ = app.emit("restore-completed", &event);
             Ok(())
@@ -542,8 +547,8 @@ async fn restore_files_v1(
                 event_type: "error".to_string(),
                 progress: None,
                 message: Some(format!("Restore fehlgeschlagen: {}", e)),
-                snapshotId: snapshot_id,
-                targetPath: target_path,
+                snapshot_id: snapshot_id,
+                target_path: target_path,
             };
             let _ = app.emit("restore-failed", &event);
             Err(format!("Restore fehlgeschlagen: {}", e))
@@ -709,7 +714,7 @@ pub fn run() {
             list_snapshots_filtered_command,
             get_snapshot_command,
             delete_snapshot_command,
-            forget_snapshots_command,
+            // forget_snapshots_command, // TODO Phase 1: Reaktivieren
             // --- Restore ---
             get_file_tree_command,
             restore_files_v1,
@@ -725,9 +730,9 @@ pub fn run() {
             commands::repository::update_favorite_last_used,
             commands::repository::delete_favorite_location,
             commands::repository::get_repository_stats, // M4.3
-            commands::snapshot::compare_snapshots,
-            commands::snapshot::add_snapshot_tags,
-            commands::snapshot::remove_snapshot_tags,
+            // commands::snapshot::compare_snapshots, // TODO Phase 1: Disabled - needs Repository State
+            // commands::snapshot::add_snapshot_tags, // TODO Phase 1: Disabled - needs Repository State  
+            // commands::snapshot::remove_snapshot_tags, // TODO Phase 1: Disabled - needs Repository State
             // M4.4: Settings
             commands::settings::get_settings,
             commands::settings::save_settings,

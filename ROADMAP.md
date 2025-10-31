@@ -2,20 +2,21 @@
 
 > **REALISTISCHE Projekt-Roadmap basierend auf tatsächlichem Implementierungsstand**
 >
-> Version: 3.0 | Status: 🔴 BUILD BROKEN - Phase 0 erforderlich | Aktualisiert: 2025-10-31
+> Version: 3.0 | Status: � BUILD SUCCESS - Phase 0 ABGESCHLOSSEN | Aktualisiert: 2025-10-31
 
 ---
 
-## � KRITISCHE WARNUNG
+## ✅ Phase 0 ABGESCHLOSSEN!
 
-**Das Projekt kompiliert aktuell NICHT!**
+**Das Projekt kompiliert jetzt erfolgreich!**
 
 ```bash
-error[E0433]: failed to resolve: could not find `PackFile` in `repofile`
-   --> src-tauri/src/rustic/repository.rs:593:43
+✅ cargo build - Finished `dev` profile [unoptimized + debuginfo]
+✅ 0 Compile-Fehler (war: 18 Fehler)
+✅ 28 Warnings (war: 36 Warnings)
 ```
 
-**Phase 0 (Notfall-Reparatur) MUSS zuerst durchgeführt werden!**
+**Nächster Schritt: Phase 1 (MVP Core Features)**
 
 ---
 
@@ -75,14 +76,14 @@ error[E0433]: failed to resolve: could not find `PackFile` in `repofile`
 
 ## 🎯 Phasen-Übersicht (NEU - Realistisch)
 
-| Phase                                     | Beschreibung            | Dauer    | Status   | Priorität  | Blocker?         |
-| ----------------------------------------- | ----------------------- | -------- | -------- | ---------- | ---------------- |
-| **[Phase 0](#phase-0-notfall-reparatur)** | Build Fix + Basis-Demo  | 8h       | 🔴 0%    | 🔴 HIGHEST | ✅ YES (BUILD)   |
-| **[Phase 1](#phase-1-mvp-core)**          | MVP Core Features       | 25h      | 🔴 20%   | 🔴 HIGHEST | ✅ YES (Phase 0) |
-| **[Phase 2](#phase-2-erweiterte-basis)**  | Cloud + Scheduler       | 30h      | 🔴 5%    | 🟠 HIGH    | ❌ NO            |
-| **[Phase 3](#phase-3-advanced-features)** | Erweiterte Features     | 25h      | � 0%     | 🟡 MEDIUM  | ❌ NO            |
-| **[Phase 4](#phase-4-testing--release)**  | Testing, Docs & Release | 20h      | � 10%    | � HIGH     | ❌ NO            |
-| **GESAMT**                                |                         | **108h** | **~20%** |            | **2 Blocker**    |
+| Phase                                     | Beschreibung            | Dauer    | Status   | Priorität  | Blocker?      |
+| ----------------------------------------- | ----------------------- | -------- | -------- | ---------- | ------------- |
+| **[Phase 0](#phase-0-notfall-reparatur)** | Build Fix + Basis-Demo  | 8h       | ✅ 100%  | � DONE     | ✅ RESOLVED   |
+| **[Phase 1](#phase-1-mvp-core)**          | MVP Core Features       | 25h      | 🔴 20%   | 🔴 HIGHEST | ❌ NO (Ready) |
+| **[Phase 2](#phase-2-erweiterte-basis)**  | Cloud + Scheduler       | 30h      | 🔴 5%    | 🟠 HIGH    | ❌ NO         |
+| **[Phase 3](#phase-3-advanced-features)** | Erweiterte Features     | 25h      | � 0%     | 🟡 MEDIUM  | ❌ NO         |
+| **[Phase 4](#phase-4-testing--release)**  | Testing, Docs & Release | 20h      | � 10%    | � HIGH     | ❌ NO         |
+| **GESAMT**                                |                         | **108h** | **~20%** |            | **2 Blocker** |
 
 ### Alte Milestones (M0-M6) archiviert
 
@@ -90,26 +91,39 @@ Die vorherigen Milestones M1-M6 waren zu optimistisch dokumentiert. Status siehe
 
 ## 📋 Detaillierte Phasen
 
-### Phase 0: NOTFALL-REPARATUR 🚨 KRITISCH
+### Phase 0: NOTFALL-REPARATUR 🎉 ABGESCHLOSSEN
 
-**Dauer:** 8h (1 Tag) | **Status:** 🔴 0% - NICHT GESTARTET  
-**Priorität:** 🔴 HÖCHSTE | **Blocker:** Ja (Projekt kompiliert nicht)
+**Dauer:** 8h (1 Tag) | **Status:** ✅ 100% - ABGESCHLOSSEN  
+**Priorität:** � ERLEDIGT | **Blocker:** ✅ Gelöst
 
 **Ziel:** Projekt kompilierbar machen und minimalen Funktionsumfang demonstrieren können.
 
 #### Tasks
 
-**Task 0.1: Build-Fehler beheben** (2h)
+**Task 0.1: Build-Fehler beheben** (2h) ✅
 
-- ❌ PackFile-Error in `src-tauri/src/rustic/repository.rs:593,602` fixen
-- ❌ rustic_core 0.8.0 API-Änderungen nachvollziehen
-- ❌ Alternative API für Repository-Statistiken finden ODER
-- ❌ Feature temporär deaktivieren (get_repository_stats)
+- ✅ PackFile-Error in `src-tauri/src/rustic/repository.rs:593,602` gefixt
+- ✅ rustic_core 0.8.0 API-Änderungen nachvollzogen
+- ✅ Feature temporär deaktiviert mit Placeholder (get_repository_stats)
+- ✅ 4 Commands deaktiviert (compare_snapshots, forget_snapshots, add/remove_snapshot_tags)
 
-**Task 0.2: Warnings bereinigen** (1h)
+**Task 0.2: Warnings bereinigen** (1h) ✅
 
-- ❌ Unused imports entfernen (3 Stellen)
-- ❌ Unused variables fixen (5+ Stellen)
+- ✅ Unused imports entfernt (3 Stellen: RepositoryConfig, DiffResultDto/Stats, RetentionPolicy)
+- ✅ Snake_case Namen korrigiert (snapshotId, targetPath, jobId)
+- ✅ Warnings reduziert: 36 → 28 (8 behoben)
+
+**Task 0.3: Dokumentation** (2h) ✅
+
+- ✅ `docs/reports/2025-10-31-phase0-build-fix-notes.md` erstellt
+- ✅ Alle deaktivierten Commands dokumentiert
+- ✅ Migration-Plan für Phase 1 erstellt
+
+**Deliverables:**
+
+- ✅ `cargo build` erfolgreich (0 Fehler, 28 Warnings)
+- ✅ Dokumentation vollständig
+- ✅ Roadmap aktualisiert
 
 ---
 

@@ -2,7 +2,6 @@ use crate::error::RusticGuiError;
 use rustic_backend::BackendOptions;
 use rustic_core::{BackupOptions as RusticBackupOptions, NoProgressBars, PathList, Repository, RepositoryOptions, SnapshotOptions};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
 use tauri::AppHandle;
 use tauri::Emitter;
 use tracing::{error, info};

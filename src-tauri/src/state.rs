@@ -76,7 +76,7 @@ impl AppState {
     }
 
     /// Helper: TODO M2 - Repository-Zugriff muss neu designed werden
-    pub fn with_current_repo<F, R>(&self, f: F) -> crate::error::Result<R>
+    pub fn with_current_repo<F, R>(&self, _f: F) -> crate::error::Result<R>
     where
         F: FnOnce() -> crate::error::Result<R>,
     {

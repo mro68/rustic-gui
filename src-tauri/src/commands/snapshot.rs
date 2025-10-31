@@ -9,7 +9,7 @@
 //       Diese Commands hier sind für erweiterte Funktionen gedacht.
 
 use crate::state::AppState;
-use crate::types::{DiffResultDto, DiffStats, SnapshotDto};
+use crate::types::SnapshotDto;
 
 /// Listet alle Snapshots eines Repositories
 #[tauri::command]
@@ -34,6 +34,8 @@ pub async fn get_snapshot_info(
 }
 
 /// Vergleicht zwei Snapshots
+// TODO Phase 1: Reaktivieren wenn Repository State implementiert ist
+/*
 #[tauri::command]
 pub async fn compare_snapshots(
     snapshot_id_a: String,
@@ -143,8 +145,9 @@ pub async fn compare_snapshots(
         },
     })
 }
+*/
 
-/// Löscht einen Snapshot
+/// Löscht einzelnen Snapshot
 #[tauri::command]
 pub async fn delete_snapshot(id: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
     // TODO: Implementieren mit rustic_core
@@ -152,8 +155,10 @@ pub async fn delete_snapshot(id: String, state: tauri::State<'_, AppState>) -> R
     Err("delete_snapshot: Noch nicht implementiert".into())
 }
 
-/// Löscht Snapshots gemäß Policy (Batch-Operation)
-/// M4.5: Batch-Operations
+// Löscht Snapshots gemäß Policy (Batch-Operation)
+// M4.5: Batch-Operations
+// TODO Phase 1: Reaktivieren wenn Repository State implementiert ist
+/*
 #[tauri::command]
 pub async fn forget_snapshots(
     snapshot_ids: Vec<String>,
@@ -187,8 +192,11 @@ pub async fn forget_snapshots(
 
     Ok(deleted)
 }
+*/
 
-/// Fügt Tags zu einem Snapshot hinzu
+// Fügt Tags zu einem Snapshot hinzu
+// TODO Phase 1: Reaktivieren wenn Repository State implementiert ist
+/*
 #[tauri::command]
 pub async fn add_snapshot_tags(
     snapshot_id: String,
@@ -229,8 +237,11 @@ pub async fn add_snapshot_tags(
         Err("Keine neuen Tags hinzugefügt".into())
     }
 }
+*/
 
-/// Entfernt Tags von einem Snapshot
+// Entfernt Tags von einem Snapshot
+// TODO Phase 1: Reaktivieren wenn Repository State implementiert ist
+/*
 #[tauri::command]
 pub async fn remove_snapshot_tags(
     snapshot_id: String,
@@ -271,3 +282,4 @@ pub async fn remove_snapshot_tags(
         Err("Keine Tags entfernt".into())
     }
 }
+*/

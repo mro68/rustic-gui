@@ -574,60 +574,31 @@ mod tests {
 pub fn get_repository_stats(
     repo: &Repository<NoProgressBars, rustic_core::OpenStatus>,
 ) -> Result<crate::types::RepositoryStatsDto> {
-    tracing::debug!("Sammle Repository-Statistiken");
+    tracing::debug!("Sammle Repository-Statistiken (vereinfachte Version)");
 
     // Hole alle Snapshots
-    let snapshots = repo.get_all_snapshots()?;
+    let snapshots = repo.get_all_snapshots().map_err(|e| {
+        tracing::error!("Snapshots laden fehlgeschlagen: {:?}", e);
+        crate::error::RusticGuiError::RusticError {
+            message: format!("Snapshots laden fehlgeschlagen: {}", e),
+        }
+    })?;
     let snapshot_count = snapshots.len() as u64;
 
-    // Hole Repository-File-Infos
-    let file_infos = repo.infos_files()?;
-
-    // Index-Dateien
-    let index_count = file_infos
-        .iter_type(rustic_core::repofile::IndexFile::TYPE)
-        .count() as u64;
-
-    // Pack-Dateien
-    let pack_count = file_infos
-        .iter_type(rustic_core::repofile::PackFile::TYPE)
-        .count() as u64;
-
-    // Berechne Gesamtgröße und Daten-Größe
-    let mut total_size: u64 = 0;
-    let mut data_size: u64 = 0;
-    let mut unique_blobs: u64 = 0;
-
-    // Iteriere über alle Pack-Dateien
-    for pack_info in file_infos.iter_type(rustic_core::repofile::PackFile::TYPE) {
-        total_size += pack_info.size;
-        // Pack-Files enthalten komprimierte Daten
-        data_size += pack_info.size;
-    }
-
-    // Berechne Statistiken für Blobs (für Deduplizierung)
-    // Nutze Index-Informationen wenn verfügbar
-    for index_info in file_infos.iter_type(rustic_core::repofile::IndexFile::TYPE) {
-        unique_blobs += 1; // Grobe Schätzung
-    }
-
-    // Berechne Ratios
-    let compression_ratio = if total_size > 0 {
-        data_size as f64 / total_size as f64
-    } else {
-        1.0
-    };
-
-    // Deduplizierungs-Rate: Vereinfachte Berechnung
-    // In einer echten Implementierung würde man alle Tree-Nodes durchgehen
-    let deduplication_ratio = if snapshot_count > 0 && unique_blobs > 0 {
-        // Grobe Schätzung: Je mehr Snapshots pro Blob, desto höher die Deduplizierung
-        let avg_blobs_per_snapshot = unique_blobs as f64 / snapshot_count as f64;
-        // Normalisiere auf 0.0 - 1.0 (höhere Werte = mehr Deduplizierung)
-        (1.0 - (1.0 / (1.0 + avg_blobs_per_snapshot / 100.0))).min(0.99)
-    } else {
-        0.0
-    };
+    // TODO Phase 3: Implementiere mit neuer rustic_core 0.8.0 API
+    // Die alte API mit PackFile::TYPE und iter_type ist nicht mehr verfügbar
+    // Neue API-Dokumentation prüfen: https://docs.rs/rustic_core/0.8.0
+    // Temporär verwenden wir Platzhalter-Werte
+    
+    tracing::warn!("Repository-Statistiken verwenden Platzhalter-Werte (API-Migration ausstehend)");
+    
+    let index_count = 0u64; // Placeholder
+    let pack_count = 0u64; // Placeholder
+    let total_size = 0u64; // Placeholder
+    let data_size = 0u64; // Placeholder
+    let unique_blobs = 0u64; // Placeholder
+    let compression_ratio = 1.0; // Placeholder
+    let deduplication_ratio = 0.0; // Placeholder
 
     let stats = crate::types::RepositoryStatsDto {
         snapshot_count,

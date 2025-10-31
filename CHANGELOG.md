@@ -7,6 +7,27 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+
+#### 2025-10-31 - Phase 0: Notfall-Reparatur (✅ 100% ABGESCHLOSSEN)
+
+- **Build-Fehler behoben (18 → 0 Fehler):**
+  - PackFile API Migration: `rustic_core 0.8.0` hat `PackFile::TYPE` und `iter_type()` entfernt
+  - `get_repository_stats()` vereinfacht mit Placeholder-Werten (TODO Phase 3)
+  - 4 Commands deaktiviert wegen fehlender Repository State: `compare_snapshots`, `forget_snapshots`, `add_snapshot_tags`, `remove_snapshot_tags`
+  - StringList API: `from_str()` → `from()` Migration vorbereitet
+  - Type Mismatch in repository.rs behoben
+
+- **Warnings reduziert (36 → 28):**
+  - Unused imports entfernt: `RepositoryConfig`, `DiffResultDto`, `DiffStats`, `RetentionPolicy`
+  - Snake_case Feld-Namen korrigiert: `snapshotId` → `snapshot_id`, `targetPath` → `target_path`, `jobId` → `job_id`
+  - Unused parameter in Stub-Funktion gefixt: `f` → `_f`
+
+- **Dokumentation:**
+  - `docs/reports/2025-10-31-phase0-build-fix-notes.md`: Vollständige Build-Fix-Dokumentation
+  - Alle deaktivierten Commands mit TODO-Markern versehen
+  - Migration-Plan für lib.rs → Modul-Dateien erstellt
+
 ### Added
 
 #### 2025-10-31 - Milestone 2: Cloud-Backend-Integration (✅ 100% ABGESCHLOSSEN)
