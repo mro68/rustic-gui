@@ -92,7 +92,7 @@ Diese Instructions sind modular aufgeteilt. Lies die relevanten Dateien je nach 
 
 ### Feature-spezifisch
 
-- **[backup-restore-snapshots.instructions.md](backup-restore-snapshots.instructions.md.md)**
+- **[backup-restore-snapshots.instructions.md](instructions/backup-restore-snapshots.instructions.md)**
   - Backup-Implementation & Progress-Tracking
   - Restore-Logik & File-Browser
   - Snapshot-Management & Vergleich

@@ -14,10 +14,7 @@ import { invoke } from '@tauri-apps/api/core';
  * @returns Promise (void)
  * @throws Error wenn Keychain-Zugriff fehlschlägt oder Passwort nicht gespeichert werden kann
  */
-export async function storeRepositoryPassword(
-  repoId: string,
-  password: string
-): Promise<void> {
+export async function storeRepositoryPassword(repoId: string, password: string): Promise<void> {
   await invoke('store_repository_password', { repoId, password });
 }
 

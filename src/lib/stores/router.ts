@@ -8,12 +8,7 @@
 import { writable } from 'svelte/store';
 
 // Verfügbare Seiten
-export type Page =
-  | 'dashboard'
-  | 'repositories'
-  | 'snapshots'
-  | 'backup-jobs'
-  | 'settings';
+export type Page = 'dashboard' | 'repositories' | 'snapshots' | 'backup-jobs' | 'settings';
 
 // Page-Titel Mapping
 const pageTitles: Record<Page, string> = {
@@ -21,7 +16,7 @@ const pageTitles: Record<Page, string> = {
   repositories: 'Repositories',
   snapshots: 'Snapshots',
   'backup-jobs': 'Backup Jobs',
-  settings: 'Settings'
+  settings: 'Settings',
 };
 
 // Private Store für aktuelle Seite
@@ -39,7 +34,7 @@ export const currentPageTitle = (() => {
         const title = pageTitles[page];
         callback(title);
       });
-    }
+    },
   };
 })();
 

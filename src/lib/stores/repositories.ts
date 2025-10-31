@@ -1,24 +1,24 @@
+import * as api from '$lib/api/repositories';
 import type { RepositoryDto } from '$lib/types';
 import { derived, writable } from 'svelte/store';
-import * as api from '$lib/api/repositories';
 
 /**
  * Store für Repository-Verwaltung.
  * TODO.md: Phase 2 - Stores mit Daten-Loading ✅ KOMPLETT
  * Referenz: TODO.md Zeile 215-221, 320-325
- * 
+ *
  * Backend-Commands:
  * - list_repositories: src-tauri/src/commands/repository.rs:7
  * - init_repository: src-tauri/src/lib.rs:180 (simuliert)
  * - open_repository: src-tauri/src/lib.rs:191 (simuliert)
  * - delete_repository: src-tauri/src/commands/repository.rs:41
- * 
+ *
  * API-Wrapper: src/lib/api/repositories.ts
- * 
+ *
  * Verwendung:
  * - src/lib/components/pages/Repositories.svelte (loadRepositories in onMount)
  * - src/lib/components/pages/DashboardPage.svelte (refreshRepos in onMount)
- * 
+ *
  * Features:
  * - repositories: Liste aller Repositories
  * - activeRepositoryId: ID des aktuell ausgewählten Repos
@@ -31,10 +31,10 @@ const _activeRepositoryId = writable<string | null>(null);
 const _loading = writable(false);
 const _error = writable<string | null>(null);
 
-export const repositories = { 
+export const repositories = {
   subscribe: _repositories.subscribe,
   set: _repositories.set,
-  update: _repositories.update
+  update: _repositories.update,
 };
 export const activeRepositoryId = { subscribe: _activeRepositoryId.subscribe };
 export const loading = { subscribe: _loading.subscribe };
@@ -95,7 +95,7 @@ export function setError(msg: string | null): void {
 export async function loadRepositories(): Promise<void> {
   setLoading(true);
   setError(null);
-  
+
   try {
     const repos = await api.listRepositories();
     _repositories.set(repos);

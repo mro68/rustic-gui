@@ -1,4 +1,4 @@
-import type { SnapshotDto, DiffResultDto } from '$lib/types/index';
+import type { DiffResultDto, SnapshotDto } from '$lib/types/index';
 import { invoke } from '@tauri-apps/api/core';
 
 /**

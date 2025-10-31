@@ -1,24 +1,24 @@
+import * as api from '$lib/api/backup-jobs';
 import type { BackupJobDto } from '$lib/types';
 import { writable } from 'svelte/store';
-import * as api from '$lib/api/backup-jobs';
 
 /**
  * Store für Backup-Job-Management.
  * TODO.md: Phase 2 - Stores mit Daten-Loading ✅ KOMPLETT
  * Referenz: TODO.md Zeile 219, 320-325
- * 
+ *
  * Backend-Commands:
  * - list_backup_jobs: src-tauri/src/commands/backup.rs:289
  * - create_backup_job: src-tauri/src/commands/backup.rs:21
  * - update_backup_job: src-tauri/src/commands/backup.rs:122
  * - delete_backup_job: src-tauri/src/commands/backup.rs:217
  * - get_backup_job: src-tauri/src/commands/backup.rs:255
- * 
+ *
  * API-Wrapper: src/lib/api/backup-jobs.ts
- * 
+ *
  * Verwendung:
  * - src/lib/components/pages/BackupJobs.svelte (loadJobs in onMount)
- * 
+ *
  * Features:
  * - jobs: Liste aller Backup-Jobs
  * - runningJobId: ID des aktuell laufenden Jobs (oder null)
@@ -31,10 +31,10 @@ const _runningJobId = writable<string | null>(null);
 const _loading = writable(false);
 const _error = writable<string | null>(null);
 
-export const jobs = { 
+export const jobs = {
   subscribe: _jobs.subscribe,
   set: _jobs.set,
-  update: _jobs.update
+  update: _jobs.update,
 };
 export const runningJobId = { subscribe: _runningJobId.subscribe };
 export const loading = { subscribe: _loading.subscribe };
@@ -88,7 +88,7 @@ export function setError(msg: string | null): void {
 export async function loadJobs(): Promise<void> {
   setLoading(true);
   setError(null);
-  
+
   try {
     const jobList = await api.listBackupJobs();
     _jobs.set(jobList);

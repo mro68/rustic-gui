@@ -1,3 +1,4 @@
+# SvelteKit
 .DS_Store
 node_modules
 /build
@@ -13,17 +14,58 @@ vite.config.ts.timestamp-*
 target/
 Cargo.lock
 *.rs.bk
+**/*.rs.bk
 
 # Tauri
 src-tauri/target/
 src-tauri/Cargo.lock
+src-tauri/gen/
+src-tauri/WixTools/
+
+# Tauri Build Artifacts
+src-tauri/target/release/bundle/
+*.AppImage
+*.deb
+*.rpm
+*.msi
+*.exe
+*.dmg
+*.app
 
 # IDE
 .vscode/settings.json
+.vscode/*.log
 .idea/
+*.swp
+*.swo
+*~
 
 # OS
 Thumbs.db
 *.log
+.DS_Store
 
+# Test Coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+*.bak
+*.old
+*_OLD.*
+*_NEW.*
+
+# Documentation Build
+docs/build/
+docs/_build/
+
+# Project-specific
 .projVault/
+test-badge.svelte
+
+# Lock files (keep package-lock.json, exclude Cargo.lock in workspace root)
+# Note: Cargo.lock is kept in src-tauri/ for reproducible builds
