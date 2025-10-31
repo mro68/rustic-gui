@@ -292,13 +292,13 @@
               {/each}
             </div>
             <div class="browser-actions">
-              <Button variant="secondary" size="sm" on:click={goUp} disabled={currentPath === '/'}>
+              <Button variant="secondary" size="sm" onclick={goUp} disabled={currentPath === '/'}>
                 ↑ Up
               </Button>
               <Button
                 variant="secondary"
                 size="sm"
-                on:click={loadFileTree}
+                onclick={loadFileTree}
                 disabled={isLoadingTree}
               >
                 ⟳ Refresh
@@ -414,12 +414,12 @@
   </div>
 
   <div slot="footer">
-    <Button variant="secondary" on:click={handleClose} disabled={isRestoring}>Cancel</Button>
+    <Button variant="secondary" onclick={handleClose} disabled={isRestoring}>Cancel</Button>
 
     {#if !isRestoring}
       <Button
         variant="primary"
-        on:click={handleRestore}
+        onclick={handleRestore}
         disabled={selectedFiles.size === 0 || !fileTree}
       >
         Restore Selected Files

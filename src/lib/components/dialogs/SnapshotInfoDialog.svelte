@@ -131,16 +131,16 @@
       <div class="actions-section">
         <h3>Verfügbare Aktionen</h3>
         <div class="action-buttons">
-          <Button variant="primary" on:click={() => handleAction('restore')}>
+          <Button variant="primary" onclick={() => handleAction('restore')}>
             Dateien wiederherstellen
           </Button>
-          <Button variant="secondary" on:click={() => handleAction('compare')}>
+          <Button variant="secondary" onclick={() => handleAction('compare')}>
             Mit anderem Snapshot vergleichen
           </Button>
-          <Button variant="secondary" on:click={() => handleAction('copy')}>
+          <Button variant="secondary" onclick={() => handleAction('copy')}>
             Snapshot kopieren
           </Button>
-          <Button variant="danger" on:click={() => handleAction('delete')}>Snapshot löschen</Button>
+          <Button variant="danger" onclick={() => handleAction('delete')}>Snapshot löschen</Button>
         </div>
       </div>
     </div>
@@ -149,7 +149,7 @@
   {/if}
 
   <div slot="footer">
-    <Button variant="secondary" on:click={handleClose}>Schließen</Button>
+    <Button variant="secondary" onclick={handleClose}>Schließen</Button>
   </div>
 </Modal>
 

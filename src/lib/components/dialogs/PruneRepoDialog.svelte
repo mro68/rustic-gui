@@ -247,12 +247,12 @@
 
   <div slot="footer">
     {#if !isRunning && !pruneResult}
-      <Button variant="secondary" on:click={handleClose}>Abbrechen</Button>
-      <Button variant="danger" on:click={startPruning}>Bereinigung starten</Button>
+      <Button variant="secondary" onclick={handleClose}>Abbrechen</Button>
+      <Button variant="danger" onclick={startPruning}>Bereinigung starten</Button>
     {:else if isRunning}
-      <Button variant="danger" on:click={stopPruning}>Bereinigung stoppen</Button>
+      <Button variant="danger" onclick={stopPruning}>Bereinigung stoppen</Button>
     {:else}
-      <Button variant="primary" on:click={handleClose}>Schließen</Button>
+      <Button variant="primary" onclick={handleClose}>Schließen</Button>
     {/if}
   </div>
 </Modal>

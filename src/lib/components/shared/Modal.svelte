@@ -23,6 +23,7 @@
    * ```
    */
   import { createEventDispatcher, onMount, tick } from 'svelte';
+  import type { Snippet } from 'svelte';
 
   interface ModalProps {
     /** Steuert Sichtbarkeit des Modals */
@@ -35,21 +36,30 @@
     size?: 'small' | 'medium' | 'large';
     /** Aria-Label für Accessibility */
     ariaLabel?: string;
+    /** Header content */
+    header?: Snippet;
+    /** Main content */
+    children?: Snippet;
+    /** Footer content */
+    footer?: Snippet;
   }
 
   let {
-    open = false,
+    open = $bindable(false),
     closeOnEsc = true,
     closeOnBackdrop = true,
     size = 'medium',
     ariaLabel = undefined,
+    header,
+    children,
+    footer,
   }: ModalProps = $props();
 
   const dispatch = createEventDispatcher();
-  let modalRef: HTMLDivElement | null = null;
-  let modalDialogRef: HTMLDivElement | null = null;
-  let localOpen = open;
-  let closing = false;
+  let modalRef: HTMLDivElement | null = $state(null);
+  let modalDialogRef: HTMLDivElement | null = $state(null);
+  let localOpen = $state(open);
+  let closing = $state(false);
   // generate stable-ish id for aria
   const dialogId = `modal-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -87,26 +97,27 @@
     };
   });
 
-  $: if (open) {
-    document.body.style.overflow = 'hidden';
-    localOpen = true;
-    // focus next tick when opened
-    tick().then(() => modalDialogRef && modalDialogRef.focus());
-  } else {
-    // if parent closed externally, animate close
-    if (localOpen && !closing) {
-      closing = true;
-      setTimeout(() => {
-        closing = false;
-        localOpen = false;
-        document.body.style.overflow = '';
-      }, 180);
+  // Handle open/close state changes
+  $effect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      localOpen = true;
+      // focus next tick when opened
+      tick().then(() => modalDialogRef && modalDialogRef.focus());
     } else {
-      document.body.style.overflow = '';
+      // if parent closed externally, animate close
+      if (localOpen && !closing) {
+        closing = true;
+        setTimeout(() => {
+          closing = false;
+          localOpen = false;
+          document.body.style.overflow = '';
+        }, 180);
+      } else {
+        document.body.style.overflow = '';
+      }
     }
-  }
-
-  // focus dialog when opened (reactive handled above)
+  });
 </script>
 
 /* eslint-env browser */
@@ -130,18 +141,22 @@
       tabindex="-1"
       id={dialogId}
     >
-      <header class="modal-header">
-        <slot name="header" />
-        <button class="modal-close" aria-label="Schließen" onclick={close}>
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </header>
+      {#if header}
+        <header class="modal-header">
+          {@render header()}
+          <button class="modal-close" aria-label="Schließen" onclick={close}>
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </header>
+      {/if}
       <div class="modal-content">
-        <slot />
+        {#if children}
+          {@render children()}
+        {/if}
       </div>
-      {#if $$slots.footer}
+      {#if footer}
         <footer class="modal-footer">
-          <slot name="footer" />
+          {@render footer()}
         </footer>
       {/if}
     </div>

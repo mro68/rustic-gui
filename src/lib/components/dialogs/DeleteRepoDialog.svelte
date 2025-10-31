@@ -66,7 +66,9 @@
     dispatch('close');
   }
 
+  // eslint-disable-next-line no-unused-vars
   function resetForm() {
+    // TODO: Call when dialog closes or add reset button
     confirmName = '';
     deleteData = false;
   }
@@ -145,8 +147,8 @@
   </div>
 
   <div slot="footer">
-    <Button variant="secondary" on:click={handleClose} disabled={isDeleting}>Abbrechen</Button>
-    <Button variant="danger" on:click={handleDelete} disabled={!isValid || isDeleting}>
+    <Button variant="secondary" onclick={handleClose} disabled={isDeleting}>Abbrechen</Button>
+    <Button variant="danger" onclick={handleDelete} disabled={!isValid || isDeleting}>
       {#if isDeleting}
         Lösche Repository...
       {:else}

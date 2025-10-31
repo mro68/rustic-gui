@@ -85,15 +85,29 @@
     isComparing = true;
 
     try {
-      // ✅ API-Integration (TODO.md Phase 2 Zeile 261)
-      const result: DiffResultDto = await compareSnapshots(snapshotA, snapshotB);
+      // ✅ API-Integration mit Backend
+      const result: DiffResultDto = await compareSnapshots(snapshotA.id, snapshotB.id);
 
-      // Update diff data
-      diff = result.changes || [];
-      statsA = result.statsA || {};
-      statsB = result.statsB || {};
+      // Update diff data from backend response
+      diff = [
+        ...result.added.map((path) => ({ type: 'added', path, size: '' })),
+        ...result.modified.map((path) => ({ type: 'modified', path, size: '' })),
+        ...result.removed.map((path) => ({ type: 'removed', path, size: '' })),
+      ];
 
-      toastStore.success('Snapshot-Vergleich abgeschlossen');
+      // Update stats from backend
+      statsA = {
+        files: snapshotA.file_count || 0,
+        size: snapshotA.total_size || 0,
+      };
+      statsB = {
+        files: snapshotB.file_count || 0,
+        size: snapshotB.total_size || 0,
+      };
+
+      toastStore.success(
+        `Vergleich abgeschlossen: +${result.stats.added_count} -${result.stats.removed_count} ~${result.stats.modified_count}`
+      );
 
       dispatch('comparison-complete', { result });
     } catch (error: any) {
@@ -114,269 +128,327 @@
   <div class="modal-backdrop">
     <div class="comparison-modal">
       <div class="comparison-header">
+        <h2>Snapshots vergleichen</h2>
+        <button class="modal-close" onclick={close} aria-label="Schließen">×</button>
+      </div>
+
+      <div class="snapshot-selectors">
         <div class="snapshot-selector">
           <div class="snapshot-selector-title">📸 Snapshot A (Älter)</div>
-          <select class="snapshot-select" bind:value={snapshotA}>
+          <select class="snapshot-select" bind:value={snapshotA} disabled={isComparing}>
+            <option value={null}>-- Snapshot wählen --</option>
             {#each snapshots as s}
-              <option value={s.id}>{s.label}</option>
+              <option value={s}>{new Date(s.time).toLocaleString()} - {s.hostname}</option>
             {/each}
           </select>
+          {#if snapshotA}
+            <div class="snapshot-info">
+              <span>{snapshotA.file_count || 0} Dateien</span>
+              <span>{((snapshotA.total_size || 0) / 1024 / 1024).toFixed(1)} MB</span>
+            </div>
+          {/if}
         </div>
         <div class="snapshot-selector">
           <div class="snapshot-selector-title">📸 Snapshot B (Neuer)</div>
-          <select class="snapshot-select" bind:value={snapshotB}>
+          <select class="snapshot-select" bind:value={snapshotB} disabled={isComparing}>
+            <option value={null}>-- Snapshot wählen --</option>
             {#each snapshots as s}
-              <option value={s.id}>{s.label}</option>
+              <option value={s}>{new Date(s.time).toLocaleString()} - {s.hostname}</option>
             {/each}
           </select>
+          {#if snapshotB}
+            <div class="snapshot-info">
+              <span>{snapshotB.file_count || 0} Dateien</span>
+              <span>{((snapshotB.total_size || 0) / 1024 / 1024).toFixed(1)} MB</span>
+            </div>
+          {/if}
         </div>
       </div>
-      <div class="comparison-grid">
-        <div class="comparison-panel">
-          <div class="comparison-panel-header">📅 Snapshot A</div>
-          <div class="comparison-stats">
-            <div class="stat-item">
-              <span class="stat-label">Dateien</span><span class="stat-value">{statsA.files}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">Größe</span><span class="stat-value">{statsA.size}</span>
-            </div>
-          </div>
-          <div class="comparison-list">
-            {#each diff.filter((d) => d.type === 'added') as item}
-              <div class="comparison-item added">
-                <span class="diff-icon">➕</span><span class="file-path">{item.path}</span><span
-                  class="file-size">{item.size}</span
-                >
-              </div>
-            {/each}
-            {#each diff.filter((d) => d.type === 'modified') as item}
-              <div class="comparison-item modified">
-                <span class="diff-icon">✏️</span><span class="file-path">{item.path}</span><span
-                  class="file-size">{item.size}</span
-                >
-              </div>
-            {/each}
-            {#each diff.filter((d) => d.type === 'removed') as item}
-              <div class="comparison-item removed">
-                <span class="diff-icon">➖</span><span class="file-path">{item.path}</span><span
-                  class="file-size">{item.size}</span
-                >
-              </div>
-            {/each}
-          </div>
-        </div>
-        <div class="comparison-panel">
-          <div class="comparison-panel-header">📅 Snapshot B</div>
-          <div class="comparison-stats">
-            <div class="stat-item">
-              <span class="stat-label">Dateien</span><span class="stat-value">{statsB.files}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">Größe</span><span class="stat-value">{statsB.size}</span>
-            </div>
-          </div>
-          <div class="comparison-list">
-            {#each diff.filter((d) => d.type === 'added') as item}
-              <div class="comparison-item added">
-                <span class="diff-icon">➕</span><span class="file-path">{item.path}</span><span
-                  class="file-size">{item.size}</span
-                >
-              </div>
-            {/each}
-            {#each diff.filter((d) => d.type === 'modified') as item}
-              <div class="comparison-item modified">
-                <span class="diff-icon">✏️</span><span class="file-path">{item.path}</span><span
-                  class="file-size">{item.size}</span
-                >
-              </div>
-            {/each}
-            {#each diff.filter((d) => d.type === 'removed') as item}
-              <div class="comparison-item removed">
-                <span class="diff-icon">➖</span><span class="file-path">{item.path}</span><span
-                  class="file-size">{item.size}</span
-                >
-              </div>
-            {/each}
-          </div>
-        </div>
-      </div>
-      <div class="comparison-summary">
-        <div class="summary-item">
-          <span class="summary-count added">+{diff.filter((d) => d.type === 'added').length}</span
-          ><span style="color: #a1a1aa;">Hinzugefügt</span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-count removed"
-            >-{diff.filter((d) => d.type === 'removed').length}</span
-          ><span style="color: #a1a1aa;">Entfernt</span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-count modified"
-            >{diff.filter((d) => d.type === 'modified').length}</span
-          ><span style="color: #a1a1aa;">Geändert</span>
-        </div>
-      </div>
-      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
-        <button class="btn btn-secondary" on:click={close}>Schließen</button>
+
+      <div class="comparison-actions">
         <button
           class="btn btn-primary"
-          on:click={handleCompare}
-          disabled={isComparing || !snapshotA || !snapshotB}
+          onclick={handleCompare}
+          disabled={!snapshotA || !snapshotB || isComparing}
         >
-          {isComparing ? 'Vergleiche...' : 'Vergleichen'}
+          {#if isComparing}
+            <span class="spinner"></span>
+            Vergleiche...
+          {:else}
+            ⚖️ Vergleichen
+          {/if}
         </button>
+      </div>
+
+      {#if diff.length > 0}
+        <div class="comparison-results">
+          <div class="results-header">
+            <h3>Ergebnisse</h3>
+            <div class="results-stats">
+              <span class="stat-added">+{diff.filter((d) => d.type === 'added').length}</span>
+              <span class="stat-modified">~{diff.filter((d) => d.type === 'modified').length}</span>
+              <span class="stat-removed">-{diff.filter((d) => d.type === 'removed').length}</span>
+            </div>
+          </div>
+
+          <div class="results-list">
+            {#each diff as item}
+              <div class="result-item result-{item.type}">
+                <span class="result-icon">
+                  {#if item.type === 'added'}➕{:else if item.type === 'modified'}✏️{:else}➖{/if}
+                </span>
+                <span class="result-path">{item.path}</span>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick={close}>Schließen</button>
       </div>
     </div>
   </div>
 {/if}
 
 <style>
-  /* CSS aus rustic_advanced_ui_mockup.html (Comparison, Modal) */
   .modal-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(30, 32, 48, 0.7);
-    z-index: 10000;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
   }
+
   .comparison-modal {
-    background: #22273a;
-    border-radius: 16px;
-    border: 1px solid #2d3348;
-    padding: 32px;
-    min-width: 900px;
-    max-width: 98vw;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .comparison-header {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 20px;
-  }
-  .snapshot-selector {
-    background: #2d3348;
-    border-radius: 8px;
-    padding: 16px;
-  }
-  .snapshot-selector-title {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 12px;
-    color: #a1a1aa;
-  }
-  .snapshot-select {
-    width: 100%;
     background: #1a1d2e;
-    border: 1px solid #3e4457;
-    border-radius: 6px;
-    padding: 10px 12px;
-    color: #e4e4e7;
-    font-size: 14px;
-  }
-  .comparison-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  .comparison-panel {
-    background: #2d3348;
     border-radius: 12px;
-    overflow: hidden;
-  }
-  .comparison-panel-header {
-    background: #3e4457;
-    padding: 12px 16px;
-    font-size: 14px;
-    font-weight: 500;
-  }
-  .comparison-stats {
-    padding: 16px;
-    border-bottom: 1px solid #3e4457;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  .stat-item {
+    border: 1px solid #2d3348;
+    min-width: 700px;
+    max-width: 90vw;
+    max-height: 90vh;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   }
-  .stat-label {
-    font-size: 12px;
+
+  .comparison-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #2d3348;
+  }
+
+  .comparison-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #e4e4e7;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #71717a;
+    padding: 0.25rem;
+    line-height: 1;
+  }
+
+  .modal-close:hover {
+    color: #e4e4e7;
+  }
+
+  .snapshot-selectors {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+
+  .snapshot-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .snapshot-selector-title {
+    font-size: 0.875rem;
     color: #a1a1aa;
+    font-weight: 500;
   }
-  .stat-value {
-    font-size: 16px;
-    font-weight: 600;
+
+  .snapshot-select {
+    background: #22273a;
+    border: 1px solid #3e4457;
+    border-radius: 6px;
+    padding: 0.5rem;
+    color: #e4e4e7;
+    font-size: 0.875rem;
   }
-  .comparison-list {
+
+  .snapshot-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+  }
+
+  .snapshot-info {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: #71717a;
+    margin-top: 0.25rem;
+  }
+
+  .comparison-actions {
+    padding: 0 1.5rem 1.5rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .comparison-results {
+    padding: 0 1.5rem 1.5rem;
     max-height: 400px;
     overflow-y: auto;
   }
-  .comparison-item {
-    padding: 12px 16px;
-    border-bottom: 1px solid #3e4457;
+
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .results-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #e4e4e7;
+  }
+
+  .results-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .stat-added {
+    color: #22c55e;
+  }
+
+  .stat-modified {
+    color: #fbbf24;
+  }
+
+  .stat-removed {
+    color: #ef4444;
+  }
+
+  .results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .result-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-size: 13px;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
   }
-  .comparison-item.added {
+
+  .result-added {
     background: rgba(34, 197, 94, 0.1);
     border-left: 3px solid #22c55e;
   }
-  .comparison-item.removed {
-    background: rgba(239, 68, 68, 0.1);
-    border-left: 3px solid #ef4444;
-  }
-  .comparison-item.modified {
+
+  .result-modified {
     background: rgba(251, 191, 36, 0.1);
     border-left: 3px solid #fbbf24;
   }
-  .diff-icon {
-    width: 20px;
-    font-size: 16px;
+
+  .result-removed {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 3px solid #ef4444;
   }
-  .file-path {
+
+  .result-icon {
+    font-size: 1rem;
+  }
+
+  .result-path {
     flex: 1;
-    font-family: 'Courier New', monospace;
+    color: #e4e4e7;
+    font-family: monospace;
+    font-size: 0.8125rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-  .file-size {
-    color: #a1a1aa;
-    font-size: 12px;
-  }
-  .comparison-summary {
-    padding: 16px;
-    background: #3e4457;
+
+  .modal-footer {
     display: flex;
-    justify-content: space-around;
-    font-size: 13px;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #2d3348;
   }
-  .summary-item {
+
+  .btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.875rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 0.5rem;
   }
-  .summary-count {
-    font-size: 20px;
-    font-weight: 600;
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
-  .summary-count.added {
-    color: #4ade80;
+
+  .btn-primary {
+    background: #3b82f6;
+    color: white;
   }
-  .summary-count.removed {
-    color: #f87171;
+
+  .btn-primary:hover:not(:disabled) {
+    background: #2563eb;
   }
-  .summary-count.modified {
-    color: #fbbf24;
+
+  .btn-secondary {
+    background: #2d3348;
+    color: #e4e4e7;
+    border: 1px solid #3e4457;
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background: #3e4457;
+  }
+
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 </style>

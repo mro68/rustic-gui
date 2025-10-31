@@ -400,3 +400,48 @@ pub async fn delete_favorite_location(
 
     Ok(())
 }
+
+/// Holt detaillierte Statistiken für ein Repository
+/// M4.3: Repository-Statistiken Command
+#[tauri::command]
+pub async fn get_repository_stats(
+    id: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<crate::types::RepositoryStatsDto, String> {
+    tracing::debug!("Lade Statistiken für Repository '{}'", id);
+
+    // Hole Repository-Config
+    let (path, password_stored) = {
+        let config = state.config.lock();
+        let repo = config
+            .get_repository(&id)
+            .ok_or_else(|| format!("Repository '{}' nicht gefunden", id))?;
+        (repo.path.clone(), repo.password_stored)
+    };
+
+    // Versuche Passwort zu laden
+    let password = if password_stored {
+        crate::keychain::load_password(&id)
+            .map_err(|e| format!("Passwort konnte nicht geladen werden: {}", e))?
+    } else {
+        return Err("Passwort nicht gespeichert - Repository muss entsperrt werden".into());
+    };
+
+    // Öffne Repository
+    let repo = crate::rustic::repository::open_repository(&path, &password)
+        .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
+
+    // Hole Statistiken
+    let stats = crate::rustic::repository::get_repository_stats(&repo)
+        .map_err(|e| format!("Statistiken abrufen fehlgeschlagen: {}", e))?;
+
+    tracing::info!(
+        "Repository '{}' Statistiken: {} Snapshots, {} Packs, {:.2} MB",
+        id,
+        stats.snapshot_count,
+        stats.pack_count,
+        stats.total_size as f64 / 1024.0 / 1024.0
+    );
+
+    Ok(stats)
+}

@@ -15,6 +15,7 @@
    * ```
    */
   import Tooltip from '$lib/components/shared/Tooltip.svelte';
+  import type { Snippet } from 'svelte';
 
   interface ButtonProps {
     /** Button-Variante für visuelles Styling */
@@ -35,6 +36,8 @@
     tooltip?: string;
     /** Click-Handler */
     onclick?: (() => void) | undefined;
+    /** Children content */
+    children?: Snippet;
   }
 
   let {
@@ -47,6 +50,7 @@
     ariaLabel = undefined,
     tooltip = undefined,
     onclick = undefined,
+    children,
   }: ButtonProps = $props();
 
   // Kombinierte Klassen
@@ -65,11 +69,18 @@
     {#if loading}
       <span class="spinner" aria-hidden="true"></span>
     {:else if icon}
-      <span class="btn-icon" aria-hidden="true"
-        >{#if typeof icon === 'string'}{icon}{:else}<svelte:component this={icon} />{/if}</span
-      >
+      <span class="btn-icon" aria-hidden="true">
+        {#if typeof icon === 'string'}
+          {icon}
+        {:else}
+          <!-- Dynamic component rendering - icon should be a Snippet in Svelte 5 -->
+          {icon}
+        {/if}
+      </span>
     {/if}
-    <span class="btn-content"><slot /></span>
+    {#if children}
+      <span class="btn-content">{@render children()}</span>
+    {/if}
   </button>
 </Tooltip>
 

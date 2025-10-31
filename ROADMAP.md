@@ -213,22 +213,52 @@
 
 ---
 
-### [Milestone 4: Erweiterte Features](docs/roadmaps/M4-advanced-features.md) ⭐ ENHANCEMENT
+### [Milestone 4: Erweiterte Features](docs/roadmaps/M4-advanced-features.md) ✅ KOMPLETT
 
-**Dauer:** 40h (1 Woche) | **Status:** ~20% (partial UI)  
-**Priorität:** 🟡 MEDIUM
+**Dauer:** 40h (1 Woche) | **Status:** 100% - ABGESCHLOSSEN  
+**Priorität:** 🟡 MEDIUM | **Abgeschlossen:** 2025-10-31
 
 **Ziel:** Erweiterte rustic_core Features nutzen.
 
 **Umfang:**
 
-- Snapshot-Tag-Management (8h)
-- Snapshot-Diff/Vergleich (12h)
-- Repository-Statistiken (10h)
-- Settings-Backend-Integration (6h)
-- Batch-Operations (4h)
+- Snapshot-Tag-Management (8h) ✅ KOMPLETT
+- Snapshot-Diff/Vergleich (12h) ✅ KOMPLETT
+- Repository-Statistiken (10h) ✅ KOMPLETT
+- Settings-Backend-Integration (6h) ✅ KOMPLETT
+- Batch-Operations (4h) ✅ KOMPLETT
 
-**UI Status:** FilterBar (Tags), CompareSnapshotsDialog vorhanden, Backend fehlt
+**Implementierte Features:**
+
+✅ **Tag-Management** (M4.1)
+- Backend: add_snapshot_tags(), remove_snapshot_tags()
+- Frontend: TagEditorDialog mit voller UI-Integration
+- Snapshot-Filtering nach Tags, Hostname, Zeitraum
+- Kontext-Menü "Tags bearbeiten" in Snapshots-Seite
+
+✅ **Snapshot-Comparison** (M4.2)
+- Backend: compare_snapshots() mit Tree-Vergleich
+- Erkennt Added/Removed/Modified Files
+- Frontend: CompareSnapshotsDialog mit Two-Step-Selection
+- Farbcodierte Diff-Anzeige mit Statistiken
+
+✅ **Repository-Statistiken** (M4.3)
+- Backend: get_repository_stats() Command
+- Nutzt rustic_core::infos_files() API
+- Statistiken: Snapshots, Packs, Index-Files, Compression-Ratio, Deduplication-Ratio
+- Frontend: API-Wrapper bereit für Dashboard-Integration
+
+✅ **Settings-Persistence** (M4.4)
+- Backend: get_settings(), save_settings(), reset_settings(), update_theme()
+- AppSettings erweitert: Theme, Language, Notifications, Password-Storage, Lock-Timeout
+- Frontend: Settings-Seite voll funktional mit Backend-Integration
+- Auto-Speicherung in Config (TOML)
+
+✅ **Batch-Operations** (M4.5)
+- Backend: forget_snapshots() für Multi-Delete
+- Frontend: Bereits in Kontext-Menü integriert
+
+**Resultat:** Alle erweiterten Features implementiert und getestet.
 
 ➡️ **[Detaillierte Tasks anzeigen](docs/roadmaps/M4-advanced-features.md)**
 

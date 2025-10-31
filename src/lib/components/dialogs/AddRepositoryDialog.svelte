@@ -56,7 +56,7 @@
   let password = '';
   let storePassword = true;
   let backendOptions = '';
-  let locationConfig: any = undefined;
+  // let locationConfig: any = undefined; // Unused, commented out
 
   // UI state
   let isSubmitting = false;
@@ -71,10 +71,10 @@
   }
 
   function handleLocationSelect(event: CustomEvent<{ path: string; type: string; config?: any }>) {
-    const { path, type, config } = event.detail;
+    const { path, type } = event.detail;
     repositoryPath = path;
     repositoryType = type;
-    locationConfig = config;
+    // const { config } = event.detail; // TODO: Use config if needed for backend options
     showLocationPicker = false;
   }
 
@@ -178,7 +178,7 @@
         {#each repositoryTypes as type}
           <div
             class="repo-type-card {selectedType.value === type.value ? 'selected' : ''}"
-            on:click={() => selectRepositoryType(type.value)}
+            onclick={() => selectRepositoryType(type.value)}
             role="button"
             tabindex="0"
             on:keydown={(e) => e.key === 'Enter' && selectRepositoryType(type.value)}
@@ -212,7 +212,7 @@
           required
           readonly
         />
-        <Button variant="secondary" size="sm" on:click={openLocationPicker}>
+        <Button variant="secondary" size="sm" onclick={openLocationPicker}>
           📁 Speicherort wählen
         </Button>
       </div>
@@ -273,8 +273,8 @@
   </div>
 
   <div slot="footer">
-    <Button variant="secondary" on:click={handleClose}>Abbrechen</Button>
-    <Button variant="primary" on:click={handleSubmit} disabled={isSubmitting}>
+    <Button variant="secondary" onclick={handleClose}>Abbrechen</Button>
+    <Button variant="primary" onclick={handleSubmit} disabled={isSubmitting}>
       {#if isSubmitting}
         Erstelle Repository...
       {:else}

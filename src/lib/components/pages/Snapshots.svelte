@@ -47,6 +47,7 @@
 
   import { deleteSnapshot, getSnapshotInfo } from '$lib/api/snapshots';
   import CompareSnapshotsDialog from '$lib/components/dialogs/CompareSnapshotsDialog.svelte';
+  import TagEditorDialog from '$lib/components/dialogs/TagEditorDialog.svelte';
   import ContextMenu from '$lib/components/shared/ContextMenu.svelte';
   import FilterBar from '$lib/components/shared/FilterBar.svelte';
   import Pagination from '$lib/components/shared/Pagination.svelte';
@@ -99,6 +100,11 @@
   let compareDiff = $state<any>(null);
   let compareStatsA = $state<any>(null);
   let compareStatsB = $state<any>(null);
+
+  // Tag Editor State
+  let tagEditorOpen = $state(false);
+  let tagEditorSnapshotId = $state('');
+  let tagEditorCurrentTags = $state<string[]>([]);
 
   // Filter, Sort und Paging
   let filteredSnapshots = $derived(() => {
@@ -257,6 +263,29 @@
     contextMenuSnapshot = null;
   }
 
+  function openTagEditor(snapshot: SnapshotDto) {
+    tagEditorSnapshotId = snapshot.id;
+    tagEditorCurrentTags = snapshot.tags || [];
+    tagEditorOpen = true;
+  }
+
+  function handleTagsSaved() {
+    // Refresh snapshots to get updated tags
+    refreshSnapshots();
+  }
+
+  function openCompareDialog(snapshot: SnapshotDto) {
+    if (!compareSnapshotA) {
+      compareSnapshotA = snapshot;
+      toastStore.info('Ersten Snapshot ausgewählt. Wähle einen zweiten zum Vergleich.');
+    } else if (compareSnapshotA.id === snapshot.id) {
+      toastStore.warning('Bitte einen anderen Snapshot zum Vergleich auswählen.');
+    } else {
+      compareSnapshotB = snapshot;
+      compareDialogOpen = true;
+    }
+  }
+
   function contextMenuActions(): ContextMenuAction[] {
     if (!contextMenuSnapshot) return [];
 
@@ -270,10 +299,18 @@
         },
       },
       {
+        label: 'Tags bearbeiten',
+        icon: '🏷️',
+        action: () => {
+          openTagEditor(contextMenuSnapshot!);
+          closeContextMenu();
+        },
+      },
+      {
         label: 'Vergleichen',
         icon: '⚖️',
         action: () => {
-          // TODO: Vergleichslogik implementieren
+          openCompareDialog(contextMenuSnapshot!);
           closeContextMenu();
         },
       },
@@ -469,6 +506,14 @@
       visible={contextMenuVisible}
       actions={contextMenuActions()}
       on:close={closeContextMenu}
+    />
+
+    <!-- Tag-Editor-Dialog -->
+    <TagEditorDialog
+      bind:open={tagEditorOpen}
+      snapshotId={tagEditorSnapshotId}
+      currentTags={tagEditorCurrentTags}
+      on:save={handleTagsSaved}
     />
 
     <!-- Vergleichs-Dialog -->

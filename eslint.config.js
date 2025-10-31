@@ -47,6 +47,7 @@ export default [
         confirm: 'readonly',
         // DOM Events
         Event: 'readonly',
+        CustomEvent: 'readonly',
         MouseEvent: 'readonly',
         KeyboardEvent: 'readonly',
         Element: 'readonly',

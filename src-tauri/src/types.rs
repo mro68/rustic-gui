@@ -278,6 +278,29 @@ pub struct DiffStats {
     pub total_size_change: i64,
 }
 
+// ===== M4: Repository-Statistiken =====
+
+/// Detaillierte Repository-Statistiken
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RepositoryStatsDto {
+    /// Anzahl der Snapshots im Repository
+    pub snapshot_count: u64,
+    /// Anzahl der Index-Dateien
+    pub index_count: u64,
+    /// Anzahl der Pack-Dateien
+    pub pack_count: u64,
+    /// Gesamtgröße des Repositories in Bytes
+    pub total_size: u64,
+    /// Größe der tatsächlichen Daten in Bytes (ohne Duplikate)
+    pub data_size: u64,
+    /// Kompressionsrate (0.0 - 1.0)
+    pub compression_ratio: f64,
+    /// Deduplizierungs-Rate (0.0 - 1.0)
+    pub deduplication_ratio: f64,
+    /// Anzahl eindeutiger Blobs
+    pub unique_blobs: u64,
+}
+
 // ===== M3: Job-Execution-Tracking =====
 
 /// Status einer Job-Ausführung

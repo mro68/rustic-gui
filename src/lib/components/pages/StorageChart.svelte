@@ -37,8 +37,8 @@
   let { totalSpace = 0, usedSpace = 0, label = '', sublabel = '' }: StorageChartProps = $props();
 
   // Berechne Prozentsatz für SVG
-  $: percentage = totalSpace > 0 ? (usedSpace / totalSpace) * 100 : 0;
-  $: strokeDasharray = `${(percentage / 100) * 283} 283`; // 283 = 2 * π * 45 (Radius 45)
+  const percentage = $derived(totalSpace > 0 ? (usedSpace / totalSpace) * 100 : 0);
+  const strokeDasharray = $derived(`${(percentage / 100) * 283} 283`); // 283 = 2 * π * 45 (Radius 45)
 </script>
 
 <div class="donut-chart">

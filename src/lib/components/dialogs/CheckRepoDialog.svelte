@@ -130,7 +130,9 @@
     dispatch('close');
   }
 
+  // eslint-disable-next-line no-unused-vars
   function resetDialog() {
+    // TODO: Call this when dialog is reopened if needed
     isRunning = false;
     progress = 0;
     currentStep = '';
@@ -217,10 +219,10 @@
 
   <div slot="footer">
     {#if !isRunning}
-      <Button variant="secondary" on:click={handleClose}>Abbrechen</Button>
-      <Button variant="primary" on:click={startCheck}>Überprüfung starten</Button>
+      <Button variant="secondary" onclick={handleClose}>Abbrechen</Button>
+      <Button variant="primary" onclick={startCheck}>Überprüfung starten</Button>
     {:else}
-      <Button variant="danger" on:click={stopCheck}>Überprüfung stoppen</Button>
+      <Button variant="danger" onclick={stopCheck}>Überprüfung stoppen</Button>
     {/if}
   </div>
 </Modal>

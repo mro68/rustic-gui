@@ -3,6 +3,20 @@ use crate::types::{RetentionPolicy, SnapshotDto};
 use rustic_backend::BackendOptions;
 use rustic_core::{Id, Repository, RepositoryOptions, repofile::SnapshotId};
 use tracing::{error, info};
+use serde::{Deserialize, Serialize};
+
+/// Filter-Optionen für Snapshot-Listing
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct SnapshotFilter {
+    /// Filter nach Tags (OR-Logic: wenn irgendeiner passt)
+    pub tags: Option<Vec<String>>,
+    /// Filter nach Hostname
+    pub hostname: Option<String>,
+    /// Filter nach Zeitraum (von)
+    pub time_from: Option<String>,
+    /// Filter nach Zeitraum (bis)
+    pub time_to: Option<String>,
+}
 
 /// Wendet eine Retention-Policy an und löscht Snapshots gemäß Policy.
 ///
@@ -214,5 +228,54 @@ pub async fn list_snapshots(
         })
         .collect();
     snapshots.sort_by(|a, b| b.time.cmp(&a.time));
+    Ok(snapshots)
+}
+
+/// Listet Snapshots mit optionalen Filtern.
+///
+/// # Arguments
+/// * `repository_path` - Pfad zum Repository
+/// * `password` - Repository-Passwort
+/// * `filter` - Optionale Filter-Optionen
+///
+/// # Returns
+/// Vektor von SnapshotDto
+pub async fn list_snapshots_filtered(
+    repository_path: &str,
+    password: &str,
+    filter: Option<SnapshotFilter>,
+) -> Result<Vec<SnapshotDto>, RusticGuiError> {
+    info!(repo = repository_path, "Lese Snapshots mit Filter aus Repository");
+    
+    // Erst alle Snapshots laden
+    let mut snapshots = list_snapshots(repository_path, password).await?;
+    
+    // Filter anwenden falls vorhanden
+    if let Some(f) = filter {
+        // Tag-Filter (OR-Logic: wenn irgendeiner der Tags passt)
+        if let Some(filter_tags) = f.tags {
+            if !filter_tags.is_empty() {
+                snapshots.retain(|snap| {
+                    snap.tags.iter().any(|tag| filter_tags.contains(tag))
+                });
+            }
+        }
+        
+        // Hostname-Filter
+        if let Some(filter_hostname) = f.hostname {
+            snapshots.retain(|snap| snap.hostname == filter_hostname);
+        }
+        
+        // Zeitraum-Filter (von)
+        if let Some(time_from) = f.time_from {
+            snapshots.retain(|snap| snap.time >= time_from);
+        }
+        
+        // Zeitraum-Filter (bis)
+        if let Some(time_to) = f.time_to {
+            snapshots.retain(|snap| snap.time <= time_to);
+        }
+    }
+    
     Ok(snapshots)
 }

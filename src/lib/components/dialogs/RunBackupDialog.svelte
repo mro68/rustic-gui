@@ -235,12 +235,12 @@
   </div>
   <div slot="footer">
     {#if !completed && !error}
-      <button class="btn btn-secondary" on:click={onCancel}>Backup abbrechen</button>
+      <button class="btn btn-secondary" onclick={onCancel}>Backup abbrechen</button>
     {:else if error}
-      <button class="btn btn-primary" on:click={handleRetry}>Erneut versuchen</button>
-      <button class="btn btn-secondary" on:click={close}>Schließen</button>
+      <button class="btn btn-primary" onclick={handleRetry}>Erneut versuchen</button>
+      <button class="btn btn-secondary" onclick={close}>Schließen</button>
     {:else}
-      <button class="btn btn-primary" on:click={close}>Schließen</button>
+      <button class="btn btn-primary" onclick={close}>Schließen</button>
     {/if}
   </div>
 </Modal>

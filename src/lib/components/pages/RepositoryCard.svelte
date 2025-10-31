@@ -90,9 +90,9 @@
   }
 
   // Kontextmenü State
-  let showContextMenu = false;
-  let contextMenuX = 0;
-  let contextMenuY = 0;
+  let showContextMenu = $state(false);
+  let contextMenuX = $state(0);
+  let contextMenuY = $state(0);
 
   function handleContextMenu(event: MouseEvent) {
     event.preventDefault();

@@ -193,8 +193,8 @@
   </div>
 
   <div slot="footer">
-    <Button variant="secondary" on:click={handleClose}>Abbrechen</Button>
-    <Button variant="primary" on:click={handleUnlock} disabled={isUnlocking || !password.trim()}>
+    <Button variant="secondary" onclick={handleClose}>Abbrechen</Button>
+    <Button variant="primary" onclick={handleUnlock} disabled={isUnlocking || !password.trim()}>
       {#if isUnlocking}
         Entsperre...
       {:else}

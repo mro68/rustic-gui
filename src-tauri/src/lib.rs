@@ -135,6 +135,17 @@ async fn list_snapshots_command(
     rustic::snapshot::list_snapshots(&repository_path, &password).await.map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn list_snapshots_filtered_command(
+    repository_path: String,
+    password: String,
+    filter: Option<rustic::snapshot::SnapshotFilter>,
+) -> std::result::Result<Vec<SnapshotDto>, String> {
+    rustic::snapshot::list_snapshots_filtered(&repository_path, &password, filter)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 use rustic::backup::{BackupOptions, BackupProgress, run_backup};
 
 /// Event-Format für Backup-Progress
@@ -695,6 +706,7 @@ pub fn run() {
             commands::backup::list_job_history,
             // --- Snapshot Management ---
             list_snapshots_command,
+            list_snapshots_filtered_command,
             get_snapshot_command,
             delete_snapshot_command,
             forget_snapshots_command,
@@ -712,7 +724,15 @@ pub fn run() {
             commands::repository::list_favorite_locations,
             commands::repository::update_favorite_last_used,
             commands::repository::delete_favorite_location,
+            commands::repository::get_repository_stats, // M4.3
             commands::snapshot::compare_snapshots,
+            commands::snapshot::add_snapshot_tags,
+            commands::snapshot::remove_snapshot_tags,
+            // M4.4: Settings
+            commands::settings::get_settings,
+            commands::settings::save_settings,
+            commands::settings::reset_settings,
+            commands::settings::update_theme,
             // --- Platzhalter für weitere geplante Commands (TODO) ---
             // commands::restore::restore_files_command, // TODO
             // commands::system::check_repository_health, // TODO

@@ -68,3 +68,62 @@ export async function deleteSnapshot(id: string): Promise<void> {
 export async function compareSnapshots(idA: string, idB: string): Promise<DiffResultDto> {
   return await invoke<DiffResultDto>('compare_snapshots', { idA, idB });
 }
+
+/**
+ * Fügt Tags zu einem Snapshot hinzu.
+ *
+ * @param snapshotId - Snapshot-ID
+ * @param tags - Array von Tags zum Hinzufügen
+ * @returns Promise (void)
+ * @throws Error wenn Snapshot nicht existiert oder Operation fehlschlägt
+ */
+export async function addSnapshotTags(snapshotId: string, tags: string[]): Promise<void> {
+  await invoke('add_snapshot_tags', { snapshotId, tags });
+}
+
+/**
+ * Entfernt Tags von einem Snapshot.
+ *
+ * @param snapshotId - Snapshot-ID
+ * @param tags - Array von Tags zum Entfernen
+ * @returns Promise (void)
+ * @throws Error wenn Snapshot nicht existiert oder Operation fehlschlägt
+ */
+export async function removeSnapshotTags(snapshotId: string, tags: string[]): Promise<void> {
+  await invoke('remove_snapshot_tags', { snapshotId, tags });
+}
+
+/**
+ * Snapshot-Filter-Optionen
+ */
+export interface SnapshotFilter {
+  /** Filter nach Tags (OR-Logic: wenn irgendeiner passt) */
+  tags?: string[];
+  /** Filter nach Hostname */
+  hostname?: string;
+  /** Filter nach Zeitraum (von) - ISO 8601 String */
+  timeFrom?: string;
+  /** Filter nach Zeitraum (bis) - ISO 8601 String */
+  timeTo?: string;
+}
+
+/**
+ * Listet Snapshots mit optionalen Filtern.
+ *
+ * @param repositoryPath - Repository-Pfad
+ * @param password - Repository-Passwort
+ * @param filter - Optionale Filter-Optionen
+ * @returns Promise mit gefilterten Snapshots
+ * @throws Error wenn Abfrage fehlschlägt
+ */
+export async function listSnapshotsFiltered(
+  repositoryPath: string,
+  password: string,
+  filter?: SnapshotFilter
+): Promise<SnapshotDto[]> {
+  return await invoke<SnapshotDto[]>('list_snapshots_filtered', {
+    repositoryPath,
+    password,
+    filter,
+  });
+}

@@ -91,7 +91,9 @@
     showUnlockDialog = true;
   }
 
+  // eslint-disable-next-line no-unused-vars
   function handleDeleteRepository(repo: RepositoryDto) {
+    // TODO: Connect to delete button in RepositoryCard context menu
     selectedRepository = repo;
     showDeleteDialog = true;
   }
