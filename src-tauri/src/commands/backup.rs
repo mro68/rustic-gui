@@ -529,6 +529,40 @@ pub async fn list_scheduled_backups(state: tauri::State<'_, AppState>) -> Result
     Ok(scheduler.list_scheduled_jobs())
 }
 
+/// Listet die Job-Execution-History auf
+///
+/// # Arguments
+/// * `job_id` - Optional: Nur History für diesen Job (None = alle Jobs)
+/// * `limit` - Maximale Anzahl der Einträge
+///
+/// # Returns
+/// Vektor mit JobExecution-Einträgen (neueste zuerst)
+#[tauri::command]
+pub async fn list_job_history(
+    job_id: Option<String>,
+    limit: Option<usize>,
+    state: tauri::State<'_, AppState>,
+) -> Result<Vec<crate::types::JobExecution>, String> {
+    let config = state.config.lock();
+    let limit = limit.unwrap_or(100);
+
+    let executions = if let Some(job_id) = job_id {
+        config
+            .get_job_executions(&job_id, limit)
+            .into_iter()
+            .cloned()
+            .collect()
+    } else {
+        config
+            .get_all_job_executions(limit)
+            .into_iter()
+            .cloned()
+            .collect()
+    };
+
+    Ok(executions)
+}
+
 #[cfg(test)]
 mod scheduler_tests {
     use super::*;

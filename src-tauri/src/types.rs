@@ -278,6 +278,42 @@ pub struct DiffStats {
     pub total_size_change: i64,
 }
 
+// ===== M3: Job-Execution-Tracking =====
+
+/// Status einer Job-Ausführung
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum JobExecutionStatus {
+    /// Job läuft aktuell
+    Running,
+    /// Job erfolgreich abgeschlossen
+    Completed,
+    /// Job fehlgeschlagen
+    Failed,
+    /// Job wurde abgebrochen
+    Cancelled,
+}
+
+/// Ein einzelner Job-Ausführungs-Eintrag
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JobExecution {
+    /// Job-ID
+    pub job_id: String,
+    /// Startzeitpunkt
+    pub started_at: String, // ISO 8601
+    /// Endzeitpunkt (optional, None wenn noch läuft)
+    pub finished_at: Option<String>, // ISO 8601
+    /// Status
+    pub status: JobExecutionStatus,
+    /// Snapshot-ID (bei Erfolg)
+    pub snapshot_id: Option<String>,
+    /// Anzahl verarbeiteter Dateien
+    pub files_processed: u64,
+    /// Anzahl verarbeiteter Bytes
+    pub bytes_processed: u64,
+    /// Fehlermeldung (bei Fehler)
+    pub error_message: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
