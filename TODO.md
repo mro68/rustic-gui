@@ -101,7 +101,7 @@
   - ✅ DeleteRepoDialog.svelte (API-integriert + Error-Toast) **KOMPLETT 2025-10-30**
   - ✅ UnlockRepositoryDialog.svelte (API-integriert + Toasts) **KOMPLETT 2025-10-30**
   - ✅ CheckRepoDialog.svelte (API-integriert + Progress) **KOMPLETT 2025-10-30**
-  - ✅ PruneRepoDialog.svelte (API-integriert + Toasts) **KOMPLETT 2025-10-30**
+  - ✅ PruneRepoDialog.svelte (API-integriert + Toasts + Statistiken) **KOMPLETT 2025-10-31**
   - ✅ ChangePasswordDialog.svelte (API-integriert + Validierung) **KOMPLETT 2025-10-30**
   - ✅ CreateJobDialog.svelte (API-integriert)
   - ✅ EditJobDialog.svelte (API-integriert)
@@ -250,7 +250,7 @@ Der wichtigste Schritt ist die Implementierung der Rust-Seite, die die in `src/l
   - [x] `DeleteRepoDialog.svelte`: `handleDelete` an `api.deleteRepository` angebunden. ✅ (vollständig implementiert)
   - [x] `UnlockRepositoryDialog.svelte`: `handleUnlock` an `api.openRepository` anbinden. ✅ (KOMPLETT - 2025-10-30)
   - [x] `CheckRepoDialog.svelte`: `startCheck` an `api.checkRepository` anbinden (Fortschritts-Events verarbeiten). ✅ (KOMPLETT - 2025-10-30)
-  - [x] `PruneRepoDialog.svelte`: `startPruning` an `api.pruneRepository` anbinden (Fortschritts-Events verarbeiten). ✅ (KOMPLETT - 2025-10-30)
+  - [x] `PruneRepoDialog.svelte`: `startPruning` an `api.pruneRepository` anbinden (Fortschritts-Events verarbeiten). ✅ (KOMPLETT - 2025-10-31)
   - [x] `ChangePasswordDialog.svelte`: `handleSubmit` an `api.changePassword` anbinden. ✅ (KOMPLETT - 2025-10-30)
   - [x] **Best-Practice:** Fortschritts- und Ergebnis-Events einheitlich und wiederverwendbar im UI behandeln. ✅ (Toasts implementiert)
 
