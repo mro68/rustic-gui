@@ -2,7 +2,7 @@
 
 > **REALISTISCHE Projekt-Roadmap basierend auf tatsächlichem Implementierungsstand**
 >
-> Version: 3.0 | Status: � BUILD SUCCESS - Phase 0 ABGESCHLOSSEN | Aktualisiert: 2025-10-31
+> Version: 3.1 | Status: ✅ BUILD SUCCESS - Phase 1 75% | Aktualisiert: 2025-10-31
 
 ---
 
@@ -79,7 +79,7 @@
 | Phase                                     | Beschreibung            | Dauer    | Status   | Priorität  | Blocker?      |
 | ----------------------------------------- | ----------------------- | -------- | -------- | ---------- | ------------- |
 | **[Phase 0](#phase-0-notfall-reparatur)** | Build Fix + Basis-Demo  | 8h       | ✅ 100%  | � DONE     | ✅ RESOLVED   |
-| **[Phase 1](#phase-1-mvp-core)**          | MVP Core Features       | 25h      | 🔴 20%   | 🔴 HIGHEST | ❌ NO (Ready) |
+| **[Phase 1](#phase-1-mvp-core)**          | MVP Core Features       | 25h      | � 75%    | 🔴 HIGHEST | ❌ NO (Ready) |
 | **[Phase 2](#phase-2-erweiterte-basis)**  | Cloud + Scheduler       | 30h      | 🔴 5%    | 🟠 HIGH    | ❌ NO         |
 | **[Phase 3](#phase-3-advanced-features)** | Erweiterte Features     | 25h      | � 0%     | 🟡 MEDIUM  | ❌ NO         |
 | **[Phase 4](#phase-4-testing--release)**  | Testing, Docs & Release | 20h      | � 10%    | � HIGH     | ❌ NO         |
@@ -129,10 +129,40 @@ Die vorherigen Milestones M1-M6 waren zu optimistisch dokumentiert. Status siehe
 
 ### Phase 1: MVP CORE FEATURES 🎯
 
-**Dauer:** 25h (3-4 Tage) | **Status:** 🔴 20% - IN ARBEIT  
-**Priorität:** 🔴 HÖCHSTE | **Abhängigkeit:** Phase 0 MUSS abgeschlossen sein
+**Dauer:** 25h (3-4 Tage) | **Status:** � 75% - FAST FERTIG  
+**Priorität:** 🔴 HÖCHSTE | **Abhängigkeit:** Phase 0 ✅ ABGESCHLOSSEN
 
 **Ziel:** Minimaler funktionsfähiger Prototyp - Backup/Restore für lokale Repositories.
+
+#### ✅ Abgeschlossene Arbeiten (2025-10-31)
+
+**Task 1.1: Repository State-Architektur** ✅
+
+- ✅ CachedRepository mit Arc<Repository> + 5min Timeout
+- ✅ `AppState::get_repository(id)` mit Cache-Logik
+- ✅ `AppState::set_current_repository(id)`
+- ✅ `AppState::get_current_repository_id()`
+- ✅ `AppState::with_current_repo()` helper
+- ✅ forget_snapshots() reaktiviert mit State-System
+
+**Task 1.2: Command-Migration** ✅
+
+- ✅ Alte Commands in lib.rs identifiziert
+- ✅ Neue Commands nutzen State-System
+- ✅ forget_snapshots nutzt rustic_core::delete_snapshots API
+
+**Task 1.3: Repository-Statistics** ✅
+
+- ✅ get_repository_stats() nutzt State-System
+- ✅ Integration mit rustic_core API (Placeholder für Pack-Stats)
+
+#### ⏳ Verbleibende Arbeiten
+
+**Task 1.4: Snapshot-Commands Refactoring** (6h)
+
+- ⏳ compare_snapshots: Muss mit get_snapshots() statt node_from_snapshot() neu implementiert werden
+- ⏳ add/remove_snapshot_tags: Muss mit korrekter save_snapshot() API aktualisiert werden
+- Siehe backup-restore-snapshots.instructions.md
 
 ```
 

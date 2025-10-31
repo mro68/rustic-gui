@@ -34,7 +34,10 @@ pub async fn get_snapshot_info(
 }
 
 /// Vergleicht zwei Snapshots
-// TODO Phase 1: Reaktivieren wenn Repository State implementiert ist
+/// TODO Phase 1: Refactoring benötigt - rustic_core 0.8.0 API hat sich geändert
+/// - Kein `node_from_snapshot()` mehr verfügbar
+/// - Muss mit `get_snapshots()` und Tree-Streamer neu implementiert werden
+/// - Siehe backup-restore-snapshots.instructions.md für korrekte Implementierung
 /*
 #[tauri::command]
 pub async fn compare_snapshots(
@@ -49,10 +52,13 @@ pub async fn compare_snapshots(
     );
 
     // Get current repository
-    let repo_guard = state.current_repository.lock().map_err(|e| e.to_string())?;
-    let repo = repo_guard
-        .as_ref()
-        .ok_or("Kein Repository geöffnet")?;
+    let repo = state
+        .get_current_repository_id()
+        .ok_or("Kein Repository ausgewählt")?;
+    
+    let repo = state
+        .get_repository(&repo)
+        .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
 
     // Load both snapshots
     let snapshot_a = repo
@@ -83,7 +89,7 @@ pub async fn compare_snapshots(
     let mut paths_b: HashMap<String, _> = HashMap::new();
 
     // Collect all paths from snapshot A
-    for entry in tree_a.recurse_entries(repo, None).flatten() {
+    for entry in tree_a.recurse_entries(&repo, None).flatten() {
         if let Ok(path_str) = entry.path().to_str() {
             paths_a.insert(
                 path_str.to_string(),
@@ -93,7 +99,7 @@ pub async fn compare_snapshots(
     }
 
     // Collect all paths from snapshot B
-    for entry in tree_b.recurse_entries(repo, None).flatten() {
+    for entry in tree_b.recurse_entries(&repo, None).flatten() {
         if let Ok(path_str) = entry.path().to_str() {
             let path = path_str.to_string();
             let size_b = entry.meta().size;
@@ -155,48 +161,47 @@ pub async fn delete_snapshot(id: String, state: tauri::State<'_, AppState>) -> R
     Err("delete_snapshot: Noch nicht implementiert".into())
 }
 
-// Löscht Snapshots gemäß Policy (Batch-Operation)
-// M4.5: Batch-Operations
-// TODO Phase 1: Reaktivieren wenn Repository State implementiert ist
-/*
+/// Löscht Snapshots gemäß Policy (Batch-Operation)
+/// M4.5: Batch-Operations
 #[tauri::command]
 pub async fn forget_snapshots(
     snapshot_ids: Vec<String>,
     state: tauri::State<'_, AppState>,
 ) -> Result<usize, String> {
+    use rustic_core::repofile::SnapshotId;
+    
     tracing::info!("Lösche {} Snapshots (Batch)", snapshot_ids.len());
 
+    let repo_id = state
+        .get_current_repository_id()
+        .ok_or("Kein Repository ausgewählt")?;
+    
     let repo = state
-        .current_repository
-        .lock()
-        .as_ref()
-        .ok_or("Kein Repository geöffnet")?
-        .clone();
+        .get_repository(&repo_id)
+        .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
 
-    let mut deleted = 0;
-
-    // Lösche jeden Snapshot einzeln
+    // Parse Snapshot IDs
+    let mut ids: Vec<SnapshotId> = Vec::new();
     for snapshot_id in snapshot_ids.iter() {
-        match crate::rustic::snapshot::delete_snapshot(&repo, snapshot_id).await {
-            Ok(_) => {
-                deleted += 1;
-                tracing::debug!("Snapshot {} gelöscht", snapshot_id);
-            }
-            Err(e) => {
-                tracing::warn!("Fehler beim Löschen von Snapshot {}: {}", snapshot_id, e);
-            }
-        }
+        let id: rustic_core::Id = snapshot_id
+            .parse()
+            .map_err(|_| format!("Ungültige Snapshot-ID: {}", snapshot_id))?;
+        ids.push(SnapshotId::from(id));
     }
 
-    tracing::info!("{} von {} Snapshots gelöscht", deleted, snapshot_ids.len());
+    // Lösche alle Snapshots in einem Batch
+    repo.delete_snapshots(&ids)
+        .map_err(|e| format!("Snapshots löschen fehlgeschlagen: {}", e))?;
+
+    let deleted = ids.len();
+    tracing::info!("{} Snapshots erfolgreich gelöscht", deleted);
 
     Ok(deleted)
 }
-*/
 
-// Fügt Tags zu einem Snapshot hinzu
-// TODO Phase 1: Reaktivieren wenn Repository State implementiert ist
 /*
+/// Fügt Tags zu einem Snapshot hinzu
+/// TODO Phase 1: Refactoring benötigt - save_snapshot() API geändert
 #[tauri::command]
 pub async fn add_snapshot_tags(
     snapshot_id: String,
@@ -210,20 +215,23 @@ pub async fn add_snapshot_tags(
     );
 
     // Get current repository
-    let repo_guard = state.current_repository.lock().map_err(|e| e.to_string())?;
-    let repo = repo_guard
-        .as_ref()
-        .ok_or("Kein Repository geöffnet")?;
+    let repo_id = state
+        .get_current_repository_id()
+        .ok_or("Kein Repository ausgewählt")?;
+    
+    let repo = state
+        .get_repository(&repo_id)
+        .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
 
     // Load snapshot
     let mut snapshot = repo
         .get_snapshot_from_str(&snapshot_id)
         .map_err(|e| format!("Snapshot nicht gefunden: {}", e))?;
 
-    // Add tags
+    // Add tags (StringList::from takes &str, not from_str)
     let tag_lists: Vec<rustic_core::StringList> = tags
         .into_iter()
-        .map(|t| rustic_core::StringList::from_str(&t))
+        .map(|t| rustic_core::StringList::from(&t))
         .collect();
 
     if snapshot.add_tags(tag_lists) {
@@ -239,9 +247,9 @@ pub async fn add_snapshot_tags(
 }
 */
 
-// Entfernt Tags von einem Snapshot
-// TODO Phase 1: Reaktivieren wenn Repository State implementiert ist
 /*
+/// Entfernt Tags von einem Snapshot
+/// TODO Phase 1: Refactoring benötigt - save_snapshot() API geändert
 #[tauri::command]
 pub async fn remove_snapshot_tags(
     snapshot_id: String,
@@ -255,20 +263,23 @@ pub async fn remove_snapshot_tags(
     );
 
     // Get current repository
-    let repo_guard = state.current_repository.lock().map_err(|e| e.to_string())?;
-    let repo = repo_guard
-        .as_ref()
-        .ok_or("Kein Repository geöffnet")?;
+    let repo_id = state
+        .get_current_repository_id()
+        .ok_or("Kein Repository ausgewählt")?;
+    
+    let repo = state
+        .get_repository(&repo_id)
+        .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
 
     // Load snapshot
     let mut snapshot = repo
         .get_snapshot_from_str(&snapshot_id)
         .map_err(|e| format!("Snapshot nicht gefunden: {}", e))?;
 
-    // Remove tags
+    // Remove tags (StringList::from takes &str, not from_str)
     let tag_lists: Vec<rustic_core::StringList> = tags
         .into_iter()
-        .map(|t| rustic_core::StringList::from_str(&t))
+        .map(|t| rustic_core::StringList::from(&t))
         .collect();
 
     if snapshot.remove_tags(&tag_lists) {

@@ -714,7 +714,10 @@ pub fn run() {
             list_snapshots_filtered_command,
             get_snapshot_command,
             delete_snapshot_command,
-            // forget_snapshots_command, // TODO Phase 1: Reaktivieren
+            commands::snapshot::forget_snapshots,
+            // commands::snapshot::compare_snapshots, // TODO Phase 1: Refactoring benötigt - API geändert
+            // commands::snapshot::add_snapshot_tags, // TODO Phase 1: Refactoring benötigt - API geändert
+            // commands::snapshot::remove_snapshot_tags, // TODO Phase 1: Refactoring benötigt - API geändert
             // --- Restore ---
             get_file_tree_command,
             restore_files_v1,
@@ -730,9 +733,6 @@ pub fn run() {
             commands::repository::update_favorite_last_used,
             commands::repository::delete_favorite_location,
             commands::repository::get_repository_stats, // M4.3
-            // commands::snapshot::compare_snapshots, // TODO Phase 1: Disabled - needs Repository State
-            // commands::snapshot::add_snapshot_tags, // TODO Phase 1: Disabled - needs Repository State  
-            // commands::snapshot::remove_snapshot_tags, // TODO Phase 1: Disabled - needs Repository State
             // M4.4: Settings
             commands::settings::get_settings,
             commands::settings::save_settings,

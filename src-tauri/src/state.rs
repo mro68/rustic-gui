@@ -1,15 +1,22 @@
 use crate::config::AppConfig;
 use crate::scheduler::BackupScheduler;
 use parking_lot::Mutex;
+use rustic_backend::BackendOptions;
+use rustic_core::{NoProgressBars, OpenStatus, Repository, RepositoryOptions};
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 use tokio::sync::Mutex as AsyncMutex;
 use tokio_util::sync::CancellationToken;
 
-// Für M1: Wir speichern das Repository nicht im State, da der Type komplex ist.
-// Stattdessen öffnen wir es bei Bedarf neu (Performance-Trade-off für M1).
-// TODO M2: Optimiere durch Caching des geöffneten Repositories
-pub type RusticRepository = (); // Platzhalter
+/// Cached Repository mit Timeout
+struct CachedRepository {
+    repository: Arc<Repository<NoProgressBars, OpenStatus>>,
+    last_accessed: Instant,
+}
+
+/// Cache-Timeout: 5 Minuten
+const CACHE_TIMEOUT: Duration = Duration::from_secs(300);
 
 /// Globaler Application-State.
 ///
@@ -17,8 +24,12 @@ pub type RusticRepository = (); // Platzhalter
 /// Verwaltet das aktuell geöffnete Repository, laufende Backups und den Scheduler.
 #[derive(Clone)]
 pub struct AppState {
-    /// Aktuell geöffnetes Repository
-    pub current_repo: Arc<Mutex<Option<RusticRepository>>>,
+    /// ID des aktuell ausgewählten Repositories
+    pub current_repository_id: Arc<Mutex<Option<String>>>,
+
+    /// Cache für geöffnete Repositories (ID -> Repository)
+    /// Repositories werden für 5 Minuten gecacht um wiederholte Opens zu vermeiden
+    repository_cache: Arc<Mutex<HashMap<String, CachedRepository>>>,
 
     /// Cancellation-Tokens für laufende Backups
     /// Key: Job-ID, Value: CancellationToken
@@ -32,6 +43,9 @@ pub struct AppState {
 }
 
 impl AppState {
+    /// Repository-Cache Timeout (5 Minuten)
+    const CACHE_TIMEOUT: Duration = Duration::from_secs(300);
+
     /// Erstellt neuen AppState und lädt Config.
     ///
     /// Der Scheduler wird NICHT in new() initialisiert, da dies async sein muss.
@@ -40,7 +54,8 @@ impl AppState {
         let config = AppConfig::load().unwrap_or_default();
 
         Ok(Self {
-            current_repo: Arc::new(Mutex::new(None)),
+            current_repository_id: Arc::new(Mutex::new(None)),
+            repository_cache: Arc::new(Mutex::new(HashMap::new())),
             cancellation_tokens: Arc::new(Mutex::new(HashMap::new())),
             scheduler: Arc::new(AsyncMutex::new(None)), // Wird async initialisiert
             config: Arc::new(Mutex::new(config)),
@@ -71,19 +86,133 @@ impl AppState {
 
     /// Helper: Prüft ob ein Repository geöffnet ist.
     pub fn has_current_repo(&self) -> bool {
-        // TODO M2: Echte Repository-Prüfung
-        false
+        self.current_repository_id.lock().is_some()
     }
 
-    /// Helper: TODO M2 - Repository-Zugriff muss neu designed werden
-    pub fn with_current_repo<F, R>(&self, _f: F) -> crate::error::Result<R>
+    /// Setzt das aktuelle Repository
+    pub fn set_current_repository(&self, repo_id: Option<String>) {
+        let mut current = self.current_repository_id.lock();
+        *current = repo_id;
+    }
+
+    /// Gibt die ID des aktuellen Repositories zurück
+    pub fn get_current_repository_id(&self) -> Option<String> {
+        self.current_repository_id.lock().clone()
+    }
+
+    /// Öffnet ein Repository und gibt eine Referenz zurück
+    ///
+    /// Verwendet den Cache für bessere Performance. Repositories werden
+    /// für 5 Minuten gecacht und automatisch aus dem Cache entfernt wenn älter.
+    ///
+    /// # Arguments
+    /// * `repository_id` - ID des Repositories (aus Config)
+    ///
+    /// # Returns
+    /// Result mit Arc<Repository>-Referenz
+    ///
+    /// # Errors
+    /// - RepositoryNotFound: Repository-ID existiert nicht in Config
+    /// - AuthenticationFailed: Passwort falsch oder fehlt
+    /// - RusticError: Fehler beim Öffnen des Repositories
+    pub fn get_repository(
+        &self,
+        repository_id: &str,
+    ) -> crate::error::Result<Arc<Repository<NoProgressBars, OpenStatus>>> {
+        // 1. Prüfe Cache
+        {
+            let mut cache = self.repository_cache.lock();
+            
+            // Cleanup: Entferne alte Einträge
+            cache.retain(|_, cached| {
+                cached.last_accessed.elapsed() < CACHE_TIMEOUT
+            });
+            
+            // Prüfe ob gecacht und noch gültig
+            if let Some(cached) = cache.get_mut(repository_id) {
+                cached.last_accessed = Instant::now();
+                tracing::debug!("Repository {} aus Cache geladen", repository_id);
+                return Ok(cached.repository.clone());
+            }
+        }
+
+        // 2. Nicht im Cache - Repository öffnen
+        let config = self.config.lock();
+        let repo_config = config
+            .get_repository(repository_id)
+            .ok_or_else(|| crate::error::RusticGuiError::Internal(
+                format!("Repository {} nicht in Config gefunden", repository_id)
+            ))?;
+
+        // 3. Passwort aus Keychain holen (falls gespeichert)
+        let password = if repo_config.password_stored {
+            crate::keychain::load_password(repository_id)
+                .map_err(|e| crate::error::RusticGuiError::Internal(
+                    format!("Passwort konnte nicht geladen werden: {}", e)
+                ))?
+        } else {
+            return Err(crate::error::RusticGuiError::Internal(
+                "Passwort nicht gespeichert - Repository muss erst entsperrt werden".to_string()
+            ));
+        };
+
+        // 4. Backend erstellen
+        let backend_opts = BackendOptions::default().repository(&repo_config.path);
+        let backends = backend_opts.to_backends().map_err(|e| {
+            crate::error::RusticGuiError::RusticError {
+                message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
+            }
+        })?;
+
+        // 5. Repository öffnen
+        let repo_opts = RepositoryOptions::default().password(password);
+        let repository = Repository::<NoProgressBars, _>::new(&repo_opts, &backends)
+            .map_err(|e| crate::error::RusticGuiError::RusticError {
+                message: format!("Repository erstellen fehlgeschlagen: {}", e),
+            })?
+            .open()
+            .map_err(|e| crate::error::RusticGuiError::RusticError {
+                message: format!("Repository öffnen fehlgeschlagen: {}", e),
+            })?;
+
+        // 6. In Cache speichern
+        let repository_arc = Arc::new(repository);
+        {
+            let mut cache = self.repository_cache.lock();
+            cache.insert(
+                repository_id.to_string(),
+                CachedRepository {
+                    repository: repository_arc.clone(),
+                    last_accessed: Instant::now(),
+                },
+            );
+            tracing::info!("Repository {} geöffnet und gecacht", repository_id);
+        }
+
+        Ok(repository_arc)
+    }
+
+    /// Helper: Führt eine Funktion mit dem aktuellen Repository aus
+    ///
+    /// # Arguments
+    /// * `f` - Funktion die das Repository nutzt
+    ///
+    /// # Returns
+    /// Result mit Rückgabewert der Funktion
+    ///
+    /// # Errors
+    /// - NoRepositorySelected: Kein Repository ausgewählt
+    /// - Weitere Fehler von get_repository()
+    pub fn with_current_repo<F, R>(&self, f: F) -> crate::error::Result<R>
     where
-        F: FnOnce() -> crate::error::Result<R>,
+        F: FnOnce(&Repository<NoProgressBars, OpenStatus>) -> crate::error::Result<R>,
     {
-        // TODO M2: Implementiere wenn Repository-Caching fertig ist
-        Err(crate::error::RusticGuiError::Internal(
-            "Repository-Zugriff noch nicht implementiert (M2)".to_string(),
-        ))
+        let repo_id = self.get_current_repository_id().ok_or_else(|| {
+            crate::error::RusticGuiError::Internal("Kein Repository ausgewählt".to_string())
+        })?;
+
+        let repository = self.get_repository(&repo_id)?;
+        f(&*repository)
     }
 
     /// Helper: Speichert Config auf Disk.
@@ -120,10 +249,10 @@ mod tests {
     #[test]
     fn test_get_current_repo_when_none() {
         let state = AppState::new().unwrap();
-        let result = state.with_current_repo(|| Ok(()));
+        let result = state.with_current_repo(|_repo| Ok(()));
         assert!(matches!(
             result,
-            Err(crate::error::RusticGuiError::Internal { .. })
+            Err(crate::error::RusticGuiError::Internal(_))
         ));
     }
 

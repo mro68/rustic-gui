@@ -409,54 +409,19 @@ pub async fn get_repository_stats(
 ) -> Result<crate::types::RepositoryStatsDto, String> {
     tracing::debug!("Lade Statistiken für Repository '{}'", id);
 
-    // Hole Repository-Config
-    let (path, password_stored) = {
-        let config = state.config.lock();
-        let repo = config
-            .get_repository(&id)
-            .ok_or_else(|| format!("Repository '{}' nicht gefunden", id))?;
-        (repo.path.clone(), repo.password_stored)
-    };
-
-    // Versuche Passwort zu laden
-    let password = if password_stored {
-        crate::keychain::load_password(&id)
-            .map_err(|e| format!("Passwort konnte nicht geladen werden: {}", e))?
-    } else {
-        return Err("Passwort nicht gespeichert - Repository muss entsperrt werden".into());
-    };
-
-    // Öffne Repository
-    let repo = crate::rustic::repository::open_repository(&path, &password)
+    // Nutze neues State-System um Repository zu öffnen
+    let repo = state
+        .get_repository(&id)
         .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
 
-    // Hole Statistiken
-    // Get repository stats - benötigt Repository, nicht OpenedRepository
-    // Temporarily disable stats until we have proper Repository access
-    // TODO Phase 1: Fix Repository type handling
-    /*
-    let stats = crate::rustic::repository::get_repository_stats(&repo)
+    // Hole Statistiken mit rustic_core API
+    let stats = crate::rustic::repository::get_repository_stats(&*repo)
         .map_err(|e| format!("Statistiken sammeln fehlgeschlagen: {}", e))?;
-    */
-    
-    // Return placeholder stats
-    let stats = crate::types::RepositoryStatsDto {
-        snapshot_count: 0,
-        index_count: 0,
-        pack_count: 0,
-        total_size: 0,
-        data_size: 0,
-        compression_ratio: 1.0,
-        deduplication_ratio: 0.0,
-        unique_blobs: 0,
-    };
 
     tracing::info!(
-        "Repository '{}' Statistiken: {} Snapshots, {} Packs, {:.2} MB",
+        "Statistiken für Repository '{}' geladen: {} Snapshots",
         id,
-        stats.snapshot_count,
-        stats.pack_count,
-        stats.total_size as f64 / 1024.0 / 1024.0
+        stats.snapshot_count
     );
 
     Ok(stats)

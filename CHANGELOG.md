@@ -7,6 +7,28 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+#### 2025-10-31 - Phase 1: Repository State-Architektur (🟡 75% - Fast fertig)
+
+- **Repository Caching System (Task 1.1):**
+  - `CachedRepository` Struktur mit Arc<Repository> und Timestamp
+  - 5-Minuten Cache-Timeout für bessere Performance
+  - `AppState::get_repository(id)` mit automatischem Cache-Management
+  - `AppState::set_current_repository(id)` für aktives Repository
+  - `AppState::get_current_repository_id()` Helper
+  - `AppState::with_current_repo()` für sichere Repository-Operationen
+
+- **Snapshot-Management (Task 1.2):**
+  - `forget_snapshots()` Command reaktiviert mit neuem State-System
+  - Nutzt rustic_core::delete_snapshots API für Batch-Operationen
+  - Verbesserte Error-Handling mit Repository-Cache
+
+- **Repository-Statistics (Task 1.3):**
+  - `get_repository_stats()` nutzt jetzt State-System statt direktem Öffnen
+  - Integration mit rustic_core API (Snapshot-Count funktional)
+  - Placeholder für Pack-File-Statistics (wird in Phase 3 implementiert)
+
 ### Fixed
 
 #### 2025-10-31 - Phase 0: Notfall-Reparatur (✅ 100% ABGESCHLOSSEN)
