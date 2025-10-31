@@ -135,6 +135,17 @@ async fn list_snapshots_command(
     rustic::snapshot::list_snapshots(&repository_path, &password).await.map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn list_snapshots_filtered_command(
+    repository_path: String,
+    password: String,
+    filter: Option<rustic::snapshot::SnapshotFilter>,
+) -> std::result::Result<Vec<SnapshotDto>, String> {
+    rustic::snapshot::list_snapshots_filtered(&repository_path, &password, filter)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 use rustic::backup::{BackupOptions, BackupProgress, run_backup};
 
 /// Event-Format für Backup-Progress
@@ -695,6 +706,7 @@ pub fn run() {
             commands::backup::list_job_history,
             // --- Snapshot Management ---
             list_snapshots_command,
+            list_snapshots_filtered_command,
             get_snapshot_command,
             delete_snapshot_command,
             forget_snapshots_command,
