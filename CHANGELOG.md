@@ -9,7 +9,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
-#### 2025-10-31 - Milestone 2: Cloud-Backend-Integration (60% komplett)
+#### 2025-10-31 - Milestone 2: Cloud-Backend-Integration (~70% komplett)
 
 - **OpenDAL Backend-Modul (Task 2.1.1):**
   - `backends/opendal.rs`: S3, Azure Blob, Google Cloud Storage, Backblaze B2 Support
@@ -48,11 +48,33 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   - Latenz-Display in Millisekunden
   - Backend-Options-Serialisierung für invoke()
 
+- **Favoriten-Management System (Task 2.3.2):**
+  - `FavoriteLocation` Typ mit location_type Enum
+  - `AppConfig` erweitert um favorite_locations Vec
+  - 4 neue Commands:
+    - `save_favorite_location(name, path, type, config)`
+    - `list_favorite_locations()` mit Sortierung nach last_used
+    - `update_favorite_last_used(id)` für Auto-Tracking
+    - `delete_favorite_location(id)`
+  - LocationPickerDialog: "⭐ Als Favorit speichern" Button
+  - Recent-Tab lädt echte Favoriten vom Backend
+  - Auto-Update last_used beim Auswählen eines Favoriten
+  - Helper-Funktionen:
+    - `getLocationTypeLabel()` für User-Friendly-Namen
+    - `getLocationIcon()` für Emoji-Icons
+    - `formatLastUsed()` für relative Zeitangaben
+  - Config-Persistenz in TOML
+
 - **Error-Handling:**
   - `UnsupportedBackend` Error-Typ
   - `InvalidConfiguration` Error-Typ
   - `RcloneNotFound` Error-Typ
   - `RcloneError` Error-Typ
+
+**Noch offen:**
+- Credential-Prompt-Dialog nach erfolgreichem Connection-Test (2h)
+- Integration-Tests mit Cloud-Backends (MinIO, Azurite, SFTP) (5h)
+- Dokumentation: Cloud-Setup-Anleitung in README (2h)
 
 #### 2025-10-31
 

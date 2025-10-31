@@ -16,7 +16,7 @@
 
 - ✅ **UI-Layer:** ~95% komplett (alle Dialoge, Pages, Komponenten implementiert gemäß Mockups)
 - ✅ **Backend-Integration:** ~75% komplett (M1 vollständig, rustic_core voll integriert)
-- 🟡 **Cloud-Backends:** ~60% (M2 in Arbeit - OpenDAL & Rclone Backend-Module implementiert)
+- 🟢 **Cloud-Backends:** ~70% (M2 in Arbeit - Backend komplett, Frontend-Integration ⏳)
 - ❌ **Job-Scheduler:** 0% (tokio-cron Dependency vorhanden, aber nicht implementiert)
 - ❌ **Testing:** ~55% (54 Backend-Tests, Frontend-Tests fehlen noch)
 
@@ -56,7 +56,7 @@
 | ----------------------------------------------------- | ------------------------------- | -------- | -------- | ---------- | ------------- |
 | **M0**                                                | Projekt-Setup                   | 5 Tage   | ✅ 100%  | -          | -             |
 | **[M1](docs/roadmaps/M1-rustic-core-integration.md)** | rustic_core Integration         | 60h      | ✅ 100%  | ✅ DONE    | ✅ RESOLVED   |
-| **[M2](docs/roadmaps/M2-cloud-backends.md)**          | Cloud-Backends (OpenDAL/Rclone) | 30h      | 🟡 60%   | 🟠 HIGH    | 🟡 PARTIAL    |
+| **[M2](docs/roadmaps/M2-cloud-backends.md)**          | Cloud-Backends (OpenDAL/Rclone) | 30h      | 🟡 70%   | 🟠 HIGH    | 🟡 PARTIAL    |
 | **[M3](docs/roadmaps/M3-job-scheduler.md)**           | Job-Scheduler (tokio-cron)      | 30h      | 🔴 0%    | 🟠 HIGH    | ✅ YES        |
 | **[M4](docs/roadmaps/M4-advanced-features.md)**       | Erweiterte Features             | 40h      | 🟡 20%   | 🟡 MEDIUM  | ❌ NO         |
 | **[M5](docs/roadmaps/M5-testing-qa.md)**              | Testing & QA                    | 54h      | 🟡 25%   | 🔴 HIGHEST | ✅ YES        |
@@ -135,9 +135,9 @@
 
 ---
 
-### [Milestone 2: Cloud-Backend-Integration](docs/roadmaps/M2-cloud-backends.md) 🟡 IN PROGRESS
+### [Milestone 2: Cloud-Backend-Integration](docs/roadmaps/M2-cloud-backends.md) 🟡 70% KOMPLETT
 
-**Dauer:** 30h (1 Woche) | **Status:** ~60% - Cloud-Support wird implementiert  
+**Dauer:** 30h (1 Woche) | **Status:** ~70% - Haupt-Features implementiert  
 **Priorität:** 🟠 HIGH
 
 **Ziel:** OpenDAL + Rclone Backend-Support für Cloud-Storage.
@@ -150,12 +150,16 @@
 - ✅ Connection-Test Command (test_repository_connection)
 - ✅ Cloud-Credential-Management (Keychain-Integration)
 - ✅ LocationPickerDialog: Connection-Test UI
+- ✅ Favoriten-Management (Commands + UI komplett)
+- ✅ Recent-Tab mit Backend-Integration
 
 **Noch offen:**
 
-- ⏳ Favoriten-Management (Commands + UI)
-- ⏳ Integration-Tests mit Cloud-Backends
-- ⏳ Dokumentation (Cloud-Setup-Anleitung)
+- ⏳ Credential-Prompt nach Connection-Test (2h)
+- ⏳ Integration-Tests mit Cloud-Backends (5h)
+- ⏳ Dokumentation (Cloud-Setup-Anleitung) (2h)
+
+**Geschätzter Restaufwand:** ~9h von 30h
 
 **UI bereits vorhanden:** LocationPickerDialog mit Local/Network/Cloud/Recent Tabs
 
