@@ -219,10 +219,10 @@
 
   <div slot="footer">
     {#if !isRunning}
-      <Button variant="secondary" on:click={handleClose}>Abbrechen</Button>
-      <Button variant="primary" on:click={startCheck}>Überprüfung starten</Button>
+      <Button variant="secondary" onclick={handleClose}>Abbrechen</Button>
+      <Button variant="primary" onclick={startCheck}>Überprüfung starten</Button>
     {:else}
-      <Button variant="danger" on:click={stopCheck}>Überprüfung stoppen</Button>
+      <Button variant="danger" onclick={stopCheck}>Überprüfung stoppen</Button>
     {/if}
   </div>
 </Modal>

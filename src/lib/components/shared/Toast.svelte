@@ -17,6 +17,7 @@
    * />
    * ```
    */
+  import type { Snippet } from 'svelte';
 
   let {
     type = 'info',
@@ -24,12 +25,14 @@
     message = '',
     duration = 3500,
     onClose,
+    children,
   }: {
     type?: 'success' | 'error' | 'warning' | 'info';
     title?: string;
     message?: string;
     duration?: number;
     onClose?: () => void;
+    children?: Snippet;
   } = $props();
 
   let visible = $state(true);
@@ -91,28 +94,11 @@
         <div class="toast-title">{title}</div>
       {/if}
       <div class="toast-message">
-        <slot>{message}</slot>
-      </div>
-    </div>
-    <button class="toast-close" aria-label="Schließen" onclick={close}> &times; </button>
-  </div>
-{/if}
-
-{#if visible}
-  <div
-    class="toast toast-{type}"
-    role="status"
-    aria-live="polite"
-    onmouseenter={handleMouseEnter}
-    onmouseleave={handleMouseLeave}
-  >
-    <span class="toast-icon" aria-hidden="true">{icon}</span>
-    <div class="toast-content">
-      {#if title}
-        <div class="toast-title">{title}</div>
-      {/if}
-      <div class="toast-message">
-        <slot>{message}</slot>
+        {#if children}
+          {@render children()}
+        {:else}
+          {message}
+        {/if}
       </div>
     </div>
     <button class="toast-close" aria-label="Schließen" onclick={close}> &times; </button>

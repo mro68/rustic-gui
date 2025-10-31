@@ -229,12 +229,12 @@
     <!-- Action Buttons -->
     <div class="settings-actions">
       <Tooltip text="Einstellungen zurücksetzen">
-        <button class="btn btn-secondary" on:click={handleResetSettings}>
+        <button class="btn btn-secondary" onclick={handleResetSettings}>
           Reset to Defaults
         </button>
       </Tooltip>
       <Tooltip text="Einstellungen speichern">
-        <button class="btn btn-primary" on:click={handleSaveSettings}> Save Settings </button>
+        <button class="btn btn-primary" onclick={handleSaveSettings}> Save Settings </button>
       </Tooltip>
     </div>
   </div>

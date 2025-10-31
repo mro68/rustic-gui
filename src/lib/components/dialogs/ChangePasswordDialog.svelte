@@ -223,8 +223,8 @@
   </div>
 
   <div slot="footer">
-    <Button variant="secondary" on:click={handleClose} disabled={isLoading}>Abbrechen</Button>
-    <Button variant="primary" on:click={handleSubmit} disabled={!validateForm() || isLoading}>
+    <Button variant="secondary" onclick={handleClose} disabled={isLoading}>Abbrechen</Button>
+    <Button variant="primary" onclick={handleSubmit} disabled={!validateForm() || isLoading}>
       {#if isLoading}
         Ändere Passwort...
       {:else}

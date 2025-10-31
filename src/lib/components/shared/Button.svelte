@@ -69,9 +69,14 @@
     {#if loading}
       <span class="spinner" aria-hidden="true"></span>
     {:else if icon}
-      <span class="btn-icon" aria-hidden="true"
-        >{#if typeof icon === 'string'}{icon}{:else}<svelte:component this={icon} />{/if}</span
-      >
+      <span class="btn-icon" aria-hidden="true">
+        {#if typeof icon === 'string'}
+          {icon}
+        {:else}
+          <!-- Dynamic component rendering - icon should be a Snippet in Svelte 5 -->
+          {icon}
+        {/if}
+      </span>
     {/if}
     {#if children}
       <span class="btn-content">{@render children()}</span>

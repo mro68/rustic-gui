@@ -566,7 +566,7 @@
       <button
         class="location-tab"
         class:active={activeTab === 'local'}
-        on:click={() => selectTab('local')}
+        onclick={() => selectTab('local')}
       >
         <span class="tab-icon">💻</span>
         Lokal
@@ -574,7 +574,7 @@
       <button
         class="location-tab"
         class:active={activeTab === 'network'}
-        on:click={() => selectTab('network')}
+        onclick={() => selectTab('network')}
       >
         <span class="tab-icon">🌐</span>
         Netzwerk
@@ -582,7 +582,7 @@
       <button
         class="location-tab"
         class:active={activeTab === 'cloud'}
-        on:click={() => selectTab('cloud')}
+        onclick={() => selectTab('cloud')}
       >
         <span class="tab-icon">☁️</span>
         Cloud
@@ -590,7 +590,7 @@
       <button
         class="location-tab"
         class:active={activeTab === 'recent'}
-        on:click={() => selectTab('recent')}
+        onclick={() => selectTab('recent')}
       >
         <span class="tab-icon">🕐</span>
         Zuletzt verwendet
@@ -603,11 +603,11 @@
         <div class="info-box">💾 Wählen Sie ein lokales Verzeichnis für Ihr Repository</div>
 
         <div class="browser-toolbar">
-          <Button variant="secondary" size="small" on:click={browseLocalDirectory}>
+          <Button variant="secondary" size="small" onclick={browseLocalDirectory}>
             📁 Verzeichnis wählen
           </Button>
           {#if mode === 'open'}
-            <Button variant="secondary" size="small" on:click={browseLocalFile}>
+            <Button variant="secondary" size="small" onclick={browseLocalFile}>
               📄 Datei wählen
             </Button>
           {/if}
@@ -704,7 +704,7 @@
             <Button
               variant="secondary"
               size="small"
-              on:click={testConnection}
+              onclick={testConnection}
               disabled={testing}
             >
               {#if testing}
@@ -745,7 +745,7 @@
             <button
               class="cloud-card"
               class:selected={selectedCloudProvider === provider.id}
-              on:click={() => selectCloudProvider(provider.id)}
+              onclick={() => selectCloudProvider(provider.id)}
             >
               <div class="cloud-icon">{provider.icon}</div>
               <div class="cloud-name">{provider.name}</div>
@@ -797,7 +797,7 @@
               <Button
                 variant="secondary"
                 size="small"
-                on:click={testConnection}
+                onclick={testConnection}
                 disabled={testing}
               >
                 {#if testing}
@@ -834,7 +834,7 @@
 
         <div class="recent-list">
           {#each recentLocations as location}
-            <button class="recent-item" on:click={() => selectRecentLocation(location)}>
+            <button class="recent-item" onclick={() => selectRecentLocation(location)}>
               <span class="recent-icon">{location.icon}</span>
               <div class="recent-info">
                 <div class="recent-path">{location.path}</div>
@@ -866,15 +866,15 @@
 
     <!-- M2 Task 2.3.2: Save as Favorite Button -->
     {#if activeTab !== 'recent' && (selectedPath || networkHost || cloudBucket)}
-      <Button variant="secondary" size="small" on:click={saveCurrentAsFavorite}>
+      <Button variant="secondary" size="small" onclick={saveCurrentAsFavorite}>
         ⭐ Als Favorit speichern
       </Button>
     {/if}
 
-    <Button variant="secondary" on:click={handleCancel}>Abbrechen</Button>
+    <Button variant="secondary" onclick={handleCancel}>Abbrechen</Button>
     <Button
       variant="primary"
-      on:click={handleSelect}
+      onclick={handleSelect}
       disabled={!selectedPath && !networkHost && !cloudBucket}
     >
       Speicherort wählen
@@ -912,10 +912,10 @@
     </div>
 
     <svelte:fragment slot="footer">
-      <Button variant="secondary" on:click={() => handleCredentialPrompt(false)}>
+      <Button variant="secondary" onclick={() => handleCredentialPrompt(false)}>
         Nicht speichern
       </Button>
-      <Button variant="primary" on:click={() => handleCredentialPrompt(true)}>
+      <Button variant="primary" onclick={() => handleCredentialPrompt(true)}>
         Speichern
       </Button>
     </svelte:fragment>

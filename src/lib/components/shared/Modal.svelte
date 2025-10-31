@@ -23,6 +23,7 @@
    * ```
    */
   import { createEventDispatcher, onMount, tick } from 'svelte';
+  import type { Snippet } from 'svelte';
 
   interface ModalProps {
     /** Steuert Sichtbarkeit des Modals */
@@ -35,6 +36,12 @@
     size?: 'small' | 'medium' | 'large';
     /** Aria-Label für Accessibility */
     ariaLabel?: string;
+    /** Header content */
+    header?: Snippet;
+    /** Main content */
+    children?: Snippet;
+    /** Footer content */
+    footer?: Snippet;
   }
 
   let {
@@ -43,6 +50,9 @@
     closeOnBackdrop = true,
     size = 'medium',
     ariaLabel = undefined,
+    header,
+    children,
+    footer,
   }: ModalProps = $props();
 
   const dispatch = createEventDispatcher();
@@ -131,18 +141,22 @@
       tabindex="-1"
       id={dialogId}
     >
-      <header class="modal-header">
-        <slot name="header" />
-        <button class="modal-close" aria-label="Schließen" onclick={close}>
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </header>
+      {#if header}
+        <header class="modal-header">
+          {@render header()}
+          <button class="modal-close" aria-label="Schließen" onclick={close}>
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </header>
+      {/if}
       <div class="modal-content">
-        <slot />
+        {#if children}
+          {@render children()}
+        {/if}
       </div>
-      {#if $$slots.footer}
+      {#if footer}
         <footer class="modal-footer">
-          <slot name="footer" />
+          {@render footer()}
         </footer>
       {/if}
     </div>

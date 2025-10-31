@@ -73,7 +73,7 @@
           class="context-menu-item {item.danger ? 'danger' : ''}"
           role="menuitem"
           tabindex="0"
-          on:click={() => handleAction(item.action)}
+          onclick={() => handleAction(item.action)}
           on:keydown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') handleAction(item.action);
             else if (e.key === 'ArrowDown') {

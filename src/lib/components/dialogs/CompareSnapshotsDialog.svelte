@@ -218,10 +218,10 @@
         </div>
       </div>
       <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
-        <button class="btn btn-secondary" on:click={close}>Schließen</button>
+        <button class="btn btn-secondary" onclick={close}>Schließen</button>
         <button
           class="btn btn-primary"
-          on:click={handleCompare}
+          onclick={handleCompare}
           disabled={isComparing || !snapshotA || !snapshotB}
         >
           {isComparing ? 'Vergleiche...' : 'Vergleichen'}

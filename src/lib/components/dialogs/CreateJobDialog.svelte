@@ -509,12 +509,12 @@ Verwendung:
 
   <div slot="footer">
     {#if currentTab > 0}
-      <Button variant="secondary" on:click={prevTab}>Zurück</Button>
+      <Button variant="secondary" onclick={prevTab}>Zurück</Button>
     {/if}
     {#if currentTab < tabs.length - 1}
-      <Button variant="primary" on:click={nextTab}>Weiter</Button>
+      <Button variant="primary" onclick={nextTab}>Weiter</Button>
     {:else}
-      <Button variant="primary" on:click={createJob}>Job erstellen</Button>
+      <Button variant="primary" onclick={createJob}>Job erstellen</Button>
     {/if}
   </div>
 </Modal>

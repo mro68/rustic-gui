@@ -178,7 +178,7 @@
         {#each repositoryTypes as type}
           <div
             class="repo-type-card {selectedType.value === type.value ? 'selected' : ''}"
-            on:click={() => selectRepositoryType(type.value)}
+            onclick={() => selectRepositoryType(type.value)}
             role="button"
             tabindex="0"
             on:keydown={(e) => e.key === 'Enter' && selectRepositoryType(type.value)}
@@ -212,7 +212,7 @@
           required
           readonly
         />
-        <Button variant="secondary" size="sm" on:click={openLocationPicker}>
+        <Button variant="secondary" size="sm" onclick={openLocationPicker}>
           📁 Speicherort wählen
         </Button>
       </div>
@@ -273,8 +273,8 @@
   </div>
 
   <div slot="footer">
-    <Button variant="secondary" on:click={handleClose}>Abbrechen</Button>
-    <Button variant="primary" on:click={handleSubmit} disabled={isSubmitting}>
+    <Button variant="secondary" onclick={handleClose}>Abbrechen</Button>
+    <Button variant="primary" onclick={handleSubmit} disabled={isSubmitting}>
       {#if isSubmitting}
         Erstelle Repository...
       {:else}
