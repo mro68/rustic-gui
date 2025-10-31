@@ -95,6 +95,118 @@ pub fn has_password(repo_id: &str) -> bool {
     }
 }
 
+/// Speichert Cloud-Credentials sicher in der System-Keychain.
+/// M2 Task 2.1.4: Credential-Management
+///
+/// # Arguments
+/// * `repo_id` - Eindeutige ID des Repositories
+/// * `provider` - Cloud-Provider (s3, azblob, gcs, etc.)
+/// * `access_key` - Access Key / Account Name
+/// * `secret_key` - Secret Key / Account Key
+///
+/// # Returns
+/// * `Result<()>` - Erfolg oder Fehler
+pub fn save_cloud_credentials(
+    repo_id: &str,
+    provider: &str,
+    access_key: &str,
+    secret_key: &str,
+) -> Result<()> {
+    // Composite Keys für Keychain
+    let access_key_id = format!("{}:{}:access_key", repo_id, provider);
+    let secret_key_id = format!("{}:{}:secret_key", repo_id, provider);
+
+    // Access Key speichern
+    let access_entry = Entry::new(SERVICE_NAME, &access_key_id)
+        .context("Access-Key-Eintrag konnte nicht erstellt werden")?;
+    access_entry
+        .set_password(access_key)
+        .context("Access Key konnte nicht gespeichert werden")?;
+
+    // Secret Key speichern
+    let secret_entry = Entry::new(SERVICE_NAME, &secret_key_id)
+        .context("Secret-Key-Eintrag konnte nicht erstellt werden")?;
+    secret_entry
+        .set_password(secret_key)
+        .context("Secret Key konnte nicht gespeichert werden")?;
+
+    tracing::debug!(
+        "Cloud-Credentials für Repository '{}' ({}) erfolgreich gespeichert",
+        repo_id,
+        provider
+    );
+
+    Ok(())
+}
+
+/// Lädt Cloud-Credentials aus der System-Keychain.
+/// M2 Task 2.1.4: Credential-Management
+///
+/// # Arguments
+/// * `repo_id` - Eindeutige ID des Repositories
+/// * `provider` - Cloud-Provider (s3, azblob, gcs, etc.)
+///
+/// # Returns
+/// * `Result<(String, String)>` - Tuple aus (access_key, secret_key) oder Fehler
+pub fn load_cloud_credentials(repo_id: &str, provider: &str) -> Result<(String, String)> {
+    let access_key_id = format!("{}:{}:access_key", repo_id, provider);
+    let secret_key_id = format!("{}:{}:secret_key", repo_id, provider);
+
+    // Access Key laden
+    let access_entry = Entry::new(SERVICE_NAME, &access_key_id)
+        .context("Access-Key-Eintrag konnte nicht erstellt werden")?;
+    let access_key = access_entry
+        .get_password()
+        .context("Access Key konnte nicht geladen werden")?;
+
+    // Secret Key laden
+    let secret_entry = Entry::new(SERVICE_NAME, &secret_key_id)
+        .context("Secret-Key-Eintrag konnte nicht erstellt werden")?;
+    let secret_key = secret_entry
+        .get_password()
+        .context("Secret Key konnte nicht geladen werden")?;
+
+    tracing::debug!(
+        "Cloud-Credentials für Repository '{}' ({}) erfolgreich geladen",
+        repo_id,
+        provider
+    );
+
+    Ok((access_key, secret_key))
+}
+
+/// Löscht Cloud-Credentials aus der System-Keychain.
+/// M2 Task 2.1.4: Credential-Management
+///
+/// # Arguments
+/// * `repo_id` - Eindeutige ID des Repositories
+/// * `provider` - Cloud-Provider (s3, azblob, gcs, etc.)
+///
+/// # Returns
+/// * `Result<()>` - Erfolg oder Fehler
+pub fn delete_cloud_credentials(repo_id: &str, provider: &str) -> Result<()> {
+    let access_key_id = format!("{}:{}:access_key", repo_id, provider);
+    let secret_key_id = format!("{}:{}:secret_key", repo_id, provider);
+
+    // Access Key löschen
+    let access_entry = Entry::new(SERVICE_NAME, &access_key_id)
+        .context("Access-Key-Eintrag konnte nicht erstellt werden")?;
+    let _ = access_entry.set_password(""); // Ignoriere Fehler
+
+    // Secret Key löschen
+    let secret_entry = Entry::new(SERVICE_NAME, &secret_key_id)
+        .context("Secret-Key-Eintrag konnte nicht erstellt werden")?;
+    let _ = secret_entry.set_password(""); // Ignoriere Fehler
+
+    tracing::debug!(
+        "Cloud-Credentials für Repository '{}' ({}) gelöscht",
+        repo_id,
+        provider
+    );
+
+    Ok(())
+}
+
 /// Konvertiert Keyring-Fehler in benutzerfreundliche Messages.
 ///
 /// Diese Funktion hilft dabei, technische Keyring-Fehler

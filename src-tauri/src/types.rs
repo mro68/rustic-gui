@@ -187,6 +187,17 @@ pub struct ProgressInfo {
     pub percentage: Option<f32>,
 }
 
+/// Ergebnis eines Connection-Tests
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectionTestResult {
+    /// Ob die Verbindung erfolgreich war
+    pub success: bool,
+    /// Nachricht über das Ergebnis
+    pub message: String,
+    /// Optional: Latenz in Millisekunden
+    pub latency_ms: Option<u64>,
+}
+
 /// Fortschritt für Backup
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BackupProgress {

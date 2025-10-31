@@ -590,6 +590,7 @@ pub fn run() {
             commands::repository::check_repository,
             commands::repository::prune_repository,
             commands::repository::change_password,
+            commands::repository::test_repository_connection,
             commands::snapshot::compare_snapshots,
             // --- Platzhalter für weitere geplante Commands (TODO) ---
             // commands::restore::restore_files_command, // TODO
