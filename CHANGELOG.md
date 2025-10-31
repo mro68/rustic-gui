@@ -9,6 +9,51 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+#### 2025-10-31 - Milestone 2: Cloud-Backend-Integration (60% komplett)
+
+- **OpenDAL Backend-Modul (Task 2.1.1):**
+  - `backends/opendal.rs`: S3, Azure Blob, Google Cloud Storage, Backblaze B2 Support
+  - `OpenDALConfig` Struktur mit Provider-spezifischen Feldern
+  - `create_opendal_backend()` Funktion für S3-kompatible Services
+  - `validate_opendal_config()` mit umfassender Validierung
+  - 11 Unit-Tests für alle Provider-Typen
+
+- **Rclone Backend-Modul (Task 2.2.1):**
+  - `backends/rclone.rs`: 70+ Cloud-Provider + SFTP Support
+  - `RcloneManager` mit Installation-Check und Remote-Management
+  - `RcloneConfig` Struktur mit flexiblen Options
+  - `create_sftp_backend()` Helper-Funktion
+  - 8 Unit-Tests für SFTP und Rclone-Funktionen
+
+- **Repository Cloud-Backend-Support (Task 2.1.2, 2.2.2):**
+  - `init_repository()` erweitert für Cloud-Backends (s3, azblob, gcs, b2, rclone)
+  - Backend-Type-Matching und Options-Serialisierung
+  - Unterstützung für Custom Endpoints (MinIO, Wasabi)
+
+- **Connection-Test Command (Task 2.1.3):**
+  - `test_repository_connection()` Tauri-Command
+  - `ConnectionTestResult` DTO mit Latenz-Messung
+  - Backend-spezifische Validierung und Testing
+  - Command in lib.rs registriert
+
+- **Cloud-Credential-Management (Task 2.1.4):**
+  - `save_cloud_credentials()` in keychain/mod.rs
+  - `load_cloud_credentials()` mit Access/Secret Key Trennung
+  - `delete_cloud_credentials()` für Cleanup
+  - Composite Keys für Multi-Provider-Support
+
+- **Frontend Connection-Test UI (Task 2.3.1):**
+  - LocationPickerDialog: Connection-Test-Button für Cloud und Network Tabs
+  - Test-Result-Anzeige mit Success/Error-States
+  - Latenz-Display in Millisekunden
+  - Backend-Options-Serialisierung für invoke()
+
+- **Error-Handling:**
+  - `UnsupportedBackend` Error-Typ
+  - `InvalidConfiguration` Error-Typ
+  - `RcloneNotFound` Error-Typ
+  - `RcloneError` Error-Typ
+
 #### 2025-10-31
 
 - **Dokumentations-Infrastruktur erweitert:**

@@ -36,6 +36,7 @@
    * ```
    */
   import { open } from '@tauri-apps/plugin-dialog';
+  import { invoke } from '@tauri-apps/api/core';
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Input from '../shared/Input.svelte';
@@ -92,6 +93,10 @@
   let cloudAccessKey = '';
   let cloudSecretKey = '';
   let cloudRegion = '';
+
+  // Connection test state (M2 Task 2.3.1)
+  let testing = false;
+  let testResult: { success: boolean; message: string; latency_ms?: number } | null = null;
 
   // Recent locations (would come from config)
   let recentLocations = [
@@ -230,6 +235,96 @@
   function handleCancel() {
     dispatch('cancel');
     isOpen = false;
+  }
+
+  /**
+   * Testet die Verbindung zum konfigurierten Backend.
+   * M2 Task 2.3.1: Connection-Test-Button implementiert
+   */
+  async function testConnection() {
+    testing = true;
+    testResult = null;
+
+    try {
+      let backendType: string;
+      let backendOptions: any;
+
+      if (activeTab === 'cloud') {
+        // Map cloud provider names to backend types
+        const providerMap: Record<string, string> = {
+          s3: 's3',
+          b2: 'b2',
+          azure: 'azblob',
+          gcs: 'gcs',
+          wasabi: 's3', // Wasabi uses S3 protocol
+          minio: 's3', // MinIO uses S3 protocol
+          rclone: 'rclone',
+        };
+
+        backendType = providerMap[selectedCloudProvider] || 's3';
+
+        if (selectedCloudProvider === 'rclone') {
+          backendOptions = {
+            remote_name: `rustic_${cloudBucket}`,
+            provider: 'custom',
+            path: '/',
+            options: {
+              endpoint: cloudEndpoint,
+            },
+          };
+        } else {
+          backendOptions = {
+            provider: backendType,
+            endpoint: cloudBucket || cloudEndpoint,
+            access_key: cloudAccessKey,
+            secret_key: cloudSecretKey,
+            region: cloudRegion || undefined,
+            endpoint_url:
+              selectedCloudProvider === 'wasabi' || selectedCloudProvider === 'minio'
+                ? cloudEndpoint
+                : undefined,
+          };
+        }
+      } else if (activeTab === 'network') {
+        backendType = 'rclone';
+        backendOptions = {
+          remote_name: `rustic_sftp_${networkHost.replace(/\./g, '_')}`,
+          provider: networkProtocol,
+          path: networkPath,
+          options: {
+            host: networkHost,
+            port: networkPort,
+            user: networkUsername,
+            pass: networkPassword,
+          },
+        };
+      } else if (activeTab === 'local') {
+        backendType = 'local';
+        backendOptions = {
+          path: selectedPath,
+        };
+      } else {
+        throw new Error('Ungültiger Tab für Connection-Test');
+      }
+
+      const result = await invoke<{
+        success: boolean;
+        message: string;
+        latency_ms?: number;
+      }>('test_repository_connection', {
+        backendType,
+        backendOptions,
+      });
+
+      testResult = result;
+    } catch (error: any) {
+      testResult = {
+        success: false,
+        message: error?.message || String(error),
+      };
+    } finally {
+      testing = false;
+    }
   }
 
   // Update network port when protocol changes
@@ -382,6 +477,39 @@
             >
           </div>
         {/if}
+
+        <!-- M2 Task 2.3.1: Connection Test UI for Network -->
+        {#if networkHost && networkUsername && networkProtocol === 'sftp'}
+          <div class="connection-test-section">
+            <Button
+              variant="secondary"
+              size="small"
+              on:click={testConnection}
+              disabled={testing}
+            >
+              {#if testing}
+                🔄 Teste Verbindung...
+              {:else}
+                🔌 Verbindung testen
+              {/if}
+            </Button>
+
+            {#if testResult}
+              <div class="test-result" class:success={testResult.success} class:error={!testResult.success}>
+                {#if testResult.success}
+                  <span class="result-icon">✅</span>
+                  <span class="result-message">{testResult.message}</span>
+                  {#if testResult.latency_ms}
+                    <span class="result-latency">({testResult.latency_ms}ms)</span>
+                  {/if}
+                {:else}
+                  <span class="result-icon">❌</span>
+                  <span class="result-message">{testResult.message}</span>
+                {/if}
+              </div>
+            {/if}
+          </div>
+        {/if}
       </div>
     {/if}
 
@@ -440,6 +568,39 @@
           {#if cloudBucket}
             <div class="info-box success">
               ✅ Vorschau: <strong>{selectedCloudProvider}:{cloudEndpoint}/{cloudBucket}</strong>
+            </div>
+          {/if}
+
+          <!-- M2 Task 2.3.1: Connection Test UI -->
+          {#if cloudAccessKey && cloudSecretKey}
+            <div class="connection-test-section">
+              <Button
+                variant="secondary"
+                size="small"
+                on:click={testConnection}
+                disabled={testing}
+              >
+                {#if testing}
+                  🔄 Teste Verbindung...
+                {:else}
+                  🔌 Verbindung testen
+                {/if}
+              </Button>
+
+              {#if testResult}
+                <div class="test-result" class:success={testResult.success} class:error={!testResult.success}>
+                  {#if testResult.success}
+                    <span class="result-icon">✅</span>
+                    <span class="result-message">{testResult.message}</span>
+                    {#if testResult.latency_ms}
+                      <span class="result-latency">({testResult.latency_ms}ms)</span>
+                    {/if}
+                  {:else}
+                    <span class="result-icon">❌</span>
+                    <span class="result-message">{testResult.message}</span>
+                  {/if}
+                </div>
+              {/if}
             </div>
           {/if}
         {/if}
@@ -683,5 +844,49 @@
   .recent-type {
     font-size: 12px;
     color: var(--text-secondary);
+  }
+
+  /* Connection Test Section - M2 Task 2.3.1 */
+  .connection-test-section {
+    margin-top: 16px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+  }
+
+  .test-result {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .test-result.success {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #22c55e;
+  }
+
+  .test-result.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+  }
+
+  .result-icon {
+    font-size: 16px;
+  }
+
+  .result-message {
+    flex: 1;
+  }
+
+  .result-latency {
+    font-size: 12px;
+    opacity: 0.8;
   }
 </style>
