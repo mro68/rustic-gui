@@ -159,12 +159,32 @@ docs/mockups/
 │   │   └── Diff-Statistics
 │   └── Snapshot Info (Details-Ansicht)
 │
-└── rustic_advanced_ui_mockup.html        # ⭐ Erweiterte UI-Features für Snapshots
-  ├── Advanced Filter-Bar (Tags, Hostname, Zeitraum, Größe)
-  ├── Kontextmenü für Snapshots (Rechtsklick, Bulk)
-  ├── Pagination-Controls
-  ├── Snapshot-Vergleichs-UI (Side-by-Side)
-  └── Responsive Layouts (Desktop/Tablet/Mobile)
+├── rustic_advanced_ui_mockup.html        # ⭐ Erweiterte UI-Features für Snapshots
+│   ├── Advanced Filter-Bar (Tags, Hostname, Zeitraum, Größe)
+│   ├── Kontextmenü für Snapshots (Rechtsklick, Bulk)
+│   ├── Pagination-Controls
+│   ├── Snapshot-Vergleichs-UI (Side-by-Side)
+│   └── Responsive Layouts (Desktop/Tablet/Mobile)
+│
+├── rustic_location_picker.html           # 📂 Unified Location Picker (seit 2025-10-30)
+│   ├── 4 Tabs: Local, Network (SFTP), Cloud (S3/rclone), Recent
+│   ├── Smart-Input mit Auto-Type-Detection
+│   │   - Local: /path/to/repo
+│   │   - SFTP: sftp://user@host:/path
+│   │   - S3: s3://bucket/prefix
+│   │   - rclone: rclone:remote:path
+│   ├── Connection-Test-Button mit Validierung
+│   ├── Favoriten-Management (Speichern/Laden)
+│   └── Integration mit AddRepositoryDialog
+│
+└── rustic_advanced_functions.html        # ⚡ Erweiterte Repository-Funktionen
+    ├── Repository-Wartung (Check, Prune, Repair)
+    ├── Diagnose & Statistiken
+    │   - Repository-Größe & Kompression
+    │   - Index-Statistiken
+    │   - Pack-File-Analyse
+    ├── Prune-Dialog mit Dry-Run-Modus
+    └── Check-Dialog mit Progress-Reporting
 ```
 
 ### Mockup-Nutzung
@@ -202,6 +222,9 @@ rustic_advanced_ui_mockup.html (Snapshots Advanced)
                                          → src/lib/components/shared/ContextMenu.svelte
                                          → src/lib/components/shared/Pagination.svelte
                                          → src/lib/components/shared/FilterBar.svelte
+rustic_location_picker.html              → src/lib/components/dialogs/LocationPickerDialog.svelte
+rustic_advanced_functions.html           → src/lib/components/dialogs/CheckRepoDialog.svelte
+                                         → src/lib/components/dialogs/PruneRepoDialog.svelte
 ```
 
 **CSS-Variablen aus Mockups:**

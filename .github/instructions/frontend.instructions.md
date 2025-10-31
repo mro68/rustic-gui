@@ -1401,6 +1401,178 @@ describe('repositories store', () => {
 
 ---
 
+## 🆕 Neue Dialog-Komponenten (seit 2025-10-30)
+
+### LocationPickerDialog.svelte
+
+Vereinheitlichter Location-Picker für alle Repository-Backend-Typen.
+
+**Verwendung:**
+- In `AddRepositoryDialog.svelte` als Haupt-Input
+- Ersetzt separate Inputs für Local/SFTP/S3/rclone
+
+**Features:**
+- **4 Tabs:**
+  - Local: Filesystem-Browser (mit OS-native Dialoge)
+  - Network: SFTP-Konfiguration (Host, Port, User, Path)
+  - Cloud: S3-kompatible Backends (Bucket, Region, Prefix)
+  - Recent: Zuletzt verwendete Locations (gespeichert in Settings)
+- **Smart-Input mit Auto-Detection:**
+  - Erkennt Location-Typ automatisch (z.B. `sftp://...` → Network-Tab)
+  - Validiert Format in Echtzeit
+  - Zeigt Typ-spezifische Felder
+- **Connection-Test:**
+  - Button "Test Connection"
+  - Backend-Command: `test_repository_connection()`
+  - Zeigt Erfolg/Fehler mit Details
+- **Favoriten:**
+  - Speichern-Button für häufig genutzte Locations
+  - Gespeichert in `settings.toml`
+  - Dropdown zur schnellen Auswahl
+
+**Props:**
+```svelte
+export let open = false;                 // Dialog-Sichtbarkeit
+export let initialLocation = '';         // Vorausgefüllte Location
+export let allowedTypes = ['local', 'sftp', 's3', 'rclone']; // Erlaubte Typen
+```
+
+**Events:**
+```svelte
+on:select={(e) => { location = e.detail.location }}
+on:cancel
+```
+
+**Backend-Integration:**
+- Backend-Command: `test_repository_connection(location: String)`
+- Settings-API: `save_favorite_location()`, `list_favorite_locations()`
+
+**Mockup:** `docs/mockups/rustic_location_picker.html`
+
+**Beispiel:**
+```svelte
+<script lang="ts">
+  import LocationPickerDialog from '$lib/components/dialogs/LocationPickerDialog.svelte';
+
+  let showLocationPicker = false;
+  let selectedLocation = '';
+
+  function handleLocationSelect(event: CustomEvent<{ location: string }>) {
+    selectedLocation = event.detail.location;
+    showLocationPicker = false;
+  }
+</script>
+
+<Button on:click={() => showLocationPicker = true}>
+  Repository-Location wählen
+</Button>
+
+<LocationPickerDialog
+  bind:open={showLocationPicker}
+  initialLocation={selectedLocation}
+  on:select={handleLocationSelect}
+/>
+```
+
+---
+
+### PruneRepoDialog.svelte
+
+Prune-Dialog für Repository-Bereinigung (Löschen ungenutzter Daten).
+
+**Features:**
+- **Dry-Run-Modus:**
+  - Checkbox "Nur Vorschau (kein Löschen)"
+  - Backend-Command mit `dry_run: bool`-Flag
+  - Zeigt was gelöscht würde ohne zu löschen
+- **Statistik-Anzeige:**
+  - Vorher/Nachher-Größe
+  - Freed Space (in GB)
+  - Anzahl gelöschter Pack-Files
+- **Confirmation-Workflow:**
+  - Warnung: "Diese Aktion kann nicht rückgängig gemacht werden"
+  - Zwei-Schritt-Bestätigung bei Dry-Run deaktiviert
+  - Progress-Bar während Prune-Operation
+- **Prune-Optionen:**
+  - Max. unused (z.B. "10% ungenutzter Space erlaubt")
+  - Keep snapshots (Retention-Policy)
+
+**Props:**
+```svelte
+export let open = false;
+export let repositoryId: string;
+```
+
+**Backend-Integration:**
+- Backend-Command: `prune_repository(repo_id: String, dry_run: bool, options: PruneOptions)`
+- Event: `prune-progress` (für Live-Updates)
+
+**Mockup:** `docs/mockups/rustic_advanced_functions.html` (Prune-Section)
+
+**Beispiel:**
+```svelte
+<PruneRepoDialog
+  bind:open={showPruneDialog}
+  repositoryId={currentRepo.id}
+  on:complete={() => {
+    toast.success('Prune erfolgreich abgeschlossen');
+    refreshRepoStats();
+  }}
+/>
+```
+
+---
+
+### SnapshotInfoDialog.svelte
+
+Detail-Ansicht für einzelnen Snapshot mit vollständigen Metadaten.
+
+**Features:**
+- **Metadaten-Anzeige:**
+  - Snapshot-ID (mit Copy-Button)
+  - Timestamp (formatiert)
+  - Hostname, Username
+  - Tags (mit Edit-Button)
+  - Parent-Snapshot (Link zum Öffnen)
+- **Statistiken:**
+  - Files: `12,345 Dateien`
+  - Directories: `1,234 Ordner`
+  - Total Size: `42.5 GB`
+  - Added Data: `+2.1 GB` (seit Parent)
+- **Aktionen:**
+  - Button "Restore" → Öffnet `RestoreDialog` mit diesem Snapshot
+  - Button "Compare" → Öffnet `CompareSnapshotsDialog`
+  - Button "Delete Snapshot" (mit Bestätigung)
+  - Button "Add/Remove Tags"
+- **Erweiterte Infos (Collapsible):**
+  - Backup-Duration
+  - Command (wie Backup gestartet wurde)
+  - Original Paths
+
+**Props:**
+```svelte
+export let open = false;
+export let snapshotId: string;
+```
+
+**Backend-Integration:**
+- Backend-Command: `get_snapshot_info(snapshot_id: String)`
+- Returns: `SnapshotInfo` (vollständiges Objekt)
+
+**Mockup:** `docs/mockups/rustic_restore_dialogs.html` (Snapshot Info-Section)
+
+**Beispiel:**
+```svelte
+<SnapshotInfoDialog
+  bind:open={showSnapshotInfo}
+  snapshotId={selectedSnapshot.id}
+  on:restore={(e) => openRestoreDialog(e.detail.snapshotId)}
+  on:delete={handleSnapshotDelete}
+/>
+```
+
+---
+
 ## ✅ Frontend-Checkliste
 
 ### Vor Implementierung
