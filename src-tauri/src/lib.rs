@@ -713,6 +713,8 @@ pub fn run() {
             commands::repository::update_favorite_last_used,
             commands::repository::delete_favorite_location,
             commands::snapshot::compare_snapshots,
+            commands::snapshot::add_snapshot_tags,
+            commands::snapshot::remove_snapshot_tags,
             // --- Platzhalter für weitere geplante Commands (TODO) ---
             // commands::restore::restore_files_command, // TODO
             // commands::system::check_repository_health, // TODO

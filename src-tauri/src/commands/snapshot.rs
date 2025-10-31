@@ -54,7 +54,7 @@ pub async fn delete_snapshot(id: String, state: tauri::State<'_, AppState>) -> R
     Err("delete_snapshot: Noch nicht implementiert".into())
 }
 
-/// Vergisst Snapshots gemäß Policy
+/// Löscht Snapshots gemäß Policy
 #[tauri::command]
 pub async fn forget_snapshots(
     repository_id: String,
@@ -63,4 +63,88 @@ pub async fn forget_snapshots(
     // TODO: Implementieren mit rustic_core
     // TODO.md: Phase 1 Zeile 187 (forget_snapshots implementiert, aber in lib.rs:62)
     Err("forget_snapshots: Noch nicht implementiert".into())
+}
+
+/// Fügt Tags zu einem Snapshot hinzu
+#[tauri::command]
+pub async fn add_snapshot_tags(
+    snapshot_id: String,
+    tags: Vec<String>,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    tracing::debug!(
+        "add_snapshot_tags called: snapshot_id={}, tags={:?}",
+        snapshot_id,
+        tags
+    );
+
+    // Get current repository
+    let repo_guard = state.current_repository.lock().map_err(|e| e.to_string())?;
+    let repo = repo_guard
+        .as_ref()
+        .ok_or("Kein Repository geöffnet")?;
+
+    // Load snapshot
+    let mut snapshot = repo
+        .get_snapshot_from_str(&snapshot_id)
+        .map_err(|e| format!("Snapshot nicht gefunden: {}", e))?;
+
+    // Add tags
+    let tag_lists: Vec<rustic_core::StringList> = tags
+        .into_iter()
+        .map(|t| rustic_core::StringList::from_str(&t))
+        .collect();
+
+    if snapshot.add_tags(tag_lists) {
+        // Save updated snapshot
+        repo.save_snapshot(&snapshot)
+            .map_err(|e| format!("Snapshot speichern fehlgeschlagen: {}", e))?;
+        
+        tracing::info!("Tags erfolgreich zu Snapshot {} hinzugefügt", snapshot_id);
+        Ok(())
+    } else {
+        Err("Keine neuen Tags hinzugefügt".into())
+    }
+}
+
+/// Entfernt Tags von einem Snapshot
+#[tauri::command]
+pub async fn remove_snapshot_tags(
+    snapshot_id: String,
+    tags: Vec<String>,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    tracing::debug!(
+        "remove_snapshot_tags called: snapshot_id={}, tags={:?}",
+        snapshot_id,
+        tags
+    );
+
+    // Get current repository
+    let repo_guard = state.current_repository.lock().map_err(|e| e.to_string())?;
+    let repo = repo_guard
+        .as_ref()
+        .ok_or("Kein Repository geöffnet")?;
+
+    // Load snapshot
+    let mut snapshot = repo
+        .get_snapshot_from_str(&snapshot_id)
+        .map_err(|e| format!("Snapshot nicht gefunden: {}", e))?;
+
+    // Remove tags
+    let tag_lists: Vec<rustic_core::StringList> = tags
+        .into_iter()
+        .map(|t| rustic_core::StringList::from_str(&t))
+        .collect();
+
+    if snapshot.remove_tags(&tag_lists) {
+        // Save updated snapshot
+        repo.save_snapshot(&snapshot)
+            .map_err(|e| format!("Snapshot speichern fehlgeschlagen: {}", e))?;
+        
+        tracing::info!("Tags erfolgreich von Snapshot {} entfernt", snapshot_id);
+        Ok(())
+    } else {
+        Err("Keine Tags entfernt".into())
+    }
 }
