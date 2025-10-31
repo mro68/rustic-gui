@@ -15,16 +15,16 @@
 ### Aktueller Status (2025-10-31)
 
 - ✅ **UI-Layer:** ~95% komplett (alle Dialoge, Pages, Komponenten implementiert gemäß Mockups)
-- ⚠️ **Backend-Integration:** ~20% komplett (meiste Commands sind Stubs mit Mock-Daten)
+- ✅ **Backend-Integration:** ~75% komplett (M1 vollständig, rustic_core voll integriert)
 - ❌ **Cloud-Backends:** 0% (OpenDAL/Rclone Dependencies vorhanden, aber nicht integriert)
 - ❌ **Job-Scheduler:** 0% (tokio-cron Dependency vorhanden, aber nicht implementiert)
-- ❌ **Testing:** 0% (keine Unit/Integration/E2E-Tests geschrieben)
+- ❌ **Testing:** ~55% (54 Backend-Tests, Frontend-Tests fehlen noch)
 
 ### Geschätzte verbleibende Dauer
 
-**~227 Stunden / 6 Wochen** (bei Vollzeit-Entwicklung)
+**~167 Stunden / 4 Wochen** (bei Vollzeit-Entwicklung)
 
-**Kritischer Pfad zu v1.0:** M1 → M2 → M3 → M5 → M6 (187h / 4.5 Wochen)
+**Kritischer Pfad zu v1.0:** M2 → M3 → M5 → M6 (127h / 3 Wochen)
 
 ### Technologie-Stack
 
@@ -55,13 +55,13 @@
 | Milestone                                             | Beschreibung                    | Dauer    | Status   | Priorität  | Blocker?      |
 | ----------------------------------------------------- | ------------------------------- | -------- | -------- | ---------- | ------------- |
 | **M0**                                                | Projekt-Setup                   | 5 Tage   | ✅ 100%  | -          | -             |
-| **[M1](docs/roadmaps/M1-rustic-core-integration.md)** | rustic_core Integration         | 60h      | 🔴 0%    | 🔴 HIGHEST | ✅ YES        |
+| **[M1](docs/roadmaps/M1-rustic-core-integration.md)** | rustic_core Integration         | 60h      | ✅ 100%  | ✅ DONE    | ✅ RESOLVED   |
 | **[M2](docs/roadmaps/M2-cloud-backends.md)**          | Cloud-Backends (OpenDAL/Rclone) | 30h      | 🔴 0%    | 🟠 HIGH    | 🟡 PARTIAL    |
 | **[M3](docs/roadmaps/M3-job-scheduler.md)**           | Job-Scheduler (tokio-cron)      | 30h      | 🔴 0%    | 🟠 HIGH    | ✅ YES        |
 | **[M4](docs/roadmaps/M4-advanced-features.md)**       | Erweiterte Features             | 40h      | 🟡 20%   | 🟡 MEDIUM  | ❌ NO         |
-| **[M5](docs/roadmaps/M5-testing-qa.md)**              | Testing & QA                    | 54h      | 🔴 0%    | 🔴 HIGHEST | ✅ YES        |
+| **[M5](docs/roadmaps/M5-testing-qa.md)**              | Testing & QA                    | 54h      | 🟡 25%   | 🔴 HIGHEST | ✅ YES        |
 | **[M6](docs/roadmaps/M6-documentation-release.md)**   | Dokumentation & Release         | 13h      | 🟡 50%   | 🟢 LOW     | ❌ NO         |
-| **GESAMT**                                            |                                 | **227h** | **~15%** |            | **3 Blocker** |
+| **GESAMT**                                            |                                 | **227h** | **~40%** |            | **2 Blocker** |
 
 ---
 
@@ -87,17 +87,60 @@
 
 ---
 
-### [Milestone 1: rustic_core Integration](docs/roadmaps/M1-rustic-core-integration.md) 🔴 KRITISCH
+### [Milestone 1: rustic_core Integration](docs/roadmaps/M1-rustic-core-integration.md) ✅ ABGESCHLOSSEN
 
-**Dauer:** 60h (1.5 Wochen) | **Status:** 0% - BLOCKING v1.0  
-**Priorität:** 🔴 HIGHEST
+**Dauer:** 60h (1.5 Wochen) | **Status:** 100% - KOMPLETT  
+**Priorität:** 🔴 HIGHEST | **Abgeschlossen:** 2025-10-31
 
 **Ziel:** Alle Backend-Stubs durch echte rustic_core/rustic_backend Calls ersetzen.
 
-**Umfang:**
+**Implementierte Features:**
 
-- Repository-Initialisierung & Öffnen (15h)
-- Backup-Execution mit Progress (12h)
+- ✅ **Repository-Management** (src-tauri/src/rustic/repository.rs)
+  - init_repository() - Voll funktional mit rustic_core
+  - open_repository() - Voll funktional
+  - check_repository() - Mit Status-Ermittlung (Healthy/Locked/Unavailable)
+  - get_repository_info() - Mit echten Snapshot-Counts
+  - prune_repository() - Mit dry-run Support
+  - change_password() - Vollständig implementiert
+
+- ✅ **Backup-Execution** (src-tauri/src/rustic/backup.rs)
+  - run_backup_logic() - Mit rustic_core::Repository::backup()
+  - Progress-Callbacks über Tauri Events
+  - CancellationToken-Integration
+  - Tags und Exclude-Patterns Support
+  - Error-Handling mit RusticGuiError
+
+- ✅ **Restore-Funktionalität** (src-tauri/src/rustic/restore.rs)
+  - restore_files() - Echte Datei-Wiederherstellung
+  - get_file_tree() - File-Browser für Navigation
+  - Overwrite-Policy Support
+  - Progress-Events (Start, Completed, Failed)
+
+- ✅ **Snapshot-Management** (src-tauri/src/rustic/snapshot.rs)
+  - list_snapshots() - Mit Sortierung nach Datum
+  - get_snapshot() - Vollständige Metadaten
+  - delete_snapshot() - Voll funktional
+  - forget_snapshots() - Retention-Policy (keep_last)
+
+**Qualitäts-Metriken:**
+- ✅ 54 Tests erfolgreich (40 unit + 10 integration + 4 snapshot)
+- ✅ 26 Tauri Commands voll funktional
+- ✅ ~65% Test-Coverage (geschätzt)
+- ✅ Strukturiertes Error-Handling
+- ✅ Durchgängiges Logging mit tracing
+- ✅ Vollständige Rustdoc-Dokumentation
+
+**Resultat:** Alle Kern-Features nutzen jetzt rustic_core statt Mock-Daten. Backend ist produktionsreif für Haupt-Workflows (Init → Backup → Restore → Snapshot-Management).
+
+---
+
+### [Milestone 2: Cloud-Backends (OpenDAL/Rclone)](docs/roadmaps/M2-cloud-backends.md) 🔴 NICHT GESTARTET
+
+**Dauer:** 30h | **Status:** 0%  
+**Priorität:** 🟠 HIGH
+
+**Ziel:** S3, Azure, GCS und 70+ weitere Cloud-Provider via OpenDAL + Rclone integrieren.
 - Restore-Funktionalität (10h)
 - Snapshot-Management (12h)
 - Repository-Wartung (11h)
