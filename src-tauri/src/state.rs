@@ -1,9 +1,9 @@
+use crate::config::AppConfig;
+use parking_lot::Mutex;
 use std::collections::HashMap;
 use std::sync::Arc;
-use parking_lot::Mutex;
 use tokio::sync::Mutex as AsyncMutex;
 use tokio_util::sync::CancellationToken;
-use crate::config::AppConfig;
 
 /// Platzhalter für Repository-Typ bis rustic_core Integration fertig ist
 type Repository = (); // TODO: Ersetze mit rustic_core::Repository<...>
@@ -46,21 +46,18 @@ impl AppState {
 
     /// Helper: Hole aktuelles Repository oder gib Fehler zurück.
     pub fn get_current_repo(&self) -> crate::error::Result<Repository> {
-        self.current_repo
-            .lock()
-            .clone()
-            .ok_or_else(|| crate::error::RusticGuiError::RepositoryNotFound {
+        self.current_repo.lock().clone().ok_or_else(|| {
+            crate::error::RusticGuiError::RepositoryNotFound {
                 path: "Kein Repository geöffnet".to_string(),
-            })
+            }
+        })
     }
 
     /// Helper: Speichert Config auf Disk.
     pub fn save_config(&self) -> crate::error::Result<()> {
         let config = self.config.lock().clone();
-        config.save().map_err(|e| {
-            crate::error::RusticGuiError::ConfigError {
-                message: format!("Config speichern fehlgeschlagen: {}", e),
-            }
+        config.save().map_err(|e| crate::error::RusticGuiError::ConfigError {
+            message: format!("Config speichern fehlgeschlagen: {}", e),
         })
     }
 }

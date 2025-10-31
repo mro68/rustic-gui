@@ -2,10 +2,11 @@
   import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Modal from '../shared/Modal.svelte';
+  import type { SnapshotDto } from '$lib/types';
 
   const dispatch = createEventDispatcher();
 
-  export let snapshot: any = null; // TODO: Use proper SnapshotDto type
+  export let snapshot: SnapshotDto | null = null;
 
   function formatDate(dateString: string): string {
     if (!dateString) return '-';

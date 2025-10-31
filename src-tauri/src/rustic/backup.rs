@@ -1,9 +1,8 @@
-
 use crate::error::RusticGuiError;
+use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 use tauri::Emitter;
-use serde::{Serialize, Deserialize};
-use tracing::{info, error};
+use tracing::{error, info};
 
 /// Fortschrittsdaten für Backup-Prozess (an Frontend gesendet)
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -89,7 +88,8 @@ where
     run_backup_logic(&options, move |progress| {
         on_progress(progress.clone());
         let _ = app.emit(&event_name, &progress);
-    }).await
+    })
+    .await
 }
 
 #[cfg(test)]
@@ -133,7 +133,9 @@ mod tests {
         };
         let cb = |_p: BackupProgress| {};
         let result = run_backup_logic(&options, cb).await;
-        assert!(matches!(result, Err(RusticGuiError::InvalidConfig { field }) if field == "repository"));
+        assert!(
+            matches!(result, Err(RusticGuiError::InvalidConfig { field }) if field == "repository")
+        );
     }
 
     #[tokio::test]
@@ -148,7 +150,9 @@ mod tests {
         };
         let cb = |_p: BackupProgress| {};
         let result = run_backup_logic(&options, cb).await;
-        assert!(matches!(result, Err(RusticGuiError::InvalidConfig { field }) if field == "source_paths"));
+        assert!(
+            matches!(result, Err(RusticGuiError::InvalidConfig { field }) if field == "source_paths")
+        );
     }
 
     #[tokio::test]

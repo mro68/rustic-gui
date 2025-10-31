@@ -1,7 +1,7 @@
+use crate::types::*;
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use anyhow::{Context, Result};
-use crate::types::*;
 
 /// Hauptkonfiguration der Anwendung
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -106,8 +106,8 @@ impl AppConfig {
         let content = std::fs::read_to_string(&path)
             .context("Konfigurationsdatei konnte nicht gelesen werden")?;
 
-        let config: Self = toml::from_str(&content)
-            .context("Konfiguration konnte nicht geparst werden")?;
+        let config: Self =
+            toml::from_str(&content).context("Konfiguration konnte nicht geparst werden")?;
 
         tracing::debug!(
             "Konfiguration geladen: {} Repositories, {} Backup-Jobs",
@@ -131,8 +131,7 @@ impl AppConfig {
         let toml = toml::to_string_pretty(self)
             .context("Konfiguration konnte nicht serialisiert werden")?;
 
-        std::fs::write(&path, toml)
-            .context("Konfiguration konnte nicht geschrieben werden")?;
+        std::fs::write(&path, toml).context("Konfiguration konnte nicht geschrieben werden")?;
 
         tracing::debug!("Konfiguration gespeichert nach: {}", path.display());
 
@@ -145,8 +144,8 @@ impl AppConfig {
     /// - Windows: `%APPDATA%\rustic-gui\config.toml`
     /// - macOS: `~/Library/Application Support/rustic-gui/config.toml`
     pub fn config_path() -> Result<PathBuf> {
-        let config_dir = dirs::config_dir()
-            .context("Konfigurationsverzeichnis konnte nicht bestimmt werden")?;
+        let config_dir =
+            dirs::config_dir().context("Konfigurationsverzeichnis konnte nicht bestimmt werden")?;
 
         Ok(config_dir.join("rustic-gui").join("config.toml"))
     }
@@ -191,10 +190,7 @@ impl AppConfig {
 
     /// Gibt alle Backup-Jobs für ein bestimmtes Repository zurück
     pub fn get_backup_jobs_for_repository(&self, repository_id: &str) -> Vec<&BackupJobConfig> {
-        self.backup_jobs
-            .iter()
-            .filter(|j| j.repository_id == repository_id)
-            .collect()
+        self.backup_jobs.iter().filter(|j| j.repository_id == repository_id).collect()
     }
 }
 
@@ -220,7 +216,9 @@ mod tests {
         let config_path = temp_dir.path().join("config.toml");
 
         // Temporäres Überschreiben des Config-Pfads für Test
-        unsafe { std::env::set_var("RUSTIC_GUI_CONFIG_PATH", config_path.to_str().unwrap()); }
+        unsafe {
+            std::env::set_var("RUSTIC_GUI_CONFIG_PATH", config_path.to_str().unwrap());
+        }
 
         let mut config = AppConfig::default();
         config.settings.theme = "dark".to_string();
@@ -274,7 +272,9 @@ mod tests {
         assert_eq!(job.name, "Test Job");
         assert_eq!(job.schedule.as_ref().unwrap(), "0 2 * * *");
 
-        unsafe { std::env::remove_var("RUSTIC_GUI_CONFIG_PATH"); }
+        unsafe {
+            std::env::remove_var("RUSTIC_GUI_CONFIG_PATH");
+        }
     }
 
     #[test]

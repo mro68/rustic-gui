@@ -3,16 +3,17 @@
    * UnlockRepositoryDialog.svelte
    * 
    * TODO.md: Phase 2 - Dialog-Workflow Repository (Zeile 248)
-   * Status: ✅ KOMPLETT - API-Integration vollständig
+   * Status: ✅ KOMPLETT - API-Integration vollständig inkl. Keychain
    * 
    * Backend-Command: src-tauri/src/lib.rs:392 (open_repository)
    * API-Wrapper: src/lib/api/repositories.ts:37 (openRepository)
+   * Keychain: src/lib/api/keychain.ts (storeRepositoryPassword)
    * 
    * Implementierung:
    * - ✅ API-Integration mit openRepository
    * - ✅ Error-Toasts für alle Fehlerfälle
    * - ✅ Success-Toast bei erfolgreichem Unlock
-   * - ⏳ Keychain-Integration für rememberPassword (TODO für später)
+   * - ✅ Keychain-Integration für rememberPassword (2025-10-31)
    */
   
   import { createEventDispatcher } from 'svelte';
@@ -21,6 +22,7 @@
   import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
   import { openRepository } from '$lib/api/repositories';
+  import { storeRepositoryPassword } from '$lib/api/keychain';
   import { toastStore } from '$lib/stores/toast';
 
   const dispatch = createEventDispatcher();
@@ -87,10 +89,15 @@
       // ✅ Tatsächliche API-Integration (TODO.md Phase 2 Zeile 248)
       await openRepository(repositoryPath, password.trim());
       
-      // TODO: Passwort im Keychain speichern wenn rememberPassword = true
-      // if (rememberPassword) {
-      //   await storeRepositoryPassword(repositoryId, password.trim());
-      // }
+      // ✅ Passwort im Keychain speichern wenn rememberPassword = true
+      if (rememberPassword) {
+        try {
+          await storeRepositoryPassword(repositoryId, password.trim());
+        } catch (keychainError) {
+          console.warn('Keychain-Speicherung fehlgeschlagen:', keychainError);
+          // Fehler nicht kritisch - Repository ist trotzdem entsperrt
+        }
+      }
       
       toastStore.success('Repository erfolgreich entsperrt');
       
