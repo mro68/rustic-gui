@@ -313,7 +313,7 @@ Verwendung:
     {#if currentTab === 1}
       <div class="form-group">
         <div class="form-label">Quell-Pfade</div>
-        {#each sourcePaths as path, index}
+        {#each sourcePaths as _path, index}
           <div class="input-with-button">
             <input
               class="form-input"
@@ -335,7 +335,7 @@ Verwendung:
 
       <div class="form-group">
         <div class="form-label">Ausschluss-Muster</div>
-        {#each excludePatterns as pattern, index}
+        {#each excludePatterns as _pattern, index}
           <div class="input-with-button">
             <input class="form-input" type="text" bind:value={excludePatterns[index]} placeholder="*.tmp" />
             {#if excludePatterns.length > 1}

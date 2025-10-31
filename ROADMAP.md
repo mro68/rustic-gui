@@ -266,10 +266,27 @@
 
 ### [Milestone 5: Testing & QA](docs/roadmaps/M5-testing-qa.md) 🧪 KRITISCH
 
-**Dauer:** 54h (1.5 Wochen) | **Status:** 0% - BLOCKING Release  
-**Priorität:** 🔴 HIGHEST
+**Dauer:** 54h (1.5 Wochen) | **Status:** 15% - IN ARBEIT  
+**Priorität:** 🔴 HIGHEST | **Begonnen:** 2025-10-31
 
 **Ziel:** Produktionsreife durch Testing absichern.
+
+**Umfang:**
+
+- Frontend Build-Fehler beheben ✅ KOMPLETT (2025-10-31)
+- Backend Unit-Tests erweitern (M5.1)
+- Frontend Component-Tests (M5.2) - teilweise vorhanden
+- Integration-Tests (M5.3)
+- E2E-Tests (M5.4)
+
+**Erledigte Arbeiten:**
+
+✅ **Build-System stabilisiert** (2025-10-31)
+- Svelte 5 Syntax-Fehler behoben (10 Komponenten)
+- `on:` → Event-Handler umgestellt
+- `$:` → `$derived()` / `$effect()` konvertiert
+- Each-Block-Bindings korrigiert
+- `npm run build` läuft erfolgreich ✅
 
 **Coverage-Ziele:**
 

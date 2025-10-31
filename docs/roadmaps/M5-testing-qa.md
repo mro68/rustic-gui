@@ -2,15 +2,16 @@
 
 > **Produktionsreife durch Testing absichern**
 
-**Dauer:** 54h (1.5 Wochen) | **Status:** 0% - BLOCKING Release  
+**Dauer:** 54h (1.5 Wochen) | **Status:** 15% - IN ARBEIT  
 **Priorität:** 🔴 HIGHEST  
-**Dependencies:** M1-M4 (Features müssen funktionieren)
+**Dependencies:** M1-M4 (Features müssen funktionieren)  
+**Begonnen:** 2025-10-31
 
 ---
 
 ## Übersicht
 
-**Problem:** Aktuell 0% Test-Coverage. Keine Garantie dass Features funktionieren.
+**Problem:** Frontend Build-Fehler blockieren Testing. Tests müssen erweitert werden.
 
 **Ziel:**
 
@@ -18,7 +19,30 @@
 - **40% Frontend-Coverage** (Component-Tests)
 - **100% kritische Pfade** (E2E-Tests)
 
-**Strategie:** Parallel zu M1-M4 entwickeln, nicht am Ende!
+**Strategie:** Build-System zuerst stabilisieren, dann Tests erweitern!
+
+---
+
+## ✅ 5.0 Build-System stabilisiert (KOMPLETT - 2025-10-31)
+
+**Status:** 100% ✅
+
+### Erledigte Arbeiten:
+
+- [x] **Svelte 5 Syntax-Fehler behoben** (10 Komponenten)
+  - [x] ContextMenu.svelte: `on:keydown` → `onkeydown`
+  - [x] RepositoryCard.svelte: `$state()` für reaktive Variablen
+  - [x] CompareSnapshotsDialog.svelte: `$state()` für isComparing
+  - [x] TagEditorDialog.svelte: Accessibility mit `role="presentation"`
+  - [x] CreateJobDialog.svelte: `$:` → `$derived()` / `$effect()`
+  - [x] DeleteJobDialog.svelte: `$state()` und `$derived()`
+  - [x] DeleteRepoDialog.svelte: `$derived()` für Validierung
+  - [x] EditJobDialog.svelte: `$effect()` für Form-Init
+  - [x] UnlockRepositoryDialog.svelte: `$effect()` für Passwort-Stärke
+  - [x] ChangePasswordDialog.svelte: `$effect()` für Passwort-Stärke
+  - [x] CreateJobDialog.svelte: Each-Block-Bindings auf Index-basiert
+
+**Resultat:** `npm run build` erfolgreich! ✅
 
 ---
 
