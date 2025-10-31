@@ -35,6 +35,7 @@ pub mod config;
 pub mod error;
 pub mod keychain;
 pub mod rustic;
+pub mod scheduler;
 pub mod state;
 pub mod types;
 
@@ -546,10 +547,25 @@ pub fn run() {
     // - AppState mit thread-sicheren Locks (Parking_lot::Mutex)
     // - CancellationToken für Backup-Abbruch
     let app_state = state::AppState::new().expect("AppState initialisieren fehlgeschlagen");
+    let app_state_clone = app_state.clone();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(app_state)
+        .setup(move |_app| {
+            // Scheduler async initialisieren
+            tauri::async_runtime::block_on(async {
+                app_state_clone
+                    .init_scheduler()
+                    .await
+                    .expect("Scheduler-Initialisierung fehlgeschlagen");
+            });
+
+            // TODO M3: Lade gespeicherte scheduled Jobs aus Config
+            // restore_scheduled_jobs(&app_state_clone).await
+
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             // TODO.md: Phase 1 - Alle Backend-Commands registriert ✅
             // 24 Commands registriert, viele als Stubs (siehe TODO-Kommentare in jeweiligen Modulen)
