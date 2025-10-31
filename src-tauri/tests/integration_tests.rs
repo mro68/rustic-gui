@@ -10,7 +10,7 @@ mod integration_tests {
         let state = AppState::new().unwrap();
 
         // Initial sollte kein Repository geöffnet sein
-        assert!(state.get_current_repo().is_err());
+        assert!(!state.has_current_repo());
 
         // Cancellation-Tokens sollten leer sein
         assert_eq!(state.cancellation_tokens.lock().len(), 0);
