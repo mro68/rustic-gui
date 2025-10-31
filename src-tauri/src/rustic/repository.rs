@@ -183,7 +183,6 @@ pub fn init_repository(
         last_accessed: Some(chrono::Utc::now().to_rfc3339()),
         created_at: chrono::Utc::now().to_rfc3339(),
     };
-    };
 
     Ok(dto)
 }
