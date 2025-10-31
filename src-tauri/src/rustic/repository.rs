@@ -68,14 +68,15 @@ pub fn init_repository(
         }
         "s3" | "azblob" | "gcs" | "b2" => {
             // OpenDAL-Backend für Cloud-Provider
-            let opendal_config: OpenDALConfig = backend_options
-                .ok_or_else(|| crate::error::RusticGuiError::InvalidConfiguration {
-                    message: "Backend-Optionen erforderlich für Cloud-Backends".to_string(),
-                })?
-                .try_into()
-                .map_err(|e: serde_json::Error| crate::error::RusticGuiError::InvalidConfiguration {
-                    message: format!("Ungültige Backend-Optionen: {}", e),
-                })?;
+            let opendal_config: OpenDALConfig = serde_json::from_value(
+                backend_options
+                    .ok_or_else(|| crate::error::RusticGuiError::InvalidConfiguration {
+                        message: "Backend-Optionen erforderlich für Cloud-Backends".to_string(),
+                    })?
+            )
+            .map_err(|e: serde_json::Error| crate::error::RusticGuiError::InvalidConfiguration {
+                message: format!("Ungültige Backend-Optionen: {}", e),
+            })?;
 
             let opendal_opts = create_opendal_backend(&opendal_config)?;
 
@@ -98,14 +99,15 @@ pub fn init_repository(
         }
         "rclone" => {
             // Rclone-Backend
-            let rclone_config: RcloneConfig = backend_options
-                .ok_or_else(|| crate::error::RusticGuiError::InvalidConfiguration {
-                    message: "Backend-Optionen erforderlich für Rclone-Backend".to_string(),
-                })?
-                .try_into()
-                .map_err(|e: serde_json::Error| crate::error::RusticGuiError::InvalidConfiguration {
-                    message: format!("Ungültige Backend-Optionen: {}", e),
-                })?;
+            let rclone_config: RcloneConfig = serde_json::from_value(
+                backend_options
+                    .ok_or_else(|| crate::error::RusticGuiError::InvalidConfiguration {
+                        message: "Backend-Optionen erforderlich für Rclone-Backend".to_string(),
+                    })?
+            )
+            .map_err(|e: serde_json::Error| crate::error::RusticGuiError::InvalidConfiguration {
+                message: format!("Ungültige Backend-Optionen: {}", e),
+            })?;
 
             let _rclone_opts = create_rclone_backend(&rclone_config)?;
 
@@ -182,7 +184,6 @@ pub fn init_repository(
         total_size: 0,
         last_accessed: Some(chrono::Utc::now().to_rfc3339()),
         created_at: chrono::Utc::now().to_rfc3339(),
-    };
     };
 
     Ok(dto)

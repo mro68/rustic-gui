@@ -15,6 +15,9 @@ pub struct AppConfig {
     /// Favorisierte Locations (M2 Task 2.3.2)
     #[serde(default)]
     pub favorite_locations: Vec<FavoriteLocation>,
+    /// Job-Execution-History (M3 Task 3.2.1)
+    #[serde(default)]
+    pub job_executions: Vec<JobExecution>,
 }
 
 /// Konfiguration eines einzelnen Repositories
@@ -92,6 +95,8 @@ impl Default for AppConfig {
                 check_updates: true,
                 max_concurrent_backups: 1,
             },
+            favorite_locations: Vec::new(),
+            job_executions: Vec::new(),
         }
     }
 }
@@ -194,6 +199,44 @@ impl AppConfig {
     /// Gibt alle Backup-Jobs für ein bestimmtes Repository zurück
     pub fn get_backup_jobs_for_repository(&self, repository_id: &str) -> Vec<&BackupJobConfig> {
         self.backup_jobs.iter().filter(|j| j.repository_id == repository_id).collect()
+    }
+
+    // ===== M3: Job-Execution-History Management =====
+
+    /// Fügt einen Job-Execution-Eintrag hinzu
+    pub fn add_job_execution(&mut self, execution: JobExecution) {
+        self.job_executions.push(execution);
+
+        // Halte History auf maximal 1000 Einträge
+        if self.job_executions.len() > 1000 {
+            self.job_executions.drain(0..(self.job_executions.len() - 1000));
+        }
+    }
+
+    /// Gibt die letzten N Job-Executions für einen Job zurück
+    pub fn get_job_executions(&self, job_id: &str, limit: usize) -> Vec<&JobExecution> {
+        self.job_executions
+            .iter()
+            .filter(|e| e.job_id == job_id)
+            .rev()
+            .take(limit)
+            .collect()
+    }
+
+    /// Gibt alle Job-Executions zurück
+    pub fn get_all_job_executions(&self, limit: usize) -> Vec<&JobExecution> {
+        self.job_executions.iter().rev().take(limit).collect()
+    }
+
+    /// Entfernt alte Job-Executions (älter als days Tage)
+    pub fn cleanup_old_executions(&mut self, days: u64) -> usize {
+        let cutoff = chrono::Utc::now() - chrono::Duration::days(days as i64);
+        let cutoff_str = cutoff.to_rfc3339();
+
+        let original_len = self.job_executions.len();
+        self.job_executions.retain(|e| e.started_at > cutoff_str);
+
+        original_len - self.job_executions.len()
     }
 }
 

@@ -6,5 +6,5 @@
 pub mod opendal;
 pub mod rclone;
 
-pub use opendal::{create_opendal_backend, OpenDALConfig};
-pub use rclone::{create_rclone_backend, create_sftp_backend, RcloneConfig, RcloneManager};
+pub use opendal::{create_opendal_backend, validate_opendal_config, OpenDALConfig};
+pub use rclone::{create_rclone_backend, create_sftp_backend, validate_rclone_config, RcloneConfig, RcloneManager};
