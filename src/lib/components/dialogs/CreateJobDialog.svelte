@@ -60,8 +60,8 @@ Verwendung:
   let jobName = '';
   let selectedRepository = '';
   let jobTags = '';
-  let sourcePaths: string[] = [''];
-  let excludePatterns: string[] = [''];
+  let sourcePaths = $state<string[]>(['']);
+  let excludePatterns = $state<string[]>(['']);
   let oneFileSystem = true;
   let scheduleType = 'daily';
   let scheduleTime = '02:00';
@@ -231,7 +231,7 @@ Verwendung:
     }
   }
 
-  $: schedulePreview = (() => {
+  const schedulePreview = $derived((() => {
     switch (scheduleType) {
       case 'daily':
         return `Täglich um ${scheduleTime}`;
@@ -246,9 +246,9 @@ Verwendung:
       default:
         return '';
     }
-  })();
+  })());
 
-  $: retentionSummary = `Täglich: ${keepDaily}, Wöchentlich: ${keepWeekly}, Monatlich: ${keepMonthly}, Jährlich: ${keepYearly}`;
+  const retentionSummary = $derived(`Täglich: ${keepDaily}, Wöchentlich: ${keepWeekly}, Monatlich: ${keepMonthly}, Jährlich: ${keepYearly}`);
 </script>
 
 <Modal bind:open ariaLabel="Backup-Job erstellen">
@@ -318,7 +318,7 @@ Verwendung:
             <input
               class="form-input"
               type="text"
-              bind:value={path}
+              bind:value={sourcePaths[index]}
               placeholder="/home/user/documents"
             />
             {#if sourcePaths.length > 1}
@@ -337,7 +337,7 @@ Verwendung:
         <div class="form-label">Ausschluss-Muster</div>
         {#each excludePatterns as pattern, index}
           <div class="input-with-button">
-            <input class="form-input" type="text" bind:value={pattern} placeholder="*.tmp" />
+            <input class="form-input" type="text" bind:value={excludePatterns[index]} placeholder="*.tmp" />
             {#if excludePatterns.length > 1}
               <button class="btn-browse" onclick={() => removeExcludePattern(index)}>✕</button>
             {/if}

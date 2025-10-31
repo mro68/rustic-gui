@@ -74,7 +74,7 @@
           role="menuitem"
           tabindex="0"
           onclick={() => handleAction(item.action)}
-          on:keydown={(e) => {
+          onkeydown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') handleAction(item.action);
             else if (e.key === 'ArrowDown') {
               e.preventDefault();
