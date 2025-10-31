@@ -266,18 +266,19 @@
 
 ### [Milestone 5: Testing & QA](docs/roadmaps/M5-testing-qa.md) 🧪 KRITISCH
 
-**Dauer:** 54h (1.5 Wochen) | **Status:** 15% - IN ARBEIT  
+**Dauer:** 54h (1.5 Wochen) | **Status:** 25% - IN ARBEIT  
 **Priorität:** 🔴 HIGHEST | **Begonnen:** 2025-10-31
 
 **Ziel:** Produktionsreife durch Testing absichern.
 
 **Umfang:**
 
-- Frontend Build-Fehler beheben ✅ KOMPLETT (2025-10-31)
-- Backend Unit-Tests erweitern (M5.1)
-- Frontend Component-Tests (M5.2) - teilweise vorhanden
-- Integration-Tests (M5.3)
-- E2E-Tests (M5.4)
+- ✅ Frontend Build-Fehler beheben - KOMPLETT (2025-10-31)
+- ✅ Frontend Store-Tests (M5.2.1) - 63 Tests hinzugefügt ✅
+- ⏸️ Backend Unit-Tests (M5.1) - Blockiert (GTK-Dependencies)
+- ⏸️ Frontend Component-Tests (M5.2) - Svelte 5 Probleme
+- 🔴 Integration-Tests (M5.3) - Ausstehend
+- 🔴 E2E-Tests (M5.4) - Ausstehend
 
 **Erledigte Arbeiten:**
 
@@ -286,14 +287,21 @@
 - `on:` → Event-Handler umgestellt
 - `$:` → `$derived()` / `$effect()` konvertiert
 - Each-Block-Bindings korrigiert
-- `npm run build` läuft erfolgreich ✅
+- ESLint-Config erweitert
+- `npm run build` erfolgreich ✅
+- `npm run lint` ohne Warnungen ✅
+
+✅ **Frontend Store-Tests** (2025-10-31)
+- repositories.test.ts - 22 Tests ✅
+- snapshots.test.ts - 22 Tests ✅
+- backup-jobs.test.ts - 19 Tests ✅
+- **63 Tests gesamt** ✅
 
 **Coverage-Ziele:**
 
-- 60% Backend (Unit-Tests für rustic_core Integration)
-- 40% Frontend (Stores, API-Wrapper, Dialoge)
-- 100% kritische Pfade (Backup, Restore, Repository Init/Open)
-- E2E Happy-Path (Add Repo → Create Job → Run Backup → Restore)
+- Frontend: ~30% (von 40% Ziel) - Fortschritt! ✅
+- Backend: 0% (von 60% Ziel) - Build-Problem 🔴
+- Kritische Pfade: 0% (von 100% Ziel) 🔴
 
 ➡️ **[Detaillierte Tasks anzeigen](docs/roadmaps/M5-testing-qa.md)**
 
