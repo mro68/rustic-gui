@@ -86,10 +86,10 @@ mod tests {
     #[test]
     fn test_get_current_repo_when_none() {
         let state = AppState::new().unwrap();
-        let result = state.with_current_repo(|_repo| Ok(()));
+        let result = state.with_current_repo(|| Ok(()));
         assert!(matches!(
             result,
-            Err(crate::error::RusticGuiError::RepositoryNotFound { .. })
+            Err(crate::error::RusticGuiError::Internal { .. })
         ));
     }
 
