@@ -218,31 +218,26 @@ pub fn check_repository(path: &str, password: &str) -> Result<RepositoryDto> {
     }
 
     // Versuche Repository zu öffnen - das ist schon ein grundlegender Check
-    let status = match open_repository(path, password) {
+    let (status, snapshot_count, total_size) = match open_repository(path, password) {
         Ok(opened) => {
             tracing::info!("Repository-Check erfolgreich: {} Snapshots gefunden", opened.snapshot_count);
-            crate::types::RepositoryStatus::Healthy
+            (
+                crate::types::RepositoryStatus::Healthy,
+                opened.snapshot_count,
+                opened.total_size,
+            )
         }
         Err(e) => {
             tracing::warn!("Repository-Check fehlgeschlagen: {}", e);
             // Unterscheide zwischen verschiedenen Fehlerarten
             let err_msg = format!("{:?}", e);
-            if err_msg.contains("password") || err_msg.contains("decrypt") {
+            let status = if err_msg.contains("password") || err_msg.contains("decrypt") {
                 crate::types::RepositoryStatus::Locked
             } else {
                 crate::types::RepositoryStatus::Unavailable
-            }
+            };
+            (status, 0, 0)
         }
-    };
-
-    // Hole zusätzliche Informationen wenn möglich
-    let (snapshot_count, total_size) = if status == crate::types::RepositoryStatus::Healthy {
-        match open_repository(path, password) {
-            Ok(opened) => (opened.snapshot_count, opened.total_size),
-            Err(_) => (0, 0),
-        }
-    } else {
-        (0, 0)
     };
 
     let dto = RepositoryDto {

@@ -106,8 +106,6 @@ mod integration_tests {
     #[test]
     fn test_repository_type_serialization() {
         // Teste dass alle RepositoryTypes korrekt serialisiert werden können
-        use serde_json;
-        
         let local = RepositoryType::Local;
         let json = serde_json::to_string(&local).unwrap();
         assert!(json.contains("Local"));
@@ -120,8 +118,6 @@ mod integration_tests {
     #[test]
     fn test_repository_status_serialization() {
         // Teste dass alle RepositoryStatus korrekt serialisiert werden können
-        use serde_json;
-        
         let healthy = RepositoryStatus::Healthy;
         let json = serde_json::to_string(&healthy).unwrap();
         assert!(json.contains("Healthy"));
