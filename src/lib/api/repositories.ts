@@ -125,3 +125,29 @@ export async function pruneRepository(id: string): Promise<string> {
 export async function changePassword(id: string, oldPass: string, newPass: string): Promise<void> {
   await invoke('change_password', { id, oldPass, newPass });
 }
+
+/**
+ * Holt detaillierte Statistiken für ein Repository.
+ * M4.3: Repository-Statistiken
+ *
+ * @param id - Repository-ID
+ * @returns Promise mit Repository-Statistiken
+ * @throws Error wenn Abruf fehlschlägt
+ */
+export async function getRepositoryStats(id: string): Promise<RepositoryStats> {
+  return await invoke<RepositoryStats>('get_repository_stats', { id });
+}
+
+/**
+ * Repository-Statistiken Interface
+ */
+export interface RepositoryStats {
+  snapshot_count: number;
+  index_count: number;
+  pack_count: number;
+  total_size: number;
+  data_size: number;
+  compression_ratio: number;
+  deduplication_ratio: number;
+  unique_blobs: number;
+}

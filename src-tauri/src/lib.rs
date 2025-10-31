@@ -724,9 +724,15 @@ pub fn run() {
             commands::repository::list_favorite_locations,
             commands::repository::update_favorite_last_used,
             commands::repository::delete_favorite_location,
+            commands::repository::get_repository_stats, // M4.3
             commands::snapshot::compare_snapshots,
             commands::snapshot::add_snapshot_tags,
             commands::snapshot::remove_snapshot_tags,
+            // M4.4: Settings
+            commands::settings::get_settings,
+            commands::settings::save_settings,
+            commands::settings::reset_settings,
+            commands::settings::update_theme,
             // --- Platzhalter für weitere geplante Commands (TODO) ---
             // commands::restore::restore_files_command, // TODO
             // commands::system::check_repository_health, // TODO

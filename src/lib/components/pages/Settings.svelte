@@ -29,64 +29,95 @@
   import { toastStore } from '../../stores/toast';
   import Checkbox from '../shared/Checkbox.svelte';
   import Tooltip from '../shared/Tooltip.svelte';
+  import { getSettings, saveSettings, resetSettings, updateTheme } from '../../api/settings';
+  import type { AppSettings } from '../../api/settings';
 
   // Settings state
-  let theme = 'Dark';
-  let language = 'Deutsch';
-  let notifications = true;
-  let passwordStorage = 'System Keychain (recommended)';
-  let lockTimeout = '15 minutes';
+  let settings = $state<AppSettings>({
+    theme: 'system',
+    log_level: 'info',
+    check_updates: true,
+    max_concurrent_backups: 1,
+    notifications_enabled: true,
+    language: 'de',
+    password_storage: 'system_keychain',
+    lock_timeout: 15,
+  });
+
+  // eslint-disable-next-line no-unused-vars
+  let loading = $state(false);
 
   // App info (would come from backend in real implementation)
   const appVersion = '1.0.0';
   const rusticVersion = '0.7.0';
   const configPath = '~/.config/rustic-gui/';
 
-  function handleThemeChange(value: string) {
-    theme = value;
-    // TODO: Apply theme change
-    toastStore.success(`Theme wurde auf "${value}" geändert`);
+  async function handleThemeChange(value: string) {
+    settings.theme = value;
+    try {
+      await updateTheme(value);
+      toastStore.success(`Theme wurde auf "${value}" geändert`);
+    } catch (error) {
+      toastStore.error('Theme-Änderung fehlgeschlagen', (error as Error).message);
+    }
   }
 
   function handleLanguageChange(value: string) {
-    language = value;
-    // TODO: Apply language change
-    toastStore.success(`Sprache wurde auf "${value}" geändert`);
+    settings.language = value;
+    toastStore.info('Sprachänderung wird beim nächsten Start übernommen');
   }
 
   function handleNotificationsChange(value: boolean) {
-    notifications = value;
+    settings.notifications_enabled = value;
     toastStore.success(`Desktop-Benachrichtigungen ${value ? 'aktiviert' : 'deaktiviert'}`);
   }
 
   function handlePasswordStorageChange(value: string) {
-    passwordStorage = value;
+    settings.password_storage = value;
     toastStore.success(`Passwort-Speicherung wurde geändert`);
   }
 
-  function handleLockTimeoutChange(value: string) {
-    lockTimeout = value;
-    toastStore.success(`Sperrzeit wurde auf "${value}" geändert`);
+  function handleLockTimeoutChange(value: number) {
+    settings.lock_timeout = value;
+    toastStore.success(`Sperrzeit wurde auf "${value} Minuten" geändert`);
   }
 
-  function handleSaveSettings() {
-    // TODO: Save settings to backend
-    toastStore.success('Einstellungen wurden gespeichert');
+  async function handleSaveSettings() {
+    loading = true;
+    try {
+      await saveSettings(settings);
+      toastStore.success('Einstellungen wurden gespeichert');
+    } catch (error) {
+      toastStore.error('Fehler beim Speichern', (error as Error).message);
+    } finally {
+      loading = false;
+    }
   }
 
-  function handleResetSettings() {
-    // Reset to defaults
-    theme = 'Dark';
-    language = 'Deutsch';
-    notifications = true;
-    passwordStorage = 'System Keychain (recommended)';
-    lockTimeout = '15 minutes';
-    toastStore.info('Einstellungen wurden auf Standard zurückgesetzt');
+  async function handleResetSettings() {
+    loading = true;
+    try {
+      const defaultSettings = await resetSettings();
+      settings = defaultSettings;
+      toastStore.info('Einstellungen wurden auf Standard zurückgesetzt');
+    } catch (error) {
+      toastStore.error('Fehler beim Zurücksetzen', (error as Error).message);
+    } finally {
+      loading = false;
+    }
   }
 
-  onMount(() => {
-    // TODO: Load settings from backend
-    console.log('Loading settings...');
+  onMount(async () => {
+    loading = true;
+    try {
+      settings = await getSettings();
+      console.log('Settings geladen:', settings);
+    } catch (error) {
+      console.error('Fehler beim Laden der Settings:', error);
+      toastStore.error('Fehler beim Laden der Einstellungen', (error as Error).message);
+    } finally {
+      loading = false;
+    }
   });
 </script>
 
@@ -108,12 +139,12 @@
         <div class="setting-control">
           <select
             class="select-field"
-            bind:value={theme}
+            bind:value={settings.theme}
             on:change={(e) => handleThemeChange(e.currentTarget.value)}
           >
-            <option value="Dark">Dark</option>
-            <option value="Light">Light</option>
-            <option value="Auto">Auto</option>
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="system">System</option>
           </select>
         </div>
       </div>
@@ -126,11 +157,11 @@
         <div class="setting-control">
           <select
             class="select-field"
-            bind:value={language}
+            bind:value={settings.language}
             on:change={(e) => handleLanguageChange(e.currentTarget.value)}
           >
-            <option value="English">English</option>
-            <option value="Deutsch">Deutsch</option>
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
           </select>
         </div>
       </div>
@@ -143,7 +174,7 @@
         <div class="setting-control">
           <Checkbox
             label=""
-            bind:checked={notifications}
+            bind:checked={settings.notifications_enabled}
             on:change={(e) => handleNotificationsChange(e.detail)}
           />
         </div>
@@ -162,11 +193,11 @@
         <div class="setting-control">
           <select
             class="select-field"
-            bind:value={passwordStorage}
+            bind:value={settings.password_storage}
             on:change={(e) => handlePasswordStorageChange(e.currentTarget.value)}
           >
-            <option value="System Keychain (recommended)">System Keychain (recommended)</option>
-            <option value="In-Memory Only">In-Memory Only</option>
+            <option value="system_keychain">System Keychain (recommended)</option>
+            <option value="in_memory">In-Memory Only</option>
           </select>
         </div>
       </div>
@@ -179,13 +210,13 @@
         <div class="setting-control">
           <select
             class="select-field"
-            bind:value={lockTimeout}
-            on:change={(e) => handleLockTimeoutChange(e.currentTarget.value)}
+            bind:value={settings.lock_timeout}
+            on:change={(e) => handleLockTimeoutChange(Number(e.currentTarget.value))}
           >
-            <option value="15 minutes">15 minutes</option>
-            <option value="30 minutes">30 minutes</option>
-            <option value="1 hour">1 hour</option>
-            <option value="Never">Never</option>
+            <option value="15">15 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="60">1 hour</option>
+            <option value="0">Never</option>
           </select>
         </div>
       </div>

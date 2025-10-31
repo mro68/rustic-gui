@@ -71,6 +71,34 @@ pub struct AppSettings {
     pub check_updates: bool,
     /// Maximale Anzahl gleichzeitiger Backups
     pub max_concurrent_backups: usize,
+    /// Desktop-Benachrichtigungen aktiviert (M4.4)
+    #[serde(default = "default_true")]
+    pub notifications_enabled: bool,
+    /// Sprache (M4.4)
+    #[serde(default = "default_language")]
+    pub language: String,
+    /// Passwort-Speicherung-Typ (M4.4)
+    #[serde(default = "default_password_storage")]
+    pub password_storage: String,
+    /// Lock-Timeout in Minuten (M4.4)
+    #[serde(default = "default_lock_timeout")]
+    pub lock_timeout: u32,
+}
+
+fn default_true() -> bool {
+    true
+}
+
+fn default_language() -> String {
+    "de".to_string()
+}
+
+fn default_password_storage() -> String {
+    "system_keychain".to_string()
+}
+
+fn default_lock_timeout() -> u32 {
+    15
 }
 
 /// Backend-Typen für Repositories
@@ -94,6 +122,10 @@ impl Default for AppConfig {
                 log_level: "info".to_string(),
                 check_updates: true,
                 max_concurrent_backups: 1,
+                notifications_enabled: true,
+                language: "de".to_string(),
+                password_storage: "system_keychain".to_string(),
+                lock_timeout: 15,
             },
             favorite_locations: Vec::new(),
             job_executions: Vec::new(),

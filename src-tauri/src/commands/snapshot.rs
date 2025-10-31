@@ -152,15 +152,40 @@ pub async fn delete_snapshot(id: String, state: tauri::State<'_, AppState>) -> R
     Err("delete_snapshot: Noch nicht implementiert".into())
 }
 
-/// Löscht Snapshots gemäß Policy
+/// Löscht Snapshots gemäß Policy (Batch-Operation)
+/// M4.5: Batch-Operations
 #[tauri::command]
 pub async fn forget_snapshots(
-    repository_id: String,
+    snapshot_ids: Vec<String>,
     state: tauri::State<'_, AppState>,
-) -> Result<Vec<String>, String> {
-    // TODO: Implementieren mit rustic_core
-    // TODO.md: Phase 1 Zeile 187 (forget_snapshots implementiert, aber in lib.rs:62)
-    Err("forget_snapshots: Noch nicht implementiert".into())
+) -> Result<usize, String> {
+    tracing::info!("Lösche {} Snapshots (Batch)", snapshot_ids.len());
+
+    let repo = state
+        .current_repository
+        .lock()
+        .as_ref()
+        .ok_or("Kein Repository geöffnet")?
+        .clone();
+
+    let mut deleted = 0;
+
+    // Lösche jeden Snapshot einzeln
+    for snapshot_id in snapshot_ids.iter() {
+        match crate::rustic::snapshot::delete_snapshot(&repo, snapshot_id).await {
+            Ok(_) => {
+                deleted += 1;
+                tracing::debug!("Snapshot {} gelöscht", snapshot_id);
+            }
+            Err(e) => {
+                tracing::warn!("Fehler beim Löschen von Snapshot {}: {}", snapshot_id, e);
+            }
+        }
+    }
+
+    tracing::info!("{} von {} Snapshots gelöscht", deleted, snapshot_ids.len());
+
+    Ok(deleted)
 }
 
 /// Fügt Tags zu einem Snapshot hinzu
