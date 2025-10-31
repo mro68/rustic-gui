@@ -309,6 +309,26 @@ fn get_repository_info(
 }
 
 #[tauri::command]
+fn prune_repository_v1(
+    path: String,
+    password: String,
+    dry_run: bool,
+) -> std::result::Result<(u32, u64), crate::types::ErrorDto> {
+    rustic::repository::prune_repository(&path, &password, dry_run)
+        .map_err(|e| crate::types::ErrorDto::from(&e))
+}
+
+#[tauri::command]
+fn change_password_v1(
+    path: String,
+    old_password: String,
+    new_password: String,
+) -> std::result::Result<(), crate::types::ErrorDto> {
+    rustic::repository::change_password(&path, &old_password, &new_password)
+        .map_err(|e| crate::types::ErrorDto::from(&e))
+}
+
+#[tauri::command]
 fn switch_repository(
     repository_id: String,
     password: String,
@@ -542,6 +562,8 @@ pub fn run() {
             open_repository,
             get_repository_info,
             check_repository_v1,
+            prune_repository_v1,
+            change_password_v1,
             switch_repository,
             store_repository_password,
             get_repository_password,
