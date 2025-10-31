@@ -38,7 +38,7 @@
   }
 
   let {
-    open = false,
+    open = $bindable(false),
     closeOnEsc = true,
     closeOnBackdrop = true,
     size = 'medium',
@@ -46,10 +46,10 @@
   }: ModalProps = $props();
 
   const dispatch = createEventDispatcher();
-  let modalRef: HTMLDivElement | null = null;
-  let modalDialogRef: HTMLDivElement | null = null;
-  let localOpen = open;
-  let closing = false;
+  let modalRef: HTMLDivElement | null = $state(null);
+  let modalDialogRef: HTMLDivElement | null = $state(null);
+  let localOpen = $state(open);
+  let closing = $state(false);
   // generate stable-ish id for aria
   const dialogId = `modal-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -87,26 +87,27 @@
     };
   });
 
-  $: if (open) {
-    document.body.style.overflow = 'hidden';
-    localOpen = true;
-    // focus next tick when opened
-    tick().then(() => modalDialogRef && modalDialogRef.focus());
-  } else {
-    // if parent closed externally, animate close
-    if (localOpen && !closing) {
-      closing = true;
-      setTimeout(() => {
-        closing = false;
-        localOpen = false;
-        document.body.style.overflow = '';
-      }, 180);
+  // Handle open/close state changes
+  $effect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      localOpen = true;
+      // focus next tick when opened
+      tick().then(() => modalDialogRef && modalDialogRef.focus());
     } else {
-      document.body.style.overflow = '';
+      // if parent closed externally, animate close
+      if (localOpen && !closing) {
+        closing = true;
+        setTimeout(() => {
+          closing = false;
+          localOpen = false;
+          document.body.style.overflow = '';
+        }, 180);
+      } else {
+        document.body.style.overflow = '';
+      }
     }
-  }
-
-  // focus dialog when opened (reactive handled above)
+  });
 </script>
 
 /* eslint-env browser */

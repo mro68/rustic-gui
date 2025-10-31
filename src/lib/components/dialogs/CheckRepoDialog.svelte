@@ -130,7 +130,9 @@
     dispatch('close');
   }
 
+  // eslint-disable-next-line no-unused-vars
   function resetDialog() {
+    // TODO: Call this when dialog is reopened if needed
     isRunning = false;
     progress = 0;
     currentStep = '';

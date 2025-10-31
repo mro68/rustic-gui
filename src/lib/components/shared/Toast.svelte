@@ -71,7 +71,10 @@
     startTimer();
   }
 
-  $: icon = type === 'success' ? '✔️' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+  // Derive icon from type
+  const icon = $derived(
+    type === 'success' ? '✔️' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'
+  );
 </script>
 
 {#if visible}

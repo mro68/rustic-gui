@@ -44,7 +44,7 @@
   }: ContextMenuProps = $props();
 
   const dispatch = createEventDispatcher();
-  let containerRef: HTMLDivElement | null = null;
+  let containerRef: HTMLDivElement | null = $state(null);
 
   function handleAction(action: () => void) {
     action();
@@ -52,13 +52,15 @@
   }
 
   // focus first item when menu opens for accessibility
-  $: if (visible) {
-    // wait for DOM update
-    setTimeout(() => {
-      const first = containerRef?.querySelector('.context-menu-item') as HTMLElement | null;
-      first?.focus();
-    }, 0);
-  }
+  $effect(() => {
+    if (visible) {
+      // wait for DOM update
+      setTimeout(() => {
+        const first = containerRef?.querySelector('.context-menu-item') as HTMLElement | null;
+        first?.focus();
+      }, 0);
+    }
+  });
 </script>
 
 {#if visible}

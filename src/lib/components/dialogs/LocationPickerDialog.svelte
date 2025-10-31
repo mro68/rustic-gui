@@ -35,7 +35,7 @@
    * />
    * ```
    */
-  import { open } from '@tauri-apps/plugin-dialog';
+  import { open as openDialog } from '@tauri-apps/api/dialog';
   import { invoke } from '@tauri-apps/api/core';
   import { createEventDispatcher, onMount } from 'svelte';
   import Button from '../shared/Button.svelte';
@@ -68,14 +68,16 @@
 
   // Local tab state
   let selectedPath = '';
-  let currentPath = '';
+  // eslint-disable-next-line no-unused-vars
+  let currentPath = ''; // TODO: Implement file browser navigation
   let newFolderName = '';
+  // eslint-disable-next-line no-unused-vars
   let fileItems: Array<{
     name: string;
     path: string;
     isDirectory: boolean;
     size?: string;
-  }> = [];
+  }> = []; // TODO: Populate with file browser results
 
   // Network tab state
   let networkProtocol: 'sftp' | 'smb' | 'nfs' | 'webdav' = 'sftp';
@@ -217,7 +219,7 @@
 
   async function browseLocalDirectory() {
     try {
-      const selected = await open({
+      const selected = await openDialog({
         directory: true,
         multiple: false,
         title: 'Verzeichnis auswählen',
@@ -234,7 +236,7 @@
 
   async function browseLocalFile() {
     try {
-      const selected = await open({
+      const selected = await openDialog({
         directory: false,
         multiple: false,
         title: 'Datei auswählen',
@@ -338,10 +340,10 @@
       // Favoriten neu laden
       await loadFavorites();
 
-      alert('Als Favorit gespeichert!');
+      console.log('Als Favorit gespeichert!');
     } catch (error) {
       console.error('Fehler beim Speichern des Favoriten:', error);
-      alert('Fehler beim Speichern des Favoriten: ' + error);
+      console.warn('Fehler beim Speichern des Favoriten: ' + error);
     }
   }
 
@@ -536,26 +538,28 @@
         await saveCurrentAsFavorite();
       }
 
-      alert('Zugangsdaten sicher gespeichert!');
+      console.log('Zugangsdaten sicher gespeichert!');
     } catch (error) {
       console.error('Fehler beim Speichern der Credentials:', error);
-      alert('Fehler beim Speichern: ' + error);
+      console.warn('Fehler beim Speichern: ' + error);
     }
   }
 
   // Update network port when protocol changes
-  $: if (networkProtocol === 'sftp') {
-    networkPort = '22';
-  } else if (networkProtocol === 'smb') {
-    networkPort = '445';
-  } else if (networkProtocol === 'nfs') {
-    networkPort = '2049';
-  } else if (networkProtocol === 'webdav') {
-    networkPort = '443';
-  }
+  $effect(() => {
+    if (networkProtocol === 'sftp') {
+      networkPort = '22';
+    } else if (networkProtocol === 'smb') {
+      networkPort = '445';
+    } else if (networkProtocol === 'nfs') {
+      networkPort = '2049';
+    } else if (networkProtocol === 'webdav') {
+      networkPort = '443';
+    }
+  });
 </script>
 
-<Modal bind:isOpen {title} size="large">
+<Modal bind:open={isOpen} {title} size="large">
   <div class="location-picker">
     <!-- Tabs -->
     <div class="location-tabs">

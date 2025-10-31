@@ -148,7 +148,9 @@
     dispatch('close');
   }
 
+  // eslint-disable-next-line no-unused-vars
   function resetForm() {
+    // TODO: Add reset button to UI if needed
     currentPassword = '';
     newPassword = '';
     confirmPassword = '';

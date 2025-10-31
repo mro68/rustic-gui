@@ -66,7 +66,9 @@
     dispatch('close');
   }
 
+  // eslint-disable-next-line no-unused-vars
   function resetForm() {
+    // TODO: Call when dialog closes or add reset button
     confirmName = '';
     deleteData = false;
   }

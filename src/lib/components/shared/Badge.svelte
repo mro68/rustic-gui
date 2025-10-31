@@ -12,7 +12,6 @@
    * <Badge variant="error" text="Fehler" icon="❌" />
    * ```
    */
-  import { createEventDispatcher } from 'svelte';
 
   interface BadgeProps {
     /** Variante für Farbe */
@@ -25,9 +24,10 @@
 
   let { variant = 'healthy', text = '', icon = '●' }: BadgeProps = $props();
 
-  const dispatch = createEventDispatcher();
+  // Remove unused dispatch
+  // const dispatch = createEventDispatcher();
 
-  $: classes = `status-badge status-${variant}`;
+  const classes = $derived(`status-badge status-${variant}`);
 </script>
 
 <div class={classes} role="status" aria-label={text}>

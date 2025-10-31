@@ -54,17 +54,17 @@
     Zeige {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} von {total} Snapshots
   </div>
   <div class="pagination-controls">
-    <button class="pagination-btn" on:click={() => setPage(1)} disabled={page === 1}
+    <button class="pagination-btn" onclick={() => setPage(1)} disabled={page === 1}
       >‹‹ Erste</button
     >
-    <button class="pagination-btn" on:click={() => setPage(page - 1)} disabled={page === 1}
+    <button class="pagination-btn" onclick={() => setPage(page - 1)} disabled={page === 1}
       >‹ Zurück</button
     >
     {#each Array(Math.ceil(total / pageSize))
       .fill(0)
       .map((_, i) => i + 1) as p (p)}
       {#if Math.abs(p - page) <= 2 || p === 1 || p === Math.ceil(total / pageSize)}
-        <button class="pagination-btn {p === page ? 'active' : ''}" on:click={() => setPage(p)}
+        <button class="pagination-btn {p === page ? 'active' : ''}" onclick={() => setPage(p)}
           >{p}</button
         >
       {:else if p === page - 3 || p === page + 3}
@@ -73,12 +73,12 @@
     {/each}
     <button
       class="pagination-btn"
-      on:click={() => setPage(page + 1)}
+      onclick={() => setPage(page + 1)}
       disabled={page === Math.ceil(total / pageSize)}>Weiter ›</button
     >
     <button
       class="pagination-btn"
-      on:click={() => setPage(Math.ceil(total / pageSize))}
+      onclick={() => setPage(Math.ceil(total / pageSize))}
       disabled={page === Math.ceil(total / pageSize)}>Letzte ››</button
     >
   </div>
@@ -87,7 +87,7 @@
     <select
       class="filter-select"
       bind:value={pageSize}
-      on:change={(e) => {
+      onchange={(e) => {
         const target = e.target as HTMLSelectElement;
         setPageSize(+target.value);
       }}

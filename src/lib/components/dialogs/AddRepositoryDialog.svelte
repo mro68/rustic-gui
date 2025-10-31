@@ -56,7 +56,7 @@
   let password = '';
   let storePassword = true;
   let backendOptions = '';
-  let locationConfig: any = undefined;
+  // let locationConfig: any = undefined; // Unused, commented out
 
   // UI state
   let isSubmitting = false;
@@ -71,10 +71,10 @@
   }
 
   function handleLocationSelect(event: CustomEvent<{ path: string; type: string; config?: any }>) {
-    const { path, type, config } = event.detail;
+    const { path, type } = event.detail;
     repositoryPath = path;
     repositoryType = type;
-    locationConfig = config;
+    // const { config } = event.detail; // TODO: Use config if needed for backend options
     showLocationPicker = false;
   }
 

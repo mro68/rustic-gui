@@ -267,7 +267,7 @@
           id: job.id,
           name: jobName,
           repository_id: selectedRepositoryId,
-          source_paths: sourcePaths
+          source_paths: backupPaths
             .split('\n')
             .map((p) => p.trim())
             .filter((p) => p),
