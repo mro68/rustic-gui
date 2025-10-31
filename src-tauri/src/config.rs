@@ -12,6 +12,9 @@ pub struct AppConfig {
     pub backup_jobs: Vec<BackupJobConfig>,
     /// Anwendungseinstellungen
     pub settings: AppSettings,
+    /// Favorisierte Locations (M2 Task 2.3.2)
+    #[serde(default)]
+    pub favorite_locations: Vec<FavoriteLocation>,
 }
 
 /// Konfiguration eines einzelnen Repositories

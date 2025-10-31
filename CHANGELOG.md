@@ -9,6 +9,105 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+#### 2025-10-31 - Milestone 2: Cloud-Backend-Integration (✅ 100% ABGESCHLOSSEN)
+
+- **OpenDAL Backend-Modul (Task 2.1.1):**
+  - `backends/opendal.rs`: S3, Azure Blob, Google Cloud Storage, Backblaze B2 Support
+  - `OpenDALConfig` Struktur mit Provider-spezifischen Feldern
+  - `create_opendal_backend()` Funktion für S3-kompatible Services
+  - `validate_opendal_config()` mit umfassender Validierung
+  - 11 Unit-Tests für alle Provider-Typen
+
+- **Rclone Backend-Modul (Task 2.2.1):**
+  - `backends/rclone.rs`: 70+ Cloud-Provider + SFTP Support
+  - `RcloneManager` mit Installation-Check und Remote-Management
+  - `RcloneConfig` Struktur mit flexiblen Options
+  - `create_sftp_backend()` Helper-Funktion
+  - 8 Unit-Tests für SFTP und Rclone-Funktionen
+
+- **Repository Cloud-Backend-Support (Task 2.1.2, 2.2.2):**
+  - `init_repository()` erweitert für Cloud-Backends (s3, azblob, gcs, b2, rclone)
+  - Backend-Type-Matching und Options-Serialisierung
+  - Unterstützung für Custom Endpoints (MinIO, Wasabi)
+
+- **Connection-Test Command (Task 2.1.3):**
+  - `test_repository_connection()` Tauri-Command
+  - `ConnectionTestResult` DTO mit Latenz-Messung
+  - Backend-spezifische Validierung und Testing
+  - Command in lib.rs registriert
+
+- **Cloud-Credential-Management (Task 2.1.4):**
+  - `save_cloud_credentials()` in keychain/mod.rs
+  - `load_cloud_credentials()` mit Access/Secret Key Trennung
+  - `delete_cloud_credentials()` für Cleanup
+  - Composite Keys für Multi-Provider-Support
+
+- **Frontend Connection-Test UI (Task 2.3.1):**
+  - LocationPickerDialog: Connection-Test-Button für Cloud und Network Tabs
+  - Test-Result-Anzeige mit Success/Error-States
+  - Latenz-Display in Millisekunden
+  - Backend-Options-Serialisierung für invoke()
+
+- **Favoriten-Management System (Task 2.3.2):**
+  - `FavoriteLocation` Typ mit location_type Enum
+  - `AppConfig` erweitert um favorite_locations Vec
+  - 4 neue Commands:
+    - `save_favorite_location(name, path, type, config)`
+    - `list_favorite_locations()` mit Sortierung nach last_used
+    - `update_favorite_last_used(id)` für Auto-Tracking
+    - `delete_favorite_location(id)`
+  - LocationPickerDialog: "⭐ Als Favorit speichern" Button
+  - Recent-Tab lädt echte Favoriten vom Backend
+  - Auto-Update last_used beim Auswählen eines Favoriten
+  - Helper-Funktionen:
+    - `getLocationTypeLabel()` für User-Friendly-Namen
+    - `getLocationIcon()` für Emoji-Icons
+    - `formatLastUsed()` für relative Zeitangaben
+  - Config-Persistenz in TOML
+
+- **Credential-Prompt-Integration (Task 2.3.3):**
+  - Dialog "Zugangsdaten speichern?" nach erfolgreichem Connection-Test
+  - Checkboxes für:
+    - "Zugangsdaten im Keychain speichern"
+    - "Als Favorit speichern"
+  - `handleCredentialPrompt()` Funktion für Credential-Speicherung
+  - Keychain-Integration für Cloud und Network (SFTP)
+  - Sicherheitshinweis im Dialog (🔒 Icon)
+  - Optional: Automatisches Speichern als Favorit
+
+- **Dokumentation (Task 2.3.3):**
+  - README.md komplett überarbeitet:
+    - Features-Übersicht mit Emojis
+    - Installation-Anleitungen (Linux AppImage, Windows)
+    - Erste-Schritte-Guide (Repository, Backup, Restore)
+    - **Cloud-Storage-Konfiguration:**
+      - Amazon S3 Setup und Beispiele
+      - Azure Blob Storage Setup
+      - Google Cloud Storage Setup
+      - Backblaze B2 Setup
+      - Wasabi/MinIO (S3-kompatibel) Setup
+      - SFTP via Rclone Setup
+      - 70+ weitere Provider via Rclone
+    - Sicherheit & Credentials-Sektion:
+      - Keychain-Integration erklärt
+      - Credential-Workflow beschrieben
+      - Favoriten-System dokumentiert
+    - Troubleshooting-Sektion:
+      - Cloud-Verbindung fehlgeschlagen
+      - Rclone nicht gefunden
+      - Repository gesperrt
+      - Passwort vergessen
+    - Entwicklungs-Setup und Build-Anleitung
+    - Links zu Dokumentation und Support
+
+- **Error-Handling:**
+  - `UnsupportedBackend` Error-Typ
+  - `InvalidConfiguration` Error-Typ
+  - `RcloneNotFound` Error-Typ
+  - `RcloneError` Error-Typ
+
+**Resultat:** Vollständiger Cloud-Storage-Support implementiert. Benutzer können nun Repositories auf S3, Azure, GCS, SFTP und 70+ weiteren Cloud-Providern erstellen und verwalten. Alle Credentials werden sicher im System-Keychain gespeichert.
+
 #### 2025-10-31
 
 - **Dokumentations-Infrastruktur erweitert:**

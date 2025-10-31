@@ -1,4 +1,10 @@
-use crate::{error::Result, types::RepositoryDto};
+use crate::{
+    error::Result,
+    rustic::backends::{
+        create_opendal_backend, create_rclone_backend, OpenDALConfig, RcloneConfig,
+    },
+    types::RepositoryDto,
+};
 use rustic_backend::BackendOptions;
 use rustic_core::{ConfigOptions, KeyOptions, NoProgressBars, Repository, RepositoryOptions};
 use std::path::Path;
@@ -31,33 +37,100 @@ pub fn init_repository(
     backend_type: &str,
     backend_options: Option<serde_json::Value>,
 ) -> Result<RepositoryDto> {
-    let path_buf = std::path::PathBuf::from(path);
-
-    // Stelle sicher, dass das Verzeichnis existiert
-    if !path_buf.exists() {
-        std::fs::create_dir_all(&path_buf)?;
-    }
-
-    // Prüfe ob Repository bereits existiert
-    let config_path = path_buf.join("config");
-    if config_path.exists() {
-        return Err(crate::error::RusticGuiError::RepositoryAlreadyExists {
-            path: path.to_string(),
-        });
-    }
-
     // Repository-Optionen erstellen mit Passwort
     let repo_opts = RepositoryOptions::default().password(password.to_string());
 
-    // Backend-Optionen erstellen (vorerst nur Local)
-    let backend_opts = BackendOptions::default().repository(path);
+    // Backend erstellen basierend auf Typ
+    let backends = match backend_type {
+        "local" => {
+            let path_buf = std::path::PathBuf::from(path);
 
-    // Repository erstellen
-    let backends = backend_opts.to_backends().map_err(|e| {
-        crate::error::RusticGuiError::RusticError {
-            message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
+            // Stelle sicher, dass das Verzeichnis existiert
+            if !path_buf.exists() {
+                std::fs::create_dir_all(&path_buf)?;
+            }
+
+            // Prüfe ob Repository bereits existiert
+            let config_path = path_buf.join("config");
+            if config_path.exists() {
+                return Err(crate::error::RusticGuiError::RepositoryAlreadyExists {
+                    path: path.to_string(),
+                });
+            }
+
+            // Lokales Backend
+            let backend_opts = BackendOptions::default().repository(path);
+            backend_opts.to_backends().map_err(|e| {
+                crate::error::RusticGuiError::RusticError {
+                    message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
+                }
+            })?
         }
-    })?;
+        "s3" | "azblob" | "gcs" | "b2" => {
+            // OpenDAL-Backend für Cloud-Provider
+            let opendal_config: OpenDALConfig = backend_options
+                .ok_or_else(|| crate::error::RusticGuiError::InvalidConfiguration {
+                    message: "Backend-Optionen erforderlich für Cloud-Backends".to_string(),
+                })?
+                .try_into()
+                .map_err(|e: serde_json::Error| crate::error::RusticGuiError::InvalidConfiguration {
+                    message: format!("Ungültige Backend-Optionen: {}", e),
+                })?;
+
+            let opendal_opts = create_opendal_backend(&opendal_config)?;
+
+            tracing::info!(
+                "Erstelle OpenDAL-Backend: Provider={}, Endpoint={}",
+                opendal_config.provider,
+                opendal_config.endpoint
+            );
+
+            // Erstelle Backend-Optionen für OpenDAL
+            // Hinweis: rustic_backend verwendet den Pfad-String für OpenDAL
+            let backend_opts = BackendOptions::default()
+                .repository(&format!("opendal:{}:{}", opendal_config.provider, opendal_config.endpoint));
+
+            backend_opts.to_backends().map_err(|e| {
+                crate::error::RusticGuiError::RusticError {
+                    message: format!("OpenDAL-Backend-Erstellung fehlgeschlagen: {}", e),
+                }
+            })?
+        }
+        "rclone" => {
+            // Rclone-Backend
+            let rclone_config: RcloneConfig = backend_options
+                .ok_or_else(|| crate::error::RusticGuiError::InvalidConfiguration {
+                    message: "Backend-Optionen erforderlich für Rclone-Backend".to_string(),
+                })?
+                .try_into()
+                .map_err(|e: serde_json::Error| crate::error::RusticGuiError::InvalidConfiguration {
+                    message: format!("Ungültige Backend-Optionen: {}", e),
+                })?;
+
+            let _rclone_opts = create_rclone_backend(&rclone_config)?;
+
+            tracing::info!(
+                "Erstelle Rclone-Backend: Remote={}, Path={}",
+                rclone_config.remote_name,
+                rclone_config.path
+            );
+
+            // Erstelle Backend-Optionen für Rclone
+            let rclone_url = format!("rclone:{}:{}", rclone_config.remote_name, rclone_config.path);
+            let backend_opts = BackendOptions::default().repository(&rclone_url);
+
+            backend_opts.to_backends().map_err(|e| {
+                crate::error::RusticGuiError::RusticError {
+                    message: format!("Rclone-Backend-Erstellung fehlgeschlagen: {}", e),
+                }
+            })?
+        }
+        _ => {
+            return Err(crate::error::RusticGuiError::UnsupportedBackend {
+                backend_type: backend_type.to_string(),
+            });
+        }
+    };
 
     let repo = Repository::<NoProgressBars, ()>::new(&repo_opts, &backends).map_err(|e| {
         crate::error::RusticGuiError::RusticError {
@@ -77,25 +150,29 @@ pub fn init_repository(
 
     tracing::info!("Repository erfolgreich initialisiert: {}", path);
 
-    // Erstelle DTO als Response
-    let dto = RepositoryDto {
-        id: format!(
-            "repo-{}",
-            path_buf
-                .file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or("unnamed")
-        ),
-        name: path_buf
+    // Erstelle DTO als Response (generiere ID und Name aus path)
+    let repo_name = if backend_type == "local" {
+        let path_buf = std::path::PathBuf::from(path);
+        path_buf
             .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or("Unnamed Repository")
-            .to_string(),
+            .to_string()
+    } else {
+        // Für Cloud-Backends: Extrahiere Namen aus path/endpoint
+        path.split('/').last().unwrap_or("Cloud Repository").to_string()
+    };
+
+    let repo_id = format!("repo-{}", uuid::Uuid::new_v4());
+
+    let dto = RepositoryDto {
+        id: repo_id,
+        name: repo_name,
         path: path.to_string(),
         repository_type: match backend_type {
             "local" => crate::types::RepositoryType::Local,
             "sftp" => crate::types::RepositoryType::Sftp,
-            "s3" => crate::types::RepositoryType::S3,
+            "s3" | "azblob" | "gcs" | "b2" => crate::types::RepositoryType::S3,
             "rest" => crate::types::RepositoryType::Rest,
             "rclone" => crate::types::RepositoryType::Rclone,
             _ => crate::types::RepositoryType::Local,
@@ -105,6 +182,7 @@ pub fn init_repository(
         total_size: 0,
         last_accessed: Some(chrono::Utc::now().to_rfc3339()),
         created_at: chrono::Utc::now().to_rfc3339(),
+    };
     };
 
     Ok(dto)

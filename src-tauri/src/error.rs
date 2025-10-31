@@ -26,6 +26,16 @@ impl From<&RusticGuiError> for ErrorDto {
             JsonError(e) => ("JsonError", error.to_string(), Some(e.to_string())),
             TomlError(msg) => ("TomlError", error.to_string(), Some(msg.clone())),
             Internal(msg) => ("Internal", error.to_string(), Some(msg.clone())),
+            UnsupportedBackend { backend_type } => {
+                ("UnsupportedBackend", error.to_string(), Some(format!("backend_type: {}", backend_type)))
+            }
+            InvalidConfiguration { message } => {
+                ("InvalidConfiguration", error.to_string(), Some(message.clone()))
+            }
+            RcloneNotFound => ("RcloneNotFound", error.to_string(), None),
+            RcloneError { message } => {
+                ("RcloneError", error.to_string(), Some(message.clone()))
+            }
         };
         ErrorDto { code: code.to_string(), message, details }
     }
@@ -79,6 +89,18 @@ pub enum RusticGuiError {
 
     #[error("Interner Fehler: {0}")]
     Internal(String),
+
+    #[error("Backend nicht unterstützt: {backend_type}")]
+    UnsupportedBackend { backend_type: String },
+
+    #[error("Ungültige Konfiguration: {message}")]
+    InvalidConfiguration { message: String },
+
+    #[error("Rclone nicht gefunden. Bitte installieren Sie rclone von https://rclone.org")]
+    RcloneNotFound,
+
+    #[error("Rclone-Fehler: {message}")]
+    RcloneError { message: String },
 }
 
 /// Typ-Alias für Results mit RusticGuiError

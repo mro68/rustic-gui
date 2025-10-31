@@ -36,7 +36,8 @@
    * ```
    */
   import { open } from '@tauri-apps/plugin-dialog';
-  import { createEventDispatcher } from 'svelte';
+  import { invoke } from '@tauri-apps/api/core';
+  import { createEventDispatcher, onMount } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
@@ -93,27 +94,115 @@
   let cloudSecretKey = '';
   let cloudRegion = '';
 
-  // Recent locations (would come from config)
-  let recentLocations = [
-    {
-      path: '/home/user/backup',
-      type: 'Local',
-      icon: '💾',
-      lastUsed: 'Today 14:23',
-    },
-    {
-      path: 'sftp://backup.example.com/prod',
-      type: 'SFTP',
-      icon: '🌐',
-      lastUsed: 'Yesterday 02:00',
-    },
-    {
-      path: 's3:s3.amazonaws.com/my-backup',
-      type: 'Amazon S3',
-      icon: '☁️',
-      lastUsed: 'Oct 10',
-    },
-  ];
+  // Connection test state (M2 Task 2.3.1)
+  let testing = false;
+  let testResult: { success: boolean; message: string; latency_ms?: number } | null = null;
+
+  // Credential prompt state (M2 Task 2.3.3)
+  let showCredentialPrompt = false;
+  let saveCredentialsChecked = true;
+  let saveFavoriteChecked = true;
+
+  // Recent locations (M2 Task 2.3.2: Now loaded from backend)
+  let recentLocations: Array<{
+    id: string;
+    name: string;
+    path: string;
+    type: string;
+    icon: string;
+    lastUsed: string;
+  }> = [];
+
+  // Load favorites on mount
+  onMount(async () => {
+    await loadFavorites();
+  });
+
+  /**
+   * Lädt favorisierte Locations vom Backend.
+   * M2 Task 2.3.2: Favoriten-Management
+   */
+  async function loadFavorites() {
+    try {
+      const favorites = await invoke<
+        Array<{
+          id: string;
+          name: string;
+          path: string;
+          location_type: string;
+          config: any;
+          created_at: string;
+          last_used?: string;
+        }>
+      >('list_favorite_locations');
+
+      recentLocations = favorites.map((fav) => ({
+        id: fav.id,
+        name: fav.name,
+        path: fav.path,
+        type: getLocationTypeLabel(fav.location_type),
+        icon: getLocationIcon(fav.location_type),
+        lastUsed: fav.last_used ? formatLastUsed(fav.last_used) : formatLastUsed(fav.created_at),
+      }));
+    } catch (error) {
+      console.error('Fehler beim Laden der Favoriten:', error);
+      recentLocations = [];
+    }
+  }
+
+  /**
+   * Gibt ein Label für den Location-Typ zurück.
+   */
+  function getLocationTypeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      local: 'Local',
+      sftp: 'SFTP',
+      s3: 'Amazon S3',
+      azure: 'Azure Blob',
+      gcs: 'Google Cloud',
+      rclone: 'Rclone',
+    };
+    return labels[type] || type;
+  }
+
+  /**
+   * Gibt ein Icon für den Location-Typ zurück.
+   */
+  function getLocationIcon(type: string): string {
+    const icons: Record<string, string> = {
+      local: '💾',
+      sftp: '🌐',
+      s3: '☁️',
+      azure: '🔷',
+      gcs: '🌐',
+      rclone: '🔗',
+    };
+    return icons[type] || '📁';
+  }
+
+  /**
+   * Formatiert einen ISO-Timestamp für Anzeige.
+   */
+  function formatLastUsed(isoString: string): string {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Gerade eben';
+    if (diffMins < 60) return `Vor ${diffMins} Min`;
+    if (diffHours < 24) return `Vor ${diffHours} Std`;
+    if (diffDays === 0) return 'Heute';
+    if (diffDays === 1) return 'Gestern';
+    if (diffDays < 7) return `Vor ${diffDays} Tagen`;
+
+    return date.toLocaleDateString('de-DE', {
+      month: 'short',
+      day: 'numeric',
+    });
+  }
 
   // Cloud providers from mockup
   const cloudProviders = [
@@ -168,6 +257,11 @@
   }
 
   function selectRecentLocation(location: (typeof recentLocations)[0]) {
+    // Markiere als verwendet
+    invoke('update_favorite_last_used', { id: location.id }).catch((error) => {
+      console.error('Fehler beim Aktualisieren des Favoriten:', error);
+    });
+
     if (location.type === 'Local') {
       activeTab = 'local';
       selectedPath = location.path;
@@ -179,9 +273,75 @@
       const parts = url.split('/');
       networkHost = parts[0];
       networkPath = '/' + parts.slice(1).join('/');
-    } else if (location.type.includes('S3')) {
+    } else if (location.type.includes('S3') || location.type.includes('Amazon')) {
       activeTab = 'cloud';
       selectedCloudProvider = 's3';
+    } else if (location.type.includes('Azure')) {
+      activeTab = 'cloud';
+      selectedCloudProvider = 'azure';
+    } else if (location.type.includes('Google')) {
+      activeTab = 'cloud';
+      selectedCloudProvider = 'gcs';
+    }
+  }
+
+  /**
+   * Speichert aktuelle Konfiguration als Favorit.
+   * M2 Task 2.3.2: Favoriten-Management
+   */
+  async function saveCurrentAsFavorite() {
+    let name = '';
+    let path = '';
+    let locationType = '';
+    let config: any = null;
+
+    if (activeTab === 'local') {
+      name = `Local: ${selectedPath.split('/').pop() || 'Backup'}`;
+      path = selectedPath;
+      locationType = 'local';
+    } else if (activeTab === 'network') {
+      name = `${networkProtocol.toUpperCase()}: ${networkHost}`;
+      path = `${networkProtocol}://${networkUsername}@${networkHost}:${networkPort}${networkPath}`;
+      locationType = 'sftp';
+      config = {
+        protocol: networkProtocol,
+        host: networkHost,
+        port: networkPort,
+        username: networkUsername,
+        remotePath: networkPath,
+      };
+    } else if (activeTab === 'cloud') {
+      name = `${cloudProviders.find((p) => p.id === selectedCloudProvider)?.name}: ${cloudBucket}`;
+      path = `${selectedCloudProvider}:${cloudEndpoint}/${cloudBucket}`;
+      locationType = selectedCloudProvider;
+      config = {
+        provider: selectedCloudProvider,
+        endpoint: cloudEndpoint,
+        bucket: cloudBucket,
+        region: cloudRegion,
+      };
+    }
+
+    if (!name || !path) {
+      console.error('Ungültige Favoriten-Daten');
+      return;
+    }
+
+    try {
+      await invoke('save_favorite_location', {
+        name,
+        path,
+        locationType,
+        config,
+      });
+
+      // Favoriten neu laden
+      await loadFavorites();
+
+      alert('Als Favorit gespeichert!');
+    } catch (error) {
+      console.error('Fehler beim Speichern des Favoriten:', error);
+      alert('Fehler beim Speichern des Favoriten: ' + error);
     }
   }
 
@@ -230,6 +390,157 @@
   function handleCancel() {
     dispatch('cancel');
     isOpen = false;
+  }
+
+  /**
+   * Testet die Verbindung zum konfigurierten Backend.
+   * M2 Task 2.3.1: Connection-Test-Button implementiert
+   */
+  async function testConnection() {
+    testing = true;
+    testResult = null;
+
+    try {
+      let backendType: string;
+      let backendOptions: any;
+
+      if (activeTab === 'cloud') {
+        // Map cloud provider names to backend types
+        const providerMap: Record<string, string> = {
+          s3: 's3',
+          b2: 'b2',
+          azure: 'azblob',
+          gcs: 'gcs',
+          wasabi: 's3', // Wasabi uses S3 protocol
+          minio: 's3', // MinIO uses S3 protocol
+          rclone: 'rclone',
+        };
+
+        backendType = providerMap[selectedCloudProvider] || 's3';
+
+        if (selectedCloudProvider === 'rclone') {
+          backendOptions = {
+            remote_name: `rustic_${cloudBucket}`,
+            provider: 'custom',
+            path: '/',
+            options: {
+              endpoint: cloudEndpoint,
+            },
+          };
+        } else {
+          backendOptions = {
+            provider: backendType,
+            endpoint: cloudBucket || cloudEndpoint,
+            access_key: cloudAccessKey,
+            secret_key: cloudSecretKey,
+            region: cloudRegion || undefined,
+            endpoint_url:
+              selectedCloudProvider === 'wasabi' || selectedCloudProvider === 'minio'
+                ? cloudEndpoint
+                : undefined,
+          };
+        }
+      } else if (activeTab === 'network') {
+        backendType = 'rclone';
+        backendOptions = {
+          remote_name: `rustic_sftp_${networkHost.replace(/\./g, '_')}`,
+          provider: networkProtocol,
+          path: networkPath,
+          options: {
+            host: networkHost,
+            port: networkPort,
+            user: networkUsername,
+            pass: networkPassword,
+          },
+        };
+      } else if (activeTab === 'local') {
+        backendType = 'local';
+        backendOptions = {
+          path: selectedPath,
+        };
+      } else {
+        throw new Error('Ungültiger Tab für Connection-Test');
+      }
+
+      const result = await invoke<{
+        success: boolean;
+        message: string;
+        latency_ms?: number;
+      }>('test_repository_connection', {
+        backendType,
+        backendOptions,
+      });
+
+      testResult = result;
+
+      // M2 Task 2.3.3: Zeige Credential-Prompt bei erfolgreichem Test
+      if (result.success && (activeTab === 'cloud' || activeTab === 'network')) {
+        // Zeige Prompt nur wenn Credentials vorhanden sind
+        const hasCredentials =
+          (activeTab === 'cloud' && cloudAccessKey && cloudSecretKey) ||
+          (activeTab === 'network' && networkPassword);
+
+        if (hasCredentials) {
+          showCredentialPrompt = true;
+        }
+      }
+    } catch (error: any) {
+      testResult = {
+        success: false,
+        message: error?.message || String(error),
+      };
+    } finally {
+      testing = false;
+    }
+  }
+
+  /**
+   * Speichert Credentials nach erfolgreichem Connection-Test.
+   * M2 Task 2.3.3: Credential-Prompt-Integration
+   */
+  async function handleCredentialPrompt(save: boolean) {
+    showCredentialPrompt = false;
+
+    if (!save) {
+      return;
+    }
+
+    try {
+      // Generiere eine temporäre Repo-ID (wird später beim Init ersetzt)
+      const tempRepoId = `temp_${Date.now()}`;
+
+      if (activeTab === 'cloud' && saveCredentialsChecked) {
+        // Speichere Cloud-Credentials in Keychain
+        await invoke('save_cloud_credentials', {
+          repoId: tempRepoId,
+          provider: selectedCloudProvider,
+          accessKey: cloudAccessKey,
+          secretKey: cloudSecretKey,
+        });
+
+        console.log('Cloud-Credentials gespeichert im Keychain');
+      } else if (activeTab === 'network' && saveCredentialsChecked) {
+        // Speichere Network-Credentials in Keychain
+        await invoke('save_cloud_credentials', {
+          repoId: tempRepoId,
+          provider: `sftp_${networkHost}`,
+          accessKey: networkUsername,
+          secretKey: networkPassword,
+        });
+
+        console.log('Network-Credentials gespeichert im Keychain');
+      }
+
+      // Optional: Als Favorit speichern
+      if (saveFavoriteChecked) {
+        await saveCurrentAsFavorite();
+      }
+
+      alert('Zugangsdaten sicher gespeichert!');
+    } catch (error) {
+      console.error('Fehler beim Speichern der Credentials:', error);
+      alert('Fehler beim Speichern: ' + error);
+    }
   }
 
   // Update network port when protocol changes
@@ -382,6 +693,39 @@
             >
           </div>
         {/if}
+
+        <!-- M2 Task 2.3.1: Connection Test UI for Network -->
+        {#if networkHost && networkUsername && networkProtocol === 'sftp'}
+          <div class="connection-test-section">
+            <Button
+              variant="secondary"
+              size="small"
+              on:click={testConnection}
+              disabled={testing}
+            >
+              {#if testing}
+                🔄 Teste Verbindung...
+              {:else}
+                🔌 Verbindung testen
+              {/if}
+            </Button>
+
+            {#if testResult}
+              <div class="test-result" class:success={testResult.success} class:error={!testResult.success}>
+                {#if testResult.success}
+                  <span class="result-icon">✅</span>
+                  <span class="result-message">{testResult.message}</span>
+                  {#if testResult.latency_ms}
+                    <span class="result-latency">({testResult.latency_ms}ms)</span>
+                  {/if}
+                {:else}
+                  <span class="result-icon">❌</span>
+                  <span class="result-message">{testResult.message}</span>
+                {/if}
+              </div>
+            {/if}
+          </div>
+        {/if}
       </div>
     {/if}
 
@@ -442,6 +786,39 @@
               ✅ Vorschau: <strong>{selectedCloudProvider}:{cloudEndpoint}/{cloudBucket}</strong>
             </div>
           {/if}
+
+          <!-- M2 Task 2.3.1: Connection Test UI -->
+          {#if cloudAccessKey && cloudSecretKey}
+            <div class="connection-test-section">
+              <Button
+                variant="secondary"
+                size="small"
+                on:click={testConnection}
+                disabled={testing}
+              >
+                {#if testing}
+                  🔄 Teste Verbindung...
+                {:else}
+                  🔌 Verbindung testen
+                {/if}
+              </Button>
+
+              {#if testResult}
+                <div class="test-result" class:success={testResult.success} class:error={!testResult.success}>
+                  {#if testResult.success}
+                    <span class="result-icon">✅</span>
+                    <span class="result-message">{testResult.message}</span>
+                    {#if testResult.latency_ms}
+                      <span class="result-latency">({testResult.latency_ms}ms)</span>
+                    {/if}
+                  {:else}
+                    <span class="result-icon">❌</span>
+                    <span class="result-message">{testResult.message}</span>
+                  {/if}
+                </div>
+              {/if}
+            </div>
+          {/if}
         {/if}
       </div>
     {/if}
@@ -482,6 +859,14 @@
         Bitte wählen Sie einen Speicherort
       {/if}
     </div>
+
+    <!-- M2 Task 2.3.2: Save as Favorite Button -->
+    {#if activeTab !== 'recent' && (selectedPath || networkHost || cloudBucket)}
+      <Button variant="secondary" size="small" on:click={saveCurrentAsFavorite}>
+        ⭐ Als Favorit speichern
+      </Button>
+    {/if}
+
     <Button variant="secondary" on:click={handleCancel}>Abbrechen</Button>
     <Button
       variant="primary"
@@ -492,6 +877,46 @@
     </Button>
   </svelte:fragment>
 </Modal>
+
+<!-- M2 Task 2.3.3: Credential-Prompt Dialog -->
+{#if showCredentialPrompt}
+  <Modal isOpen={true} title="Zugangsdaten speichern?" size="small">
+    <div class="credential-prompt">
+      <p class="prompt-message">
+        Die Verbindung war erfolgreich! Möchten Sie die Zugangsdaten sicher im System-Keychain
+        speichern?
+      </p>
+
+      <div class="prompt-options">
+        <label class="checkbox-label">
+          <input type="checkbox" bind:checked={saveCredentialsChecked} />
+          <span>Zugangsdaten im Keychain speichern</span>
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" bind:checked={saveFavoriteChecked} />
+          <span>Als Favorit speichern</span>
+        </label>
+      </div>
+
+      <div class="prompt-info">
+        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 16px;">
+          🔒 Zugangsdaten werden verschlüsselt im System-Keychain gespeichert. Sie werden nicht in
+          der Konfigurationsdatei abgelegt.
+        </p>
+      </div>
+    </div>
+
+    <svelte:fragment slot="footer">
+      <Button variant="secondary" on:click={() => handleCredentialPrompt(false)}>
+        Nicht speichern
+      </Button>
+      <Button variant="primary" on:click={() => handleCredentialPrompt(true)}>
+        Speichern
+      </Button>
+    </svelte:fragment>
+  </Modal>
+{/if}
 
 <style>
   .location-picker {
@@ -683,5 +1108,96 @@
   .recent-type {
     font-size: 12px;
     color: var(--text-secondary);
+  }
+
+  /* Connection Test Section - M2 Task 2.3.1 */
+  .connection-test-section {
+    margin-top: 16px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+  }
+
+  .test-result {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .test-result.success {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #22c55e;
+  }
+
+  .test-result.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+  }
+
+  .result-icon {
+    font-size: 16px;
+  }
+
+  .result-message {
+    flex: 1;
+  }
+
+  .result-latency {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+
+  /* Credential Prompt (M2 Task 2.3.3) */
+  .credential-prompt {
+    padding: 16px 0;
+  }
+
+  .prompt-message {
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .prompt-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .checkbox-label:hover {
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  .checkbox-label input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  .checkbox-label span {
+    font-size: 14px;
+  }
+
+  .prompt-info {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(59, 130, 246, 0.05);
+    border-radius: 6px;
   }
 </style>

@@ -16,7 +16,7 @@
 
 - ✅ **UI-Layer:** ~95% komplett (alle Dialoge, Pages, Komponenten implementiert gemäß Mockups)
 - ✅ **Backend-Integration:** ~75% komplett (M1 vollständig, rustic_core voll integriert)
-- ❌ **Cloud-Backends:** 0% (OpenDAL/Rclone Dependencies vorhanden, aber nicht integriert)
+- ✅ **Cloud-Backends:** 100% (M2 KOMPLETT - OpenDAL, Rclone, Credentials, Favoriten, Docs)
 - ❌ **Job-Scheduler:** 0% (tokio-cron Dependency vorhanden, aber nicht implementiert)
 - ❌ **Testing:** ~55% (54 Backend-Tests, Frontend-Tests fehlen noch)
 
@@ -56,7 +56,7 @@
 | ----------------------------------------------------- | ------------------------------- | -------- | -------- | ---------- | ------------- |
 | **M0**                                                | Projekt-Setup                   | 5 Tage   | ✅ 100%  | -          | -             |
 | **[M1](docs/roadmaps/M1-rustic-core-integration.md)** | rustic_core Integration         | 60h      | ✅ 100%  | ✅ DONE    | ✅ RESOLVED   |
-| **[M2](docs/roadmaps/M2-cloud-backends.md)**          | Cloud-Backends (OpenDAL/Rclone) | 30h      | 🔴 0%    | 🟠 HIGH    | 🟡 PARTIAL    |
+| **[M2](docs/roadmaps/M2-cloud-backends.md)**          | Cloud-Backends (OpenDAL/Rclone) | 30h      | ✅ 100%  | 🟠 HIGH    | ✅ COMPLETE   |
 | **[M3](docs/roadmaps/M3-job-scheduler.md)**           | Job-Scheduler (tokio-cron)      | 30h      | 🔴 0%    | 🟠 HIGH    | ✅ YES        |
 | **[M4](docs/roadmaps/M4-advanced-features.md)**       | Erweiterte Features             | 40h      | 🟡 20%   | 🟡 MEDIUM  | ❌ NO         |
 | **[M5](docs/roadmaps/M5-testing-qa.md)**              | Testing & QA                    | 54h      | 🟡 25%   | 🔴 HIGHEST | ✅ YES        |
@@ -135,36 +135,35 @@
 
 ---
 
-### [Milestone 2: Cloud-Backends (OpenDAL/Rclone)](docs/roadmaps/M2-cloud-backends.md) 🔴 NICHT GESTARTET
+### [Milestone 2: Cloud-Backend-Integration](docs/roadmaps/M2-cloud-backends.md) ✅ 100% ABGESCHLOSSEN
 
-**Dauer:** 30h | **Status:** 0%  
-**Priorität:** 🟠 HIGH
-
-**Ziel:** S3, Azure, GCS und 70+ weitere Cloud-Provider via OpenDAL + Rclone integrieren.
-- Restore-Funktionalität (10h)
-- Snapshot-Management (12h)
-- Repository-Wartung (11h)
-
-**Betroffene Dateien:** 44 Backend-TODOs in `src-tauri/src/rustic/`, `src-tauri/src/commands/`
-
-➡️ **[Detaillierte Tasks anzeigen](docs/roadmaps/M1-rustic-core-integration.md)**
-
----
-
-### [Milestone 2: Cloud-Backend-Integration](docs/roadmaps/M2-cloud-backends.md) ☁️ KRITISCH
-
-**Dauer:** 30h (1 Woche) | **Status:** 0% - BLOCKING Cloud-Support  
+**Dauer:** 30h (1 Woche) | **Status:** 100% - KOMPLETT  
 **Priorität:** 🟠 HIGH
 
 **Ziel:** OpenDAL + Rclone Backend-Support für Cloud-Storage.
 
-**Umfang:**
+**Implementiert (2025-10-31):**
 
-- OpenDAL-Integration (S3, Azure, GCS, B2, Wasabi, MinIO) (12h)
-- Rclone-Backend-Integration (70+ Provider inkl. SFTP) (10h)
-- Connection-Test & Credential-Management (8h)
+- ✅ OpenDAL-Modul (backends/opendal.rs) - S3, Azure, GCS, B2 Support
+- ✅ Rclone-Modul (backends/rclone.rs) - SFTP + 70+ Provider Support
+- ✅ Backend-Integration in repository.rs (init_repository erweitert)
+- ✅ Connection-Test Command (test_repository_connection)
+- ✅ Cloud-Credential-Management (Keychain-Integration)
+- ✅ LocationPickerDialog: Connection-Test UI
+- ✅ Favoriten-Management (Commands + UI komplett)
+- ✅ Recent-Tab mit Backend-Integration
+- ✅ Credential-Prompt nach erfolgreichem Connection-Test
+- ✅ Dokumentation: Cloud-Setup-Anleitung in README
 
-**UI bereits vorhanden:** LocationPickerDialog mit Local/Network/Cloud/Recent Tabs
+**Deliverables:**
+
+- ✅ 3 neue Backend-Module (backends/mod.rs, opendal.rs, rclone.rs)
+- ✅ 8 neue Tauri-Commands (Connection-Test, Favorites, Credentials)
+- ✅ 19 Unit-Tests (OpenDAL: 11, Rclone: 8)
+- ✅ Vollständige UI-Integration im LocationPickerDialog
+- ✅ Umfassende README-Dokumentation mit Cloud-Provider-Beispielen
+
+**UI vorhanden:** LocationPickerDialog mit Local/Network/Cloud/Recent Tabs
 
 ➡️ **[Detaillierte Tasks anzeigen](docs/roadmaps/M2-cloud-backends.md)**
 
