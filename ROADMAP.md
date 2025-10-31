@@ -215,20 +215,25 @@
 
 ### [Milestone 4: Erweiterte Features](docs/roadmaps/M4-advanced-features.md) ⭐ ENHANCEMENT
 
-**Dauer:** 40h (1 Woche) | **Status:** ~20% (partial UI)  
+**Dauer:** 40h (1 Woche) | **Status:** ~60% (Tag-Management fertig, Comparison implementiert)  
 **Priorität:** 🟡 MEDIUM
 
 **Ziel:** Erweiterte rustic_core Features nutzen.
 
 **Umfang:**
 
-- Snapshot-Tag-Management (8h)
-- Snapshot-Diff/Vergleich (12h)
+- Snapshot-Tag-Management (8h) ✅ 80% Backend fertig
+- Snapshot-Diff/Vergleich (12h) ✅ Backend implementiert
 - Repository-Statistiken (10h)
 - Settings-Backend-Integration (6h)
 - Batch-Operations (4h)
 
-**UI Status:** FilterBar (Tags), CompareSnapshotsDialog vorhanden, Backend fehlt
+**Erledigte Features:**
+- ✅ Tag-Management Backend (add/remove_snapshot_tags)
+- ✅ Snapshot-Filtering (Tags, Hostname, Zeitraum)
+- ✅ Snapshot-Comparison Backend (compare_snapshots)
+
+**UI Status:** FilterBar (Tags), CompareSnapshotsDialog vorhanden, Backend integriert
 
 ➡️ **[Detaillierte Tasks anzeigen](docs/roadmaps/M4-advanced-features.md)**
 

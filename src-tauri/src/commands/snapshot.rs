@@ -9,7 +9,7 @@
 //       Diese Commands hier sind für erweiterte Funktionen gedacht.
 
 use crate::state::AppState;
-use crate::types::{DiffResultDto, SnapshotDto};
+use crate::types::{DiffResultDto, DiffStats, SnapshotDto};
 
 /// Listet alle Snapshots eines Repositories
 #[tauri::command]
@@ -36,14 +36,112 @@ pub async fn get_snapshot_info(
 /// Vergleicht zwei Snapshots
 #[tauri::command]
 pub async fn compare_snapshots(
-    id_a: String,
-    id_b: String,
+    snapshot_id_a: String,
+    snapshot_id_b: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<DiffResultDto, String> {
-    // TODO: Implementieren mit rustic_core
-    // TODO.md: Phase 1 Zeile 186 (auskommentiert in lib.rs:422)
-    // Frontend: CompareSnapshotsDialog.svelte wartet auf diese Implementation
-    Err("compare_snapshots: Noch nicht implementiert".into())
+    tracing::debug!(
+        "compare_snapshots called: id_a={}, id_b={}",
+        snapshot_id_a,
+        snapshot_id_b
+    );
+
+    // Get current repository
+    let repo_guard = state.current_repository.lock().map_err(|e| e.to_string())?;
+    let repo = repo_guard
+        .as_ref()
+        .ok_or("Kein Repository geöffnet")?;
+
+    // Load both snapshots
+    let snapshot_a = repo
+        .get_snapshot_from_str(&snapshot_id_a)
+        .map_err(|e| format!("Snapshot A nicht gefunden: {}", e))?;
+
+    let snapshot_b = repo
+        .get_snapshot_from_str(&snapshot_id_b)
+        .map_err(|e| format!("Snapshot B nicht gefunden: {}", e))?;
+
+    // Get trees for both snapshots
+    let tree_a = repo
+        .node_from_snapshot(&snapshot_a)
+        .map_err(|e| format!("Tree A laden fehlgeschlagen: {}", e))?;
+
+    let tree_b = repo
+        .node_from_snapshot(&snapshot_b)
+        .map_err(|e| format!("Tree B laden fehlgeschlagen: {}", e))?;
+
+    // Compare trees to find differences
+    let mut added = Vec::new();
+    let mut removed = Vec::new();
+    let mut modified = Vec::new();
+
+    // Build path maps for efficient lookup
+    use std::collections::HashMap;
+    let mut paths_a: HashMap<String, _> = HashMap::new();
+    let mut paths_b: HashMap<String, _> = HashMap::new();
+
+    // Collect all paths from snapshot A
+    for entry in tree_a.recurse_entries(repo, None).flatten() {
+        if let Ok(path_str) = entry.path().to_str() {
+            paths_a.insert(
+                path_str.to_string(),
+                (entry.meta().size, entry.meta().mtime),
+            );
+        }
+    }
+
+    // Collect all paths from snapshot B
+    for entry in tree_b.recurse_entries(repo, None).flatten() {
+        if let Ok(path_str) = entry.path().to_str() {
+            let path = path_str.to_string();
+            let size_b = entry.meta().size;
+            let mtime_b = entry.meta().mtime;
+
+            if let Some((size_a, mtime_a)) = paths_a.remove(&path) {
+                // Path exists in both - check if modified
+                if size_a != size_b || mtime_a != mtime_b {
+                    modified.push(path.clone());
+                }
+            } else {
+                // Path only in B - it was added
+                added.push(path.clone());
+            }
+
+            paths_b.insert(path, (size_b, mtime_b));
+        }
+    }
+
+    // Remaining paths in A were removed in B
+    removed.extend(paths_a.into_keys());
+
+    // Calculate statistics
+    let added_count = added.len() as u64;
+    let removed_count = removed.len() as u64;
+    let modified_count = modified.len() as u64;
+
+    // Calculate size changes
+    let size_a = snapshot_a.summary.as_ref().map(|s| s.total_bytes_processed).unwrap_or(0);
+    let size_b = snapshot_b.summary.as_ref().map(|s| s.total_bytes_processed).unwrap_or(0);
+    let total_size_change = (size_b as i64) - (size_a as i64);
+
+    tracing::info!(
+        "Snapshot-Vergleich abgeschlossen: +{} -{} ~{}",
+        added_count,
+        removed_count,
+        modified_count
+    );
+
+    Ok(DiffResultDto {
+        added,
+        removed,
+        modified,
+        stats: DiffStats {
+            added_count,
+            removed_count,
+            modified_count,
+            total_size_change,
+        },
+    })
 }
 
 /// Löscht einen Snapshot
