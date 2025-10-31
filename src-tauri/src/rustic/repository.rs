@@ -3,6 +3,13 @@ use rustic_backend::BackendOptions;
 use rustic_core::{ConfigOptions, KeyOptions, NoProgressBars, Repository, RepositoryOptions};
 use std::path::Path;
 
+/// Einfache Struktur um Repository-Informationen zurückzugeben
+/// ohne den komplizierten generischen Type zu exportieren
+pub struct OpenedRepository {
+    pub snapshot_count: u32,
+    pub total_size: u64,
+}
+
 /// Repository-Management Funktionen
 ///
 /// Diese Module kapseln alle Operationen auf rustic Repositories.
@@ -46,10 +53,17 @@ pub fn init_repository(
     let backend_opts = BackendOptions::default().repository(path);
 
     // Repository erstellen
-    let repo = Repository::<NoProgressBars, ()>::new(&repo_opts, &backend_opts.to_backends()?)
-        .map_err(|e| crate::error::RusticGuiError::RusticError {
+    let backends = backend_opts.to_backends().map_err(|e| {
+        crate::error::RusticGuiError::RusticError {
+            message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
+        }
+    })?;
+
+    let repo = Repository::<NoProgressBars, ()>::new(&repo_opts, &backends).map_err(|e| {
+        crate::error::RusticGuiError::RusticError {
             message: format!("Repository-Erstellung fehlgeschlagen: {}", e),
-        })?;
+        }
+    })?;
 
     // Key-Optionen für Repository-Initialisierung
     let key_opts = KeyOptions::default();
@@ -103,11 +117,8 @@ pub fn init_repository(
 /// * `password` - Repository-Passwort
 ///
 /// # Returns
-/// Repository-Objekt (rustic_core::Repository) für weitere Operationen
-pub fn open_repository(
-    path: &str,
-    password: &str,
-) -> Result<crate::state::RusticRepository> {
+/// OpenedRepository mit Basis-Informationen
+pub fn open_repository(path: &str, password: &str) -> Result<OpenedRepository> {
     let path_buf = std::path::PathBuf::from(path);
 
     if !path_buf.exists() {
@@ -130,8 +141,15 @@ pub fn open_repository(
     // Backend-Optionen erstellen
     let backend_opts = BackendOptions::default().repository(path);
 
+    // Backend erstellen
+    let backends = backend_opts.to_backends().map_err(|e| {
+        crate::error::RusticGuiError::RusticError {
+            message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
+        }
+    })?;
+
     // Repository erstellen und öffnen
-    let repo = Repository::<NoProgressBars, ()>::new(&repo_opts, &backend_opts.to_backends()?)
+    let repo = Repository::<NoProgressBars, ()>::new(&repo_opts, &backends)
         .map_err(|e| crate::error::RusticGuiError::RusticError {
             message: format!("Repository öffnen fehlgeschlagen: {}", e),
         })?
@@ -146,7 +164,13 @@ pub fn open_repository(
 
     tracing::info!("Repository erfolgreich geöffnet: {}", path);
 
-    Ok(repo)
+    // Ermittle Snapshot-Count
+    let snapshot_count = repo.get_all_snapshots().map(|snaps| snaps.len() as u32).unwrap_or(0);
+
+    Ok(OpenedRepository {
+        snapshot_count,
+        total_size: 0, // TODO M1.4: Berechnen
+    })
 }
 
 /// Holt Informationen über ein Repository (ohne es zu öffnen)
@@ -157,10 +181,21 @@ pub fn open_repository(
 /// # Returns
 /// RepositoryDto mit Basis-Informationen
 /// RepositoryDto mit aktuellen Informationen
-pub fn get_repository_info(path: &str, password: &str) -> Result<RepositoryDto> {
-    // Für jetzt einfach open_repository verwenden
-    // Später können wir das optimieren um nicht immer neu zu öffnen
-    open_repository(path, password)
+pub fn get_repository_info(path: &str, _password: &str) -> Result<RepositoryDto> {
+    // TODO M1.4: Implement properly - get info without opening repo
+    // Für jetzt gibt's einen Stub zurück
+    let path_buf = std::path::PathBuf::from(path);
+    Ok(RepositoryDto {
+        id: format!("repo-{}", path_buf.file_name().and_then(|n| n.to_str()).unwrap_or("unknown")),
+        name: path_buf.file_name().and_then(|n| n.to_str()).unwrap_or("Unknown").to_string(),
+        path: path.to_string(),
+        repository_type: crate::types::RepositoryType::Local,
+        status: crate::types::RepositoryStatus::Healthy,
+        snapshot_count: 0,
+        total_size: 0,
+        last_accessed: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+    })
 }
 
 /// Führt eine Repository-Überprüfung durch
@@ -171,7 +206,7 @@ pub fn get_repository_info(path: &str, password: &str) -> Result<RepositoryDto> 
 ///
 /// # Returns
 /// RepositoryDto mit aktualisiertem Status
-pub fn check_repository(path: &str, password: &str) -> Result<RepositoryDto> {
+pub fn check_repository(path: &str, _password: &str) -> Result<RepositoryDto> {
     let path = Path::new(path);
 
     if !path.exists() {
