@@ -21,20 +21,46 @@ import { invoke } from '@tauri-apps/api/core';
  * - src/lib/components/dialogs/CompareSnapshotsDialog.svelte
  */
 
+/**
+ * Listet alle Snapshots auf (optional für ein spezifisches Repository).
+ *
+ * @param repositoryId - Repository-ID (optional, listet alle wenn nicht angegeben)
+ * @returns Promise mit Array von Snapshot-DTOs
+ * @throws Error wenn Abfrage fehlschlägt
+ */
 export async function listSnapshots(repositoryId?: string): Promise<SnapshotDto[]> {
   return await invoke<SnapshotDto[]>('list_snapshots_command', { repositoryId });
 }
 
+/**
+ * Holt detaillierte Informationen zu einem Snapshot.
+ *
+ * @param id - Snapshot-ID
+ * @returns Promise mit Snapshot-DTO
+ * @throws Error wenn Snapshot nicht gefunden oder Abfrage fehlschlägt
+ */
 export async function getSnapshotInfo(id: string): Promise<SnapshotDto> {
   return await invoke<SnapshotDto>('get_snapshot_command', { id });
 }
 
+/**
+ * Löscht einen Snapshot.
+ *
+ * @param id - Snapshot-ID
+ * @returns Promise (void)
+ * @throws Error wenn Snapshot nicht existiert oder Löschung fehlschlägt
+ */
 export async function deleteSnapshot(id: string): Promise<void> {
   await invoke('delete_snapshot_command', { id });
 }
 
 /**
- * Vergleicht zwei Snapshots und gibt die Unterschiede zurück
+ * Vergleicht zwei Snapshots und gibt die Unterschiede zurück.
+ *
+ * @param idA - ID des ersten Snapshots
+ * @param idB - ID des zweiten Snapshots
+ * @returns Promise mit Diff-Ergebnis (hinzugefügt/entfernt/geändert)
+ * @throws Error wenn Snapshots nicht gefunden oder Vergleich fehlschlägt
  *
  * ⏳ TODO: Backend-Command noch nicht registriert (lib.rs:422 auskommentiert)
  * Frontend: CompareSnapshotsDialog.svelte wartet auf diese Implementation

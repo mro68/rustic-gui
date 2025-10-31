@@ -8,8 +8,11 @@ import { invoke } from '@tauri-apps/api/core';
 
 /**
  * Speichert ein Repository-Passwort im System-Keychain.
+ *
  * @param repoId - Repository-ID
  * @param password - Das zu speichernde Passwort
+ * @returns Promise (void)
+ * @throws Error wenn Keychain-Zugriff fehlschlägt oder Passwort nicht gespeichert werden kann
  */
 export async function storeRepositoryPassword(
   repoId: string,
@@ -20,8 +23,10 @@ export async function storeRepositoryPassword(
 
 /**
  * Lädt ein Repository-Passwort aus dem System-Keychain.
+ *
  * @param repoId - Repository-ID
- * @returns Das gespeicherte Passwort
+ * @returns Promise mit dem gespeicherten Passwort
+ * @throws Error wenn Keychain-Zugriff fehlschlägt oder Passwort nicht gefunden
  */
 export async function getRepositoryPassword(repoId: string): Promise<string> {
   return await invoke('get_repository_password', { repoId });
@@ -29,7 +34,10 @@ export async function getRepositoryPassword(repoId: string): Promise<string> {
 
 /**
  * Löscht ein Repository-Passwort aus dem System-Keychain.
+ *
  * @param repoId - Repository-ID
+ * @returns Promise (void)
+ * @throws Error wenn Keychain-Zugriff fehlschlägt oder Passwort nicht gelöscht werden kann
  */
 export async function deleteRepositoryPassword(repoId: string): Promise<void> {
   await invoke('delete_repository_password', { repoId });

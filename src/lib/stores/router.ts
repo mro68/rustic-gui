@@ -43,27 +43,46 @@ export const currentPageTitle = (() => {
   };
 })();
 
-// Navigation-Funktionen
+/**
+ * Navigiert zu einer bestimmten Seite.
+ *
+ * @param page - Zielseite ('dashboard', 'repositories', 'snapshots', 'backup-jobs', 'settings')
+ */
 export function navigateTo(page: Page): void {
   _currentPage.set(page);
 }
 
+/**
+ * Navigiert zum Dashboard.
+ */
 export function goToDashboard(): void {
   navigateTo('dashboard');
 }
 
+/**
+ * Navigiert zur Repositories-Seite.
+ */
 export function goToRepositories(): void {
   navigateTo('repositories');
 }
 
+/**
+ * Navigiert zur Snapshots-Seite.
+ */
 export function goToSnapshots(): void {
   navigateTo('snapshots');
 }
 
+/**
+ * Navigiert zur Backup-Jobs-Seite.
+ */
 export function goToBackupJobs(): void {
   navigateTo('backup-jobs');
 }
 
+/**
+ * Navigiert zur Settings-Seite.
+ */
 export function goToSettings(): void {
   navigateTo('settings');
 }

@@ -54,11 +54,20 @@ export const sort = { subscribe: _sort.subscribe };
 export const loading = { subscribe: _loading.subscribe };
 export const error = { subscribe: _error.subscribe };
 
-// Actions
+/**
+ * Setzt die Snapshot-Liste im Store (ersetzt alte Liste).
+ *
+ * @param list - Array von Snapshot-DTOs
+ */
 export function setSnapshots(list: SnapshotDto[]): void {
   _snapshots.set(list);
 }
 
+/**
+ * Fügt neue Snapshots hinzu (vermeidet Duplikate basierend auf ID).
+ *
+ * @param newSnapshots - Array von Snapshot-DTOs zum Hinzufügen
+ */
 export function addSnapshots(newSnapshots: SnapshotDto[]): void {
   _snapshots.update((current) => {
     // Vermeide Duplikate basierend auf ID
@@ -68,26 +77,56 @@ export function addSnapshots(newSnapshots: SnapshotDto[]): void {
   });
 }
 
+/**
+ * Entfernt einen Snapshot aus dem Store.
+ *
+ * @param snapshotId - ID des zu entfernenden Snapshots
+ */
 export function removeSnapshot(snapshotId: string): void {
   _snapshots.update((current) => current.filter((s) => s.id !== snapshotId));
 }
 
+/**
+ * Setzt den Snapshot-Filter.
+ *
+ * @param f - Filter-Objekt (tag, dateFrom, dateTo, hostname) oder null
+ */
 export function setFilter(f: SnapshotFilter): void {
   _filter.set(f);
 }
 
+/**
+ * Setzt das Sortierkriterium.
+ *
+ * @param s - Sortierkriterium (z.B. "date", "size") oder null
+ */
 export function setSort(s: string | null): void {
   _sort.set(s);
 }
 
+/**
+ * Setzt den Ladezustand.
+ *
+ * @param val - true = Laden aktiv, false = Laden abgeschlossen
+ */
 export function setLoading(val: boolean): void {
   _loading.set(val);
 }
 
+/**
+ * Setzt eine Fehlermeldung.
+ *
+ * @param msg - Fehlertext (oder null zum Löschen)
+ */
 export function setError(msg: string | null): void {
   _error.set(msg);
 }
 
+/**
+ * Setzt den Snapshot-Store auf Initialzustand zurück.
+ *
+ * Löscht alle Snapshots, Filter, Sort, Loading-State und Fehler.
+ */
 export function resetSnapshots(): void {
   _snapshots.set([]);
   _filter.set(null);
@@ -96,7 +135,13 @@ export function resetSnapshots(): void {
   _error.set(null);
 }
 
-// Async Actions
+/**
+ * Lädt Snapshots vom Backend (optional für ein spezifisches Repository).
+ *
+ * @param repositoryId - Repository-ID (optional, listet alle wenn nicht angegeben)
+ * @returns Promise (void)
+ * @throws Error wenn Backend-Abruf fehlschlägt (wird in error-Store gespeichert)
+ */
 export async function loadSnapshots(repositoryId?: string): Promise<void> {
   setLoading(true);
   setError(null);
@@ -118,6 +163,14 @@ export async function loadSnapshots(repositoryId?: string): Promise<void> {
   }
 }
 
+/**
+ * Lädt alle Snapshots aller bekannten Repositories neu.
+ *
+ * Extrahiert Repository-IDs aus aktuellen Snapshots und lädt diese neu.
+ *
+ * @returns Promise (void)
+ * @throws Error wenn Backend-Abruf fehlschlägt (wird in error-Store gespeichert)
+ */
 export async function refreshSnapshots(): Promise<void> {
   const currentSnapshots = get(_snapshots);
   const repositoryIds = [...new Set(currentSnapshots.map((s) => s.repository_id))];

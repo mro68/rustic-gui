@@ -29,6 +29,7 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event';
  * @param snapshotId - ID des Snapshots
  * @param path - Optionaler Pfad innerhalb des Snapshots (für Lazy-Loading)
  * @returns Promise mit FileTreeNode
+ * @throws Error wenn Repository nicht geöffnet werden kann oder Snapshot nicht existiert
  */
 export async function getFileTree(
   repositoryPath: string,
@@ -54,6 +55,12 @@ export async function getFileTree(
  * @param targetPath - Zielverzeichnis für die Wiederherstellung
  * @param options - Restore-Optionen
  * @returns Promise mit void (Erfolg)
+ * @throws Error wenn Repository nicht geöffnet, Ziel nicht beschreibbar oder Restore fehlschlägt
+ *
+ * 📡 Fortschritt wird via Tauri-Events kommuniziert:
+ * - `restore-progress` (RestoreProgress)
+ * - `restore-completed`
+ * - `restore-failed`
  */
 export async function restoreFiles(
   repositoryPath: string,
@@ -86,6 +93,7 @@ export async function restoreFiles(
  * @param jobId - Job-ID für die Progress-Events (falls verfügbar)
  * @param callback - Callback für Progress-Updates
  * @returns Unlisten-Funktion zum Cleanup
+ * @throws Error wenn Event-Listener nicht registriert werden kann
  */
 export async function onRestoreProgress(
   jobId: string | null,

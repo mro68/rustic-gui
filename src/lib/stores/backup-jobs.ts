@@ -40,25 +40,50 @@ export const runningJobId = { subscribe: _runningJobId.subscribe };
 export const loading = { subscribe: _loading.subscribe };
 export const error = { subscribe: _error.subscribe };
 
-// Actions
+/**
+ * Setzt die Backup-Job-Liste im Store.
+ *
+ * @param list - Array von Backup-Job-DTOs
+ */
 export function setJobs(list: BackupJobDto[]): void {
   _jobs.set(list);
 }
 
+/**
+ * Setzt die ID des aktuell laufenden Backup-Jobs.
+ *
+ * @param id - Job-ID (oder null wenn kein Job läuft)
+ */
 export function setRunningJobId(id: string | null): void {
   _runningJobId.set(id);
 }
 
+/**
+ * Setzt den Ladezustand.
+ *
+ * @param val - true = Laden aktiv, false = Laden abgeschlossen
+ */
 export function setLoading(val: boolean): void {
   _loading.set(val);
 }
 
+/**
+ * Setzt eine Fehlermeldung.
+ *
+ * @param msg - Fehlertext (oder null zum Löschen)
+ */
 export function setError(msg: string | null): void {
   _error.set(msg);
 }
 
 /**
- * Lädt alle Backup-Jobs vom Backend
+ * Lädt alle Backup-Jobs vom Backend.
+ *
+ * Setzt loading=true, ruft API ab, aktualisiert Store.
+ * Bei Fehler wird error-Store gesetzt.
+ *
+ * @returns Promise (void)
+ * @throws Error wenn Backend-Abruf fehlschlägt (wird in error-Store gespeichert)
  */
 export async function loadJobs(): Promise<void> {
   setLoading(true);
@@ -76,6 +101,11 @@ export async function loadJobs(): Promise<void> {
   }
 }
 
+/**
+ * Setzt den Backup-Job-Store auf Initialzustand zurück.
+ *
+ * Löscht alle Jobs, laufenden Job, Loading-State und Fehler.
+ */
 export function resetJobs(): void {
   _jobs.set([]);
   _runningJobId.set(null);

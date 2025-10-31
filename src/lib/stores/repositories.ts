@@ -47,25 +47,50 @@ export const activeRepository = derived(
     $repositories.find((r) => r.id === $activeRepositoryId) ?? null
 );
 
-// Actions
+/**
+ * Setzt die Repository-Liste im Store.
+ *
+ * @param list - Array von Repository-DTOs
+ */
 export function setRepositories(list: RepositoryDto[]): void {
   _repositories.set(list);
 }
 
+/**
+ * Setzt das aktive Repository.
+ *
+ * @param id - Repository-ID (oder null zum Deselektieren)
+ */
 export function setActiveRepository(id: string | null): void {
   _activeRepositoryId.set(id);
 }
 
+/**
+ * Setzt den Ladezustand.
+ *
+ * @param val - true = Laden aktiv, false = Laden abgeschlossen
+ */
 export function setLoading(val: boolean): void {
   _loading.set(val);
 }
 
+/**
+ * Setzt eine Fehlermeldung.
+ *
+ * @param msg - Fehlertext (oder null zum Löschen)
+ */
 export function setError(msg: string | null): void {
   _error.set(msg);
 }
 
 /**
- * Lädt alle Repositories vom Backend
+ * Lädt alle Repositories vom Backend.
+ *
+ * Setzt loading=true, ruft API ab, aktualisiert Store.
+ * Bei Fehler wird error-Store gesetzt.
+ *
+ * @returns Promise (void)
+ * @throws Error wenn Backend-Abruf fehlschlägt (wird in error-Store gespeichert)
  */
 export async function loadRepositories(): Promise<void> {
   setLoading(true);
@@ -83,6 +108,11 @@ export async function loadRepositories(): Promise<void> {
   }
 }
 
+/**
+ * Setzt den Repository-Store auf Initialzustand zurück.
+ *
+ * Löscht alle Repositories, aktive Selection, Loading-State und Fehler.
+ */
 export function resetRepositories(): void {
   _repositories.set([]);
   _activeRepositoryId.set(null);
