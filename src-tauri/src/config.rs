@@ -92,6 +92,7 @@ impl Default for AppConfig {
                 check_updates: true,
                 max_concurrent_backups: 1,
             },
+            favorite_locations: Vec::new(),
         }
     }
 }
