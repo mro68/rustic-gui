@@ -37,12 +37,12 @@
 
   let { repositoryId = '' }: CheckRepoDialogProps = $props();
 
-  let isRunning = false;
-  let progress = 0;
-  let currentStep = '';
-  let logEntries: string[] = [];
-  let readData = true;
-  let checkUnused = false;
+  let isRunning = $state(false);
+  let progress = $state(0);
+  let currentStep = $state('');
+  let logEntries: string[] = $state([]);
+  let readData = $state(true);
+  let checkUnused = $state(false);
 
   let progressInterval: number | null = null;
 
@@ -151,7 +151,9 @@
 </script>
 
 <Modal on:close={handleClose}>
-  <div slot="header">Repository überprüfen</div>
+  {#snippet header()}
+    <h2>Repository überprüfen</h2>
+  {/snippet}
   <div class="check-repo-dialog">
     {#if !isRunning}
       <!-- Configuration Section -->
@@ -217,14 +219,14 @@
     {/if}
   </div>
 
-  <div slot="footer">
+  {#snippet footer()}
     {#if !isRunning}
       <Button variant="secondary" onclick={handleClose}>Abbrechen</Button>
       <Button variant="primary" onclick={startCheck}>Überprüfung starten</Button>
     {:else}
       <Button variant="danger" onclick={stopCheck}>Überprüfung stoppen</Button>
     {/if}
-  </div>
+  {/snippet}
 </Modal>
 
 <style>

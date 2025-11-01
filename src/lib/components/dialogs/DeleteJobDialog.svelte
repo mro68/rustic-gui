@@ -48,7 +48,7 @@
 
   const dispatch = createEventDispatcher();
 
-  let isDeleting = false;
+  let isDeleting = $state(false);
   let confirmText = $state('');
 
   const isConfirmValid = $derived(confirmText === 'LÖSCHEN');

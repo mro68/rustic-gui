@@ -54,7 +54,7 @@ pub async fn get_file_tree(
         .ok_or_else(|| RusticGuiError::SnapshotNotFound { id: snapshot_id.to_string() })?;
 
     // Erstelle Baumstruktur aus den Pfaden des Snapshots
-    let mut root = FileTreeNode {
+    let mut _root = FileTreeNode {
         name: "/".to_string(),
         path: "/".to_string(),
         is_directory: true,
@@ -135,7 +135,7 @@ pub async fn get_file_tree(
         }
     }
 
-    root = build_tree("/", &path_map, &snapshot);
+    let root = build_tree("/", &path_map, &snapshot);
 
     Ok(root)
 }

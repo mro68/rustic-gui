@@ -26,11 +26,11 @@
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
+  import type { AppSettings } from '../../api/settings';
+  import { getSettings, resetSettings, saveSettings, updateTheme } from '../../api/settings';
   import { toastStore } from '../../stores/toast';
   import Checkbox from '../shared/Checkbox.svelte';
   import Tooltip from '../shared/Tooltip.svelte';
-  import { getSettings, saveSettings, resetSettings, updateTheme } from '../../api/settings';
-  import type { AppSettings } from '../../api/settings';
 
   // Settings state
   let settings = $state<AppSettings>({
@@ -58,7 +58,7 @@
       await updateTheme(value);
       toastStore.success(`Theme wurde auf "${value}" geändert`);
     } catch (error) {
-      toastStore.error('Theme-Änderung fehlgeschlagen', (error as Error).message);
+      toastStore.error(`Theme-Änderung fehlgeschlagen: ${(error as Error).message}`);
     }
   }
 
@@ -88,7 +88,7 @@
       await saveSettings(settings);
       toastStore.success('Einstellungen wurden gespeichert');
     } catch (error) {
-      toastStore.error('Fehler beim Speichern', (error as Error).message);
+      toastStore.error(`Fehler beim Speichern: ${(error as Error).message}`);
     } finally {
       loading = false;
     }
@@ -101,7 +101,7 @@
       settings = defaultSettings;
       toastStore.info('Einstellungen wurden auf Standard zurückgesetzt');
     } catch (error) {
-      toastStore.error('Fehler beim Zurücksetzen', (error as Error).message);
+      toastStore.error(`Fehler beim Zurücksetzen: ${(error as Error).message}`);
     } finally {
       loading = false;
     }
@@ -114,7 +114,7 @@
       console.log('Settings geladen:', settings);
     } catch (error) {
       console.error('Fehler beim Laden der Settings:', error);
-      toastStore.error('Fehler beim Laden der Einstellungen', (error as Error).message);
+      toastStore.error(`Fehler beim Laden der Einstellungen: ${(error as Error).message}`);
     } finally {
       loading = false;
     }
@@ -140,7 +140,7 @@
           <select
             class="select-field"
             bind:value={settings.theme}
-            on:change={(e) => handleThemeChange(e.currentTarget.value)}
+            onchange={(e) => handleThemeChange(e.currentTarget.value)}
           >
             <option value="dark">Dark</option>
             <option value="light">Light</option>
@@ -158,7 +158,7 @@
           <select
             class="select-field"
             bind:value={settings.language}
-            on:change={(e) => handleLanguageChange(e.currentTarget.value)}
+            onchange={(e) => handleLanguageChange(e.currentTarget.value)}
           >
             <option value="en">English</option>
             <option value="de">Deutsch</option>
@@ -175,7 +175,7 @@
           <Checkbox
             label=""
             bind:checked={settings.notifications_enabled}
-            on:change={(e) => handleNotificationsChange(e.detail)}
+            onchange={(e: CustomEvent<boolean>) => handleNotificationsChange(e.detail)}
           />
         </div>
       </div>
@@ -194,7 +194,7 @@
           <select
             class="select-field"
             bind:value={settings.password_storage}
-            on:change={(e) => handlePasswordStorageChange(e.currentTarget.value)}
+            onchange={(e) => handlePasswordStorageChange(e.currentTarget.value)}
           >
             <option value="system_keychain">System Keychain (recommended)</option>
             <option value="in_memory">In-Memory Only</option>
@@ -211,7 +211,7 @@
           <select
             class="select-field"
             bind:value={settings.lock_timeout}
-            on:change={(e) => handleLockTimeoutChange(Number(e.currentTarget.value))}
+            onchange={(e) => handleLockTimeoutChange(Number(e.currentTarget.value))}
           >
             <option value="15">15 minutes</option>
             <option value="30">30 minutes</option>
@@ -260,9 +260,7 @@
     <!-- Action Buttons -->
     <div class="settings-actions">
       <Tooltip text="Einstellungen zurücksetzen">
-        <button class="btn btn-secondary" onclick={handleResetSettings}>
-          Reset to Defaults
-        </button>
+        <button class="btn btn-secondary" onclick={handleResetSettings}> Reset to Defaults </button>
       </Tooltip>
       <Tooltip text="Einstellungen speichern">
         <button class="btn btn-primary" onclick={handleSaveSettings}> Save Settings </button>

@@ -248,9 +248,9 @@
 </script>
 
 <Modal open={isOpen} on:close={handleClose}>
-  <div slot="header">
+  {#snippet header()}
     <h2>Restore Files</h2>
-  </div>
+  {/snippet}
 
   <div class="restore-dialog">
     {#if !isRestoring}
@@ -413,7 +413,7 @@
     {/if}
   </div>
 
-  <div slot="footer">
+  {#snippet footer()}
     <Button variant="secondary" onclick={handleClose} disabled={isRestoring}>Cancel</Button>
 
     {#if !isRestoring}
@@ -425,7 +425,7 @@
         Restore Selected Files
       </Button>
     {/if}
-  </div>
+  {/snippet}
 </Modal>
 
 <style>

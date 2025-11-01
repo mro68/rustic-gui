@@ -55,31 +55,31 @@
   const dispatch = createEventDispatcher();
 
   // Form State
-  let currentTab = 0;
-  let isSubmitting = false;
+  let currentTab = $state(0);
+  let isSubmitting = $state(false);
 
   // General Tab
-  let jobName = '';
-  let selectedRepositoryId = '';
-  let tags = '';
+  let jobName = $state('');
+  let selectedRepositoryId = $state('');
+  let tags = $state('');
 
   // Paths & Exclusions Tab
-  let backupPaths = '';
-  let excludePatterns = '';
+  let backupPaths = $state('');
+  let excludePatterns = $state('');
 
   // Schedule Tab
-  let scheduleType = 'manual'; // manual, daily, weekly, monthly, cron
-  let scheduleTime = '02:00';
-  let scheduleDays = [] as string[];
-  let cronExpression = '';
+  let scheduleType = $state('manual'); // manual, daily, weekly, monthly, cron
+  let scheduleTime = $state('02:00');
+  let scheduleDays = $state([] as string[]);
+  let cronExpression = $state('');
 
   // Retention Tab
-  let keepLast = 10;
-  let keepHourly = 24;
-  let keepDaily = 7;
-  let keepWeekly = 4;
-  let keepMonthly = 6;
-  let keepYearly = 1;
+  let keepLast = $state(10);
+  let keepHourly = $state(24);
+  let keepDaily = $state(7);
+  let keepWeekly = $state(4);
+  let keepMonthly = $state(6);
+  let keepYearly = $state(1);
 
   // Schedule Presets
   const schedulePresets = [
@@ -112,26 +112,26 @@
 
     // General
     jobName = job.name;
-    selectedRepositoryId = job.repositoryId;
+    selectedRepositoryId = job.repository_id;
     tags = job.tags?.join(', ') || '';
 
     // Paths & Exclusions
-    backupPaths = job.backupPaths?.join('\n') || '';
-    excludePatterns = job.excludePatterns?.join('\n') || '';
+    backupPaths = job.source_paths?.join('\n') || '';
+    excludePatterns = job.exclude_patterns?.join('\n') || '';
 
-    // Schedule
-    scheduleType = job.schedule?.type || 'manual';
-    scheduleTime = job.schedule?.time || '02:00';
-    scheduleDays = job.schedule?.days || [];
-    cronExpression = job.schedule?.cron || '';
+    // Schedule - ist ein Cron-String, nicht ein Object
+    cronExpression = job.schedule || '';
+    scheduleType = job.schedule ? 'cron' : 'manual';
+    scheduleTime = '02:00';
+    scheduleDays = [];
 
     // Retention
-    keepLast = job.retention?.keepLast || 10;
-    keepHourly = job.retention?.keepHourly || 24;
-    keepDaily = job.retention?.keepDaily || 7;
-    keepWeekly = job.retention?.keepWeekly || 4;
-    keepMonthly = job.retention?.keepMonthly || 6;
-    keepYearly = job.retention?.keepYearly || 1;
+    keepLast = job.retention?.keep_last || 10;
+    keepHourly = 24; // keep_hourly existiert nicht im DTO
+    keepDaily = job.retention?.keep_daily || 7;
+    keepWeekly = job.retention?.keep_weekly || 4;
+    keepMonthly = job.retention?.keep_monthly || 6;
+    keepYearly = job.retention?.keep_yearly || 1;
   }
 
   function resetForm() {
@@ -208,41 +208,44 @@
     try {
       const updatedJob = {
         ...job,
+        id: job?.id || '',
         name: jobName.trim(),
-        repositoryId: selectedRepositoryId,
+        repository_id: selectedRepositoryId,
         tags: tags
           .split(',')
           .map((t) => t.trim())
           .filter((t) => t),
-        backupPaths: backupPaths
+        source_paths: backupPaths
           .split('\n')
           .map((p) => p.trim())
           .filter((p) => p),
-        excludePatterns: excludePatterns
+        exclude_patterns: excludePatterns
           .split('\n')
           .map((p) => p.trim())
-          .filter((p) => p),
+          .filter((p) => p).length > 0 ? excludePatterns
+            .split('\n')
+            .map((p) => p.trim())
+            .filter((p) => p) : undefined,
         schedule:
           scheduleType === 'manual'
-            ? null
-            : {
-                type: scheduleType,
-                time: scheduleTime,
-                days: scheduleDays,
-                cron: cronExpression,
-              },
+            ? undefined
+            : cronExpression || undefined,
+        enabled: true,
         retention: {
-          keepLast,
-          keepHourly,
-          keepDaily,
-          keepWeekly,
-          keepMonthly,
-          keepYearly,
+          keep_last: keepLast > 0 ? keepLast : undefined,
+          keep_daily: keepDaily > 0 ? keepDaily : undefined,
+          keep_weekly: keepWeekly > 0 ? keepWeekly : undefined,
+          keep_monthly: keepMonthly > 0 ? keepMonthly : undefined,
+          keep_yearly: keepYearly > 0 ? keepYearly : undefined,
         },
       };
 
       try {
         const { updateBackupJob } = await import('$lib/api/backup-jobs');
+
+        if (!job) {
+          throw new Error('Kein Job zum Aktualisieren vorhanden');
+        }
 
         // Konvertiere Schedule in Cron-Expression
         let cronSchedule: string | undefined;
@@ -279,9 +282,10 @@
             .filter((p) => p),
           tags: tags
             .split(',')
-            .map((t: string) => t.trim())
-            .filter((t: string) => t),
+            .map((t) => t.trim())
+            .filter((t) => t),
           schedule: cronSchedule,
+          enabled: true,
           retention: {
             keep_last: keepLast,
             keep_daily: keepDaily,
@@ -429,7 +433,7 @@ node_modules/"
                   <Checkbox
                     label={day.label}
                     checked={scheduleDays.includes(day.value)}
-                    on:change={() => handleWeekdayToggle(day.value)}
+                    onchange={() => handleWeekdayToggle(day.value)}
                   />
                 {/each}
               </div>

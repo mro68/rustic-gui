@@ -373,7 +373,7 @@
     bind:size={filterSize}
     bind:tags={filterTags}
     {allTags}
-    on:change={(e) => {
+    on:change={(e: CustomEvent) => {
       filterSearch = e.detail.search;
       filterHostname = e.detail.hostname;
       filterDateRange = e.detail.dateRange;
@@ -557,9 +557,9 @@
 
 <!-- Snapshot Details Modal -->
 <Modal bind:open={showDetailsModal}>
-  <div slot="header">
+  {#snippet header()}
     <h2>Snapshot-Details</h2>
-  </div>
+  {/snippet}
   {#if selectedSnapshot && snapshotDetails}
     <div class="snapshot-details">
       <div class="details-grid">
@@ -648,7 +648,7 @@
     </div>
   {/if}
 
-  <div slot="footer">
+  {#snippet footer()}
     <Tooltip text="Schließen">
       <Button variant="secondary" onclick={() => (showDetailsModal = false)}>Schließen</Button>
     </Tooltip>
@@ -664,7 +664,7 @@
         </Button>
       </Tooltip>
     {/if}
-  </div>
+  {/snippet}
 </Modal>
 
 <style>

@@ -35,7 +35,7 @@
       type={toast.type}
       message={toast.message}
       duration={toast.duration}
-      on:close={() => toastStore.remove(toast.id)}
+      onClose={() => toastStore.remove(toast.id)}
     />
   {/each}
 </div>

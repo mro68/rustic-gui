@@ -45,6 +45,7 @@ mod integration_tests {
             name: "Daily Backup".to_string(),
             repository_id: "repo-1".to_string(),
             source_paths: vec!["/home/user".to_string()],
+            exclude_patterns: Some(vec!["*.tmp".to_string(), "node_modules".to_string()]),
             tags: vec!["daily".to_string()],
             schedule: Some("0 2 * * *".to_string()),
             enabled: true,

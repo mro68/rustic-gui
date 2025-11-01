@@ -1,18 +1,37 @@
-// TODO.md: Phase 1 - System Commands (auskommentiert in lib.rs:424-425)
-// Status: ⏳ Noch nicht registriert in lib.rs
-// Implementierung: ⏳ Stubs, benötigen rustic_core Integration
+// TODO.md: Phase 1 - System Commands ✅ TEILWEISE IMPLEMENTIERT
+// Status: prepare_shutdown verschoben von lib.rs
 // Referenz: TODO.md Integration-Zusammenfassung Zeile 338
-//
-// Verwendung: Geplant für erweiterte Repository-Verwaltung
-// Note: Diese Commands sind aktuell auskommentiert und nicht im invoke_handler registriert
 
 use crate::state::AppState;
+
+/// Bereitet sauberen Shutdown vor (prüft laufende Operationen)
+#[tauri::command]
+pub fn prepare_shutdown(
+    state: tauri::State<'_, AppState>,
+) -> std::result::Result<bool, crate::types::ErrorDto> {
+    // Prüfe ob laufende Backups existieren
+    let running_backups = state.cancellation_tokens.lock().len();
+
+    if running_backups > 0 {
+        tracing::warn!("Shutdown verhindert: {} laufende Backups", running_backups);
+        return Err(crate::types::ErrorDto {
+            code: "ShutdownBlocked".to_string(),
+            message: format!("Shutdown verhindert: {} laufende Backups", running_backups),
+            details: None,
+        });
+    }
+
+    // TODO: Weitere Cleanup-Logik (Scheduler stoppen, etc.)
+
+    tracing::info!("Shutdown vorbereitet - keine laufenden Operationen");
+    Ok(true) // Shutdown erlaubt
+}
 
 /// Health-Check für ein Repository
 #[tauri::command]
 pub async fn check_repository_health(
-    repository_id: String,
-    state: tauri::State<'_, AppState>,
+    _repository_id: String,
+    _state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
     // TODO: Implementieren mit rustic_core
     // TODO.md: lib.rs:424 (auskommentiert, noch nicht registriert)
@@ -23,8 +42,8 @@ pub async fn check_repository_health(
 /// Erzwingt das Entsperren eines Repositories
 #[tauri::command]
 pub async fn force_unlock_repository(
-    repository_id: String,
-    state: tauri::State<'_, AppState>,
+    _repository_id: String,
+    _state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
     // TODO: Implementieren mit rustic_core
     // TODO.md: lib.rs:425 (auskommentiert, noch nicht registriert)

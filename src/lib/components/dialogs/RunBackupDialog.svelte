@@ -82,10 +82,10 @@
     }
   }
 
-  let progress: BackupProgress | null = null;
-  let error: string | null = null;
-  let completed = false;
-  let logLines: string[] = [];
+  let progress: BackupProgress | null = $state(null);
+  let error: string | null = $state(null);
+  let completed = $state(false);
+  let logLines: string[] = $state([]);
   let unlistenProgress: (() => void) | null = null;
   let unlistenCompleted: (() => void) | null = null;
   let unlistenFailed: (() => void) | null = null;
@@ -158,9 +158,9 @@
   closeOnBackdrop={!!(completed || error)}
   on:close={close}
 >
-  <div slot="header">
+  {#snippet header()}
     <h2 class="modal-title">Backup läuft</h2>
-  </div>
+  {/snippet}
   <div>
     <div
       class="info-box"
@@ -233,7 +233,7 @@
       </div>
     {/if}
   </div>
-  <div slot="footer">
+  {#snippet footer()}
     {#if !completed && !error}
       <button class="btn btn-secondary" onclick={onCancel}>Backup abbrechen</button>
     {:else if error}
@@ -242,7 +242,7 @@
     {:else}
       <button class="btn btn-primary" onclick={close}>Schließen</button>
     {/if}
-  </div>
+  {/snippet}
 </Modal>
 
 <style>

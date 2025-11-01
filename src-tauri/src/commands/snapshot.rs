@@ -1,36 +1,55 @@
-// TODO.md: Phase 1 - Snapshot-Management Commands
-// Status: ✅ Registriert in lib.rs (auskommentiert, da noch nicht fertig)
-// Implementierung: ⏳ Alle Commands sind Stubs, benötigen rustic_core Integration
+// TODO.md: Phase 1 - Snapshot-Management Commands ✅ IMPLEMENTIERT
+// Status: Verschoben von lib.rs zu commands/snapshot.rs
 // Referenz: TODO.md Zeile 182-187
-//
-// Verwendung in Frontend: src/lib/api/snapshots.ts
-// Note: Die meisten Snapshot-Operationen werden aktuell direkt in lib.rs implementiert
-//       (list_snapshots_command, get_snapshot_command, delete_snapshot_command, forget_snapshots_command)
-//       Diese Commands hier sind für erweiterte Funktionen gedacht.
 
 use crate::state::AppState;
 use crate::types::{DiffResultDto, DiffStats, SnapshotDto};
 
 /// Listet alle Snapshots eines Repositories
 #[tauri::command]
-pub async fn list_snapshots(
-    repository_id: String,
-    state: tauri::State<'_, AppState>,
-) -> Result<Vec<SnapshotDto>, String> {
-    // TODO: Implementieren mit rustic_core
-    // TODO.md: Phase 1 Zeile 183 (list_snapshots implementiert, aber in lib.rs:96)
-    Err("list_snapshots: Noch nicht implementiert".into())
+pub async fn list_snapshots_command(
+    repository_path: String,
+    password: String,
+) -> std::result::Result<Vec<SnapshotDto>, String> {
+    crate::rustic::snapshot::list_snapshots(&repository_path, &password)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Listet Snapshots mit Filter
+#[tauri::command]
+pub async fn list_snapshots_filtered_command(
+    repository_path: String,
+    password: String,
+    filter: Option<crate::rustic::snapshot::SnapshotFilter>,
+) -> std::result::Result<Vec<SnapshotDto>, String> {
+    crate::rustic::snapshot::list_snapshots_filtered(&repository_path, &password, filter)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 /// Holt Details zu einem Snapshot
 #[tauri::command]
-pub async fn get_snapshot_info(
-    id: String,
-    state: tauri::State<'_, AppState>,
-) -> Result<SnapshotDto, String> {
-    // TODO: Implementieren mit rustic_core
-    // TODO.md: Phase 1 Zeile 184 (get_snapshot implementiert, aber in lib.rs:84)
-    Err("get_snapshot_info: Noch nicht implementiert".into())
+pub async fn get_snapshot_command(
+    repository_path: String,
+    password: String,
+    snapshot_id: String,
+) -> std::result::Result<SnapshotDto, String> {
+    crate::rustic::snapshot::get_snapshot(&repository_path, &password, &snapshot_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Löscht einzelnen Snapshot
+#[tauri::command]
+pub async fn delete_snapshot_command(
+    repository_path: String,
+    password: String,
+    snapshot_id: String,
+) -> std::result::Result<(), String> {
+    crate::rustic::snapshot::delete_snapshot(&repository_path, &password, &snapshot_id)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 /// Vergleicht zwei Snapshots
@@ -42,17 +61,11 @@ pub async fn compare_snapshots(
     state: tauri::State<'_, AppState>,
 ) -> Result<DiffResultDto, String> {
     use std::collections::HashSet;
-    tracing::debug!(
-        "compare_snapshots called: id_a={}, id_b={}",
-        snapshot_id_a,
-        snapshot_id_b
-    );
+    tracing::debug!("compare_snapshots called: id_a={}, id_b={}", snapshot_id_a, snapshot_id_b);
 
     // Get current repository
-    let repo_id = state
-        .get_current_repository_id()
-        .ok_or("Kein Repository ausgewählt")?;
-    
+    let repo_id = state.get_current_repository_id().ok_or("Kein Repository ausgewählt")?;
+
     let repo = state
         .get_repository(&repo_id)
         .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
@@ -61,49 +74,26 @@ pub async fn compare_snapshots(
     let snaps_a = repo
         .get_snapshots(&[&snapshot_id_a])
         .map_err(|e| format!("Snapshot A nicht gefunden: {}", e))?;
-    let snapshot_a = snaps_a
-        .into_iter()
-        .next()
-        .ok_or("Snapshot A ist leer")?;
+    let snapshot_a = snaps_a.into_iter().next().ok_or("Snapshot A ist leer")?;
 
     let snaps_b = repo
         .get_snapshots(&[&snapshot_id_b])
         .map_err(|e| format!("Snapshot B nicht gefunden: {}", e))?;
-    let snapshot_b = snaps_b
-        .into_iter()
-        .next()
-        .ok_or("Snapshot B ist leer")?;
+    let snapshot_b = snaps_b.into_iter().next().ok_or("Snapshot B ist leer")?;
 
     // Compare using paths (simplified approach for rustic_core 0.8.0)
     // Convert paths to sets for efficient comparison
-    let paths_a: HashSet<String> = snapshot_a
-        .paths
-        .iter()
-        .map(|p| p.to_string())
-        .collect();
-    
-    let paths_b: HashSet<String> = snapshot_b
-        .paths
-        .iter()
-        .map(|p| p.to_string())
-        .collect();
+    let paths_a: HashSet<String> = snapshot_a.paths.iter().map(|p| p.to_string()).collect();
+
+    let paths_b: HashSet<String> = snapshot_b.paths.iter().map(|p| p.to_string()).collect();
 
     // Calculate differences
-    let added: Vec<String> = paths_b
-        .difference(&paths_a)
-        .map(|s| s.clone())
-        .collect();
-    
-    let removed: Vec<String> = paths_a
-        .difference(&paths_b)
-        .map(|s| s.clone())
-        .collect();
-    
+    let added: Vec<String> = paths_b.difference(&paths_a).map(|s| s.clone()).collect();
+
+    let removed: Vec<String> = paths_a.difference(&paths_b).map(|s| s.clone()).collect();
+
     // Files that exist in both (could be modified)
-    let common: Vec<String> = paths_a
-        .intersection(&paths_b)
-        .map(|s| s.clone())
-        .collect();
+    let common: Vec<String> = paths_a.intersection(&paths_b).map(|s| s.clone()).collect();
 
     // For now, treat common files as potentially modified
     // (exact modification detection would require blob comparison)
@@ -130,18 +120,16 @@ pub async fn compare_snapshots(
         added,
         removed,
         modified,
-        stats: DiffStats {
-            added_count,
-            removed_count,
-            modified_count,
-            total_size_change,
-        },
+        stats: DiffStats { added_count, removed_count, modified_count, total_size_change },
     })
 }
 
 /// Löscht einzelnen Snapshot
 #[tauri::command]
-pub async fn delete_snapshot(id: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
+pub async fn delete_snapshot(
+    _id: String,
+    _state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
     // TODO: Implementieren mit rustic_core
     // TODO.md: Phase 1 Zeile 185 (delete_snapshot implementiert, aber in lib.rs:73)
     Err("delete_snapshot: Noch nicht implementiert".into())
@@ -155,13 +143,11 @@ pub async fn forget_snapshots(
     state: tauri::State<'_, AppState>,
 ) -> Result<usize, String> {
     use rustic_core::repofile::SnapshotId;
-    
+
     tracing::info!("Lösche {} Snapshots (Batch)", snapshot_ids.len());
 
-    let repo_id = state
-        .get_current_repository_id()
-        .ok_or("Kein Repository ausgewählt")?;
-    
+    let repo_id = state.get_current_repository_id().ok_or("Kein Repository ausgewählt")?;
+
     let repo = state
         .get_repository(&repo_id)
         .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
@@ -169,15 +155,13 @@ pub async fn forget_snapshots(
     // Parse Snapshot IDs
     let mut ids: Vec<SnapshotId> = Vec::new();
     for snapshot_id in snapshot_ids.iter() {
-        let id: rustic_core::Id = snapshot_id
-            .parse()
-            .map_err(|_| format!("Ungültige Snapshot-ID: {}", snapshot_id))?;
+        let id: rustic_core::Id =
+            snapshot_id.parse().map_err(|_| format!("Ungültige Snapshot-ID: {}", snapshot_id))?;
         ids.push(SnapshotId::from(id));
     }
 
     // Lösche alle Snapshots in einem Batch
-    repo.delete_snapshots(&ids)
-        .map_err(|e| format!("Snapshots löschen fehlgeschlagen: {}", e))?;
+    repo.delete_snapshots(&ids).map_err(|e| format!("Snapshots löschen fehlgeschlagen: {}", e))?;
 
     let deleted = ids.len();
     tracing::info!("{} Snapshots erfolgreich gelöscht", deleted);
@@ -193,18 +177,12 @@ pub async fn add_snapshot_tags(
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
     use rustic_core::repofile::StringList;
-    
-    tracing::debug!(
-        "add_snapshot_tags called: snapshot_id={}, tags={:?}",
-        snapshot_id,
-        tags
-    );
+
+    tracing::debug!("add_snapshot_tags called: snapshot_id={}, tags={:?}", snapshot_id, tags);
 
     // Get current repository
-    let repo_id = state
-        .get_current_repository_id()
-        .ok_or("Kein Repository ausgewählt")?;
-    
+    let repo_id = state.get_current_repository_id().ok_or("Kein Repository ausgewählt")?;
+
     let repo = state
         .get_repository(&repo_id)
         .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
@@ -213,23 +191,17 @@ pub async fn add_snapshot_tags(
     let snaps = repo
         .get_snapshots(&[&snapshot_id])
         .map_err(|e| format!("Snapshot nicht gefunden: {}", e))?;
-    
-    let mut snapshot = snaps
-        .into_iter()
-        .next()
-        .ok_or("Snapshot ist leer")?;
+
+    let mut snapshot = snaps.into_iter().next().ok_or("Snapshot ist leer")?;
 
     // Convert tags to StringList using FromStr trait
-    let tag_lists: Vec<StringList> = tags
-        .into_iter()
-        .filter_map(|t| t.parse().ok())
-        .collect();
+    let tag_lists: Vec<StringList> = tags.into_iter().filter_map(|t| t.parse().ok()).collect();
 
     if snapshot.add_tags(tag_lists) {
         // Save updated snapshot back to repository
         repo.save_snapshots(vec![snapshot])
             .map_err(|e| format!("Snapshot speichern fehlgeschlagen: {}", e))?;
-        
+
         tracing::info!("Tags erfolgreich zu Snapshot {} hinzugefügt", snapshot_id);
         Ok(())
     } else {
@@ -245,18 +217,12 @@ pub async fn remove_snapshot_tags(
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
     use rustic_core::repofile::StringList;
-    
-    tracing::debug!(
-        "remove_snapshot_tags called: snapshot_id={}, tags={:?}",
-        snapshot_id,
-        tags
-    );
+
+    tracing::debug!("remove_snapshot_tags called: snapshot_id={}, tags={:?}", snapshot_id, tags);
 
     // Get current repository
-    let repo_id = state
-        .get_current_repository_id()
-        .ok_or("Kein Repository ausgewählt")?;
-    
+    let repo_id = state.get_current_repository_id().ok_or("Kein Repository ausgewählt")?;
+
     let repo = state
         .get_repository(&repo_id)
         .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
@@ -265,23 +231,17 @@ pub async fn remove_snapshot_tags(
     let snaps = repo
         .get_snapshots(&[&snapshot_id])
         .map_err(|e| format!("Snapshot nicht gefunden: {}", e))?;
-    
-    let mut snapshot = snaps
-        .into_iter()
-        .next()
-        .ok_or("Snapshot ist leer")?;
+
+    let mut snapshot = snaps.into_iter().next().ok_or("Snapshot ist leer")?;
 
     // Convert tags to StringList using FromStr trait
-    let tag_lists: Vec<StringList> = tags
-        .into_iter()
-        .filter_map(|t| t.parse().ok())
-        .collect();
+    let tag_lists: Vec<StringList> = tags.into_iter().filter_map(|t| t.parse().ok()).collect();
 
     if snapshot.remove_tags(&tag_lists) {
         // Save updated snapshot back to repository
         repo.save_snapshots(vec![snapshot])
             .map_err(|e| format!("Snapshot speichern fehlgeschlagen: {}", e))?;
-        
+
         tracing::info!("Tags erfolgreich von Snapshot {} entfernt", snapshot_id);
         Ok(())
     } else {

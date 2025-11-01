@@ -33,8 +33,8 @@
   let { repository = null }: DeleteRepoDialogProps = $props();
 
   let confirmName = $state('');
-  let deleteData = false;
-  let isDeleting = false;
+  let deleteData = $state(false);
+  let isDeleting = $state(false);
 
   const isValid = $derived(confirmName === (repository?.name || ''));
 
@@ -75,7 +75,9 @@
 </script>
 
 <Modal on:close={handleClose}>
-  <div slot="header">Repository löschen</div>
+  {#snippet header()}
+    Repository löschen
+  {/snippet}
   <div class="delete-repo-dialog">
     <div class="warning-section">
       <div class="warning-icon">⚠️</div>
@@ -102,11 +104,11 @@
           </div>
           <div class="info-row">
             <span class="info-label">Typ:</span>
-            <span>{repository.type || 'Lokal'}</span>
+            <span>{repository.repository_type || 'Local'}</span>
           </div>
           <div class="info-row">
             <span class="info-label">Snapshots:</span>
-            <span>{repository.snapshotCount || 0}</span>
+            <span>{repository.snapshot_count || 0}</span>
           </div>
         </div>
       </div>
@@ -146,7 +148,7 @@
     </div>
   </div>
 
-  <div slot="footer">
+  {#snippet footer()}
     <Button variant="secondary" onclick={handleClose} disabled={isDeleting}>Abbrechen</Button>
     <Button variant="danger" onclick={handleDelete} disabled={!isValid || isDeleting}>
       {#if isDeleting}
@@ -155,7 +157,7 @@
         Repository löschen
       {/if}
     </Button>
-  </div>
+  {/snippet}
 </Modal>
 
 <style>

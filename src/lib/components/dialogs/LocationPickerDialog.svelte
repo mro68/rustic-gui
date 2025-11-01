@@ -35,7 +35,6 @@
    * />
    * ```
    */
-  import { open as openDialog } from '@tauri-apps/api/dialog';
   import { invoke } from '@tauri-apps/api/core';
   import { createEventDispatcher, onMount } from 'svelte';
   import Button from '../shared/Button.svelte';
@@ -64,13 +63,13 @@
   }: LocationPickerDialogProps = $props();
 
   // Tab state
-  let activeTab: 'local' | 'network' | 'cloud' | 'recent' = 'local';
+  let activeTab: 'local' | 'network' | 'cloud' | 'recent' = $state('local');
 
   // Local tab state
-  let selectedPath = '';
+  let selectedPath = $state('');
   // eslint-disable-next-line no-unused-vars
   let currentPath = ''; // TODO: Implement file browser navigation
-  let newFolderName = '';
+  let newFolderName = $state('');
   // eslint-disable-next-line no-unused-vars
   let fileItems: Array<{
     name: string;
@@ -80,30 +79,30 @@
   }> = []; // TODO: Populate with file browser results
 
   // Network tab state
-  let networkProtocol: 'sftp' | 'smb' | 'nfs' | 'webdav' = 'sftp';
-  let networkHost = '';
-  let networkPort = '22';
-  let networkUsername = '';
-  let networkAuth = 'password';
-  let networkPassword = '';
-  let networkPath = '';
+  let networkProtocol: 'sftp' | 'smb' | 'nfs' | 'webdav' = $state('sftp');
+  let networkHost = $state('');
+  let networkPort = $state('22');
+  let networkUsername = $state('');
+  let networkPassword = $state('');
+  let networkAuth = $state('password');
+  let networkPath = $state('');
 
   // Cloud tab state
-  let selectedCloudProvider = 's3';
-  let cloudEndpoint = '';
-  let cloudBucket = '';
-  let cloudAccessKey = '';
-  let cloudSecretKey = '';
-  let cloudRegion = '';
+  let selectedCloudProvider = $state('s3');
+  let cloudEndpoint = $state('');
+  let cloudBucket = $state('');
+  let cloudAccessKey = $state('');
+  let cloudSecretKey = $state('');
+  let cloudRegion = $state('');
 
   // Connection test state (M2 Task 2.3.1)
-  let testing = false;
-  let testResult: { success: boolean; message: string; latency_ms?: number } | null = null;
+  let testing = $state(false);
+  let testResult: { success: boolean; message: string; latency_ms?: number } | null = $state(null);
 
   // Credential prompt state (M2 Task 2.3.3)
-  let showCredentialPrompt = false;
-  let saveCredentialsChecked = true;
-  let saveFavoriteChecked = true;
+  let showCredentialPrompt = $state(false);
+  let saveCredentialsChecked = $state(true);
+  let saveFavoriteChecked = $state(true);
 
   // Recent locations (M2 Task 2.3.2: Now loaded from backend)
   let recentLocations: Array<{
@@ -113,7 +112,7 @@
     type: string;
     icon: string;
     lastUsed: string;
-  }> = [];
+  }> = $state([]);
 
   // Load favorites on mount
   onMount(async () => {
@@ -219,16 +218,8 @@
 
   async function browseLocalDirectory() {
     try {
-      const selected = await openDialog({
-        directory: true,
-        multiple: false,
-        title: 'Verzeichnis auswählen',
-      });
-
-      if (selected && typeof selected === 'string') {
-        selectedPath = selected;
-        currentPath = selected;
-      }
+      // TODO: Implement with Tauri v2 API or custom file picker
+      console.warn('File browser not yet implemented for Tauri v2');
     } catch (error) {
       console.error('File browser error:', error);
     }
@@ -236,15 +227,8 @@
 
   async function browseLocalFile() {
     try {
-      const selected = await openDialog({
-        directory: false,
-        multiple: false,
-        title: 'Datei auswählen',
-      });
-
-      if (selected && typeof selected === 'string') {
-        selectedPath = selected;
-      }
+      // TODO: Implement with Tauri v2 API or custom file picker
+      console.warn('File browser not yet implemented for Tauri v2');
     } catch (error) {
       console.error('File browser error:', error);
     }
@@ -559,7 +543,11 @@
   });
 </script>
 
-<Modal bind:open={isOpen} {title} size="large">
+<Modal bind:open={isOpen}>
+  {#snippet header()}
+    {title}
+  {/snippet}
+  
   <div class="location-picker">
     <!-- Tabs -->
     <div class="location-tabs">
@@ -603,11 +591,11 @@
         <div class="info-box">💾 Wählen Sie ein lokales Verzeichnis für Ihr Repository</div>
 
         <div class="browser-toolbar">
-          <Button variant="secondary" size="small" onclick={browseLocalDirectory}>
+          <Button variant="secondary" size="sm" onclick={browseLocalDirectory}>
             📁 Verzeichnis wählen
           </Button>
           {#if mode === 'open'}
-            <Button variant="secondary" size="small" onclick={browseLocalFile}>
+            <Button variant="secondary" size="sm" onclick={browseLocalFile}>
               📄 Datei wählen
             </Button>
           {/if}
@@ -615,14 +603,14 @@
 
         {#if selectedPath}
           <div class="form-group">
-            <label class="form-label">Ausgewählter Pfad</label>
+            <span class="form-label">Ausgewählter Pfad</span>
             <Input bind:value={selectedPath} placeholder="/pfad/zum/repository" />
           </div>
         {/if}
 
         {#if mode === 'init'}
           <div class="form-group">
-            <label class="form-label">Neuer Ordner-Name (optional)</label>
+            <span class="form-label">Neuer Ordner-Name (optional)</span>
             <Input bind:value={newFolderName} placeholder="z.B. mein-neues-repo" />
             <div class="form-help">
               Leer lassen um ausgewähltes Verzeichnis zu verwenden, oder Namen eingeben um neuen
@@ -650,7 +638,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Protokoll</label>
+          <span class="form-label">Protokoll</span>
           <Select bind:value={networkProtocol}>
             <option value="sftp">SFTP (SSH File Transfer)</option>
             <option value="smb">SMB/CIFS (Windows Share)</option>
@@ -661,7 +649,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Host</label>
+            <span class="form-label">Host</span>
             <Input bind:value={networkHost} placeholder="backup.example.com" />
           </div>
           <div class="form-group" style="max-width: 120px;">
@@ -676,7 +664,7 @@
             <Input bind:value={networkUsername} placeholder="backup-user" />
           </div>
           <div class="form-group">
-            <label class="form-label">Authentifizierung</label>
+            <span class="form-label">Authentifizierung</span>
             <Select bind:value={networkAuth}>
               <option value="password">Passwort</option>
               <option value="key">SSH Key</option>
@@ -685,7 +673,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Remote-Pfad</label>
+          <span class="form-label">Remote-Pfad</span>
           <Input bind:value={networkPath} placeholder="/pfad/zum/repository" />
           <div class="form-help">Pfad auf dem Remote-Server</div>
         </div>
@@ -703,7 +691,7 @@
           <div class="connection-test-section">
             <Button
               variant="secondary"
-              size="small"
+              size="sm"
               onclick={testConnection}
               disabled={testing}
             >
@@ -776,7 +764,7 @@
               <Input bind:value={cloudAccessKey} placeholder="AKIAIOSFODNN7EXAMPLE" />
             </div>
             <div class="form-group">
-              <label class="form-label">Secret Key / Client Secret</label>
+              <span class="form-label">Secret Key / Client Secret</span>
               <Input
                 type="password"
                 bind:value={cloudSecretKey}
@@ -796,7 +784,7 @@
             <div class="connection-test-section">
               <Button
                 variant="secondary"
-                size="small"
+                size="sm"
                 onclick={testConnection}
                 disabled={testing}
               >
@@ -847,7 +835,7 @@
     {/if}
   </div>
 
-  <svelte:fragment slot="footer">
+  {#snippet footer()}
     <div style="flex: 1; font-size: 13px; color: var(--text-secondary);">
       {#if activeTab === 'local' && selectedPath}
         Ausgewählt: <span style="color: var(--text-primary);">{selectedPath}</span>
@@ -866,7 +854,7 @@
 
     <!-- M2 Task 2.3.2: Save as Favorite Button -->
     {#if activeTab !== 'recent' && (selectedPath || networkHost || cloudBucket)}
-      <Button variant="secondary" size="small" onclick={saveCurrentAsFavorite}>
+      <Button variant="secondary" size="sm" onclick={saveCurrentAsFavorite}>
         ⭐ Als Favorit speichern
       </Button>
     {/if}
@@ -879,12 +867,16 @@
     >
       Speicherort wählen
     </Button>
-  </svelte:fragment>
+  {/snippet}
 </Modal>
 
 <!-- M2 Task 2.3.3: Credential-Prompt Dialog -->
 {#if showCredentialPrompt}
-  <Modal isOpen={true} title="Zugangsdaten speichern?" size="small">
+  <Modal open={true}>
+    {#snippet header()}
+      <h2>Zugangsdaten speichern?</h2>
+    {/snippet}
+    
     <div class="credential-prompt">
       <p class="prompt-message">
         Die Verbindung war erfolgreich! Möchten Sie die Zugangsdaten sicher im System-Keychain
@@ -911,14 +903,14 @@
       </div>
     </div>
 
-    <svelte:fragment slot="footer">
+    {#snippet footer()}
       <Button variant="secondary" onclick={() => handleCredentialPrompt(false)}>
         Nicht speichern
       </Button>
       <Button variant="primary" onclick={() => handleCredentialPrompt(true)}>
         Speichern
       </Button>
-    </svelte:fragment>
+    {/snippet}
   </Modal>
 {/if}
 

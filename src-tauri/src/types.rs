@@ -101,6 +101,8 @@ pub struct BackupJobDto {
     pub repository_id: String,
     /// Pfade die gesichert werden sollen
     pub source_paths: Vec<String>,
+    /// Ausschlussmuster (glob patterns)
+    pub exclude_patterns: Option<Vec<String>>,
     /// Tags für den Snapshot
     pub tags: Vec<String>,
     /// Cron-Expression für Scheduling

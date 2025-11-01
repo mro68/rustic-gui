@@ -13,6 +13,10 @@
    * />
    * ```
    */
+  import { createEventDispatcher } from 'svelte';
+
+  const dispatch = createEventDispatcher();
+
   let {
     label = '',
     checked = $bindable(false),
@@ -28,13 +32,19 @@
     class?: string;
     [key: string]: any;
   } = $props();
+
+  function handleChange(e: Event) {
+    checked = (e.target as HTMLInputElement).checked;
+    dispatch('change', checked);
+  }
 </script>
 
 <label class="checkbox-wrapper {className}">
   <input
     type="checkbox"
     {disabled}
-    bind:checked
+    {checked}
+    onchange={handleChange}
     class="checkbox-input"
     aria-label={ariaLabel || undefined}
     {...rest}

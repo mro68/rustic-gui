@@ -54,26 +54,26 @@ Verwendung:
   const dispatch = createEventDispatcher();
 
   // Form State
-  let currentTab = 0;
+  let currentTab = $state(0);
   const tabs = ['General', 'Paths & Exclusions', 'Schedule', 'Retention'];
 
-  let jobName = '';
-  let selectedRepository = '';
-  let jobTags = '';
+  let jobName = $state('');
+  let selectedRepository = $state('');
+  let jobTags = $state('');
   let sourcePaths = $state<string[]>(['']);
   let excludePatterns = $state<string[]>(['']);
-  let oneFileSystem = true;
-  let scheduleType = 'daily';
-  let scheduleTime = '02:00';
-  let scheduleTimezone = 'Local';
-  let keepDaily = 7;
-  let keepWeekly = 4;
-  let keepMonthly = 6;
-  let keepYearly = 2;
-  let autoPrune = true;
+  let oneFileSystem = $state(true);
+  let scheduleType = $state('daily');
+  let scheduleTime = $state('02:00');
+  let scheduleTimezone = $state('Local');
+  let keepDaily = $state(7);
+  let keepWeekly = $state(4);
+  let keepMonthly = $state(6);
+  let keepYearly = $state(2);
+  let autoPrune = $state(true);
 
   // Validation
-  let errors: Record<string, string> = {};
+  let errors: Record<string, string> = $state({});
 
   function validateCurrentTab(): boolean {
     errors = {};
@@ -252,9 +252,9 @@ Verwendung:
 </script>
 
 <Modal bind:open ariaLabel="Backup-Job erstellen">
-  <div slot="header">
+  {#snippet header()}
     <h2>Backup-Job erstellen</h2>
-  </div>
+  {/snippet}
 
   <!-- Tabs -->
   <div class="tabs">
@@ -507,7 +507,7 @@ Verwendung:
     {/if}
   </div>
 
-  <div slot="footer">
+  {#snippet footer()}
     {#if currentTab > 0}
       <Button variant="secondary" onclick={prevTab}>Zurück</Button>
     {/if}
@@ -516,7 +516,7 @@ Verwendung:
     {:else}
       <Button variant="primary" onclick={createJob}>Job erstellen</Button>
     {/if}
-  </div>
+  {/snippet}
 </Modal>
 
 <style>

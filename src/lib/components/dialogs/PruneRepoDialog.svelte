@@ -38,16 +38,16 @@
 
   let { repositoryId = '' }: PruneRepoDialogProps = $props();
 
-  let isRunning = false;
-  let progress = 0;
-  let currentStep = '';
-  let logEntries: string[] = [];
-  let maxUnused = false;
+  let isRunning = $state(false);
+  let progress = $state(0);
+  let currentStep = $state('');
+  let logEntries: string[] = $state([]);
+  let maxUnused = $state(false);
 
   let progressInterval: number | null = null;
 
   // Result statistics
-  let pruneResult: any = null;
+  let pruneResult: any = $state(null);
 
   async function startPruning() {
     isRunning = true;
@@ -90,7 +90,8 @@
       }, 500);
 
       // ✅ Tatsächliche API-Integration (TODO.md Phase 2 Zeile 250)
-      const result = await pruneRepository(repositoryId, maxUnused);
+      // Note: maxUnused option currently not supported by backend
+      const result = await pruneRepository(repositoryId);
 
       // Abschluss
       if (progressInterval) clearInterval(progressInterval);
@@ -153,7 +154,9 @@
 </script>
 
 <Modal on:close={handleClose}>
-  <div slot="header">Repository bereinigen</div>
+  {#snippet header()}
+    <h2>Repository bereinigen</h2>
+  {/snippet}
   <div class="prune-repo-dialog">
     {#if !isRunning && !pruneResult}
       <!-- Configuration Section -->
@@ -245,7 +248,7 @@
     {/if}
   </div>
 
-  <div slot="footer">
+  {#snippet footer()}
     {#if !isRunning && !pruneResult}
       <Button variant="secondary" onclick={handleClose}>Abbrechen</Button>
       <Button variant="danger" onclick={startPruning}>Bereinigung starten</Button>
@@ -254,7 +257,7 @@
     {:else}
       <Button variant="primary" onclick={handleClose}>Schließen</Button>
     {/if}
-  </div>
+  {/snippet}
 </Modal>
 
 <style>

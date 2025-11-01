@@ -1,18 +1,117 @@
 // TODO.md: Phase 1 - Backup-Job-Management Commands ✅ IMPLEMENTIERT
 // Referenz: TODO.md Zeile 175-181
-// Commands:
-// - list_backup_jobs (Zeile 176) ✅ IMPLEMENTIERT
-// - create_backup_job (Zeile 177) ✅ IMPLEMENTIERT
-// - update_backup_job (Zeile 178) ✅ IMPLEMENTIERT
-// - delete_backup_job (Zeile 179) ✅ IMPLEMENTIERT
-// - get_backup_job (Zeile 180) ✅ IMPLEMENTIERT (mit TODO für last_run/next_run)
+// Verschoben: cancel_backup und run_backup_command von lib.rs hierher
 
 use crate::config::BackupJobConfig;
 use crate::state::AppState;
 use crate::types::{BackupJobDto, RetentionPolicy};
+use serde::Serialize;
 use std::path::PathBuf;
 use tauri::Emitter;
 use uuid::Uuid;
+
+/// Event-Format für Backup-Progress
+#[derive(Serialize)]
+struct BackupEvent {
+    #[serde(rename = "type")]
+    event_type: String, // "progress" | "completed" | "error"
+    progress: Option<crate::rustic::backup::BackupProgress>,
+    message: Option<String>,
+    #[serde(rename = "jobId")]
+    job_id: String,
+}
+
+/// Event-Format für Backup-Abbruch
+#[derive(Serialize)]
+struct BackupCancelEvent {
+    #[serde(rename = "type")]
+    event_type: String, // "cancelled"
+    #[serde(rename = "jobId")]
+    job_id: String,
+    message: Option<String>,
+}
+
+/// Tauri-Command: Bricht ein laufendes Backup ab und sendet ein Cancel-Event.
+#[tauri::command]
+pub async fn cancel_backup(
+    app: tauri::AppHandle,
+    job_id: String,
+    state: tauri::State<'_, AppState>,
+) -> std::result::Result<(), crate::types::ErrorDto> {
+    let mut tokens = state.cancellation_tokens.lock();
+    if let Some(token) = tokens.remove(&job_id) {
+        token.cancel();
+        let event = BackupCancelEvent {
+            event_type: "cancelled".to_string(),
+            job_id: job_id.clone(),
+            message: Some("Backup wurde abgebrochen".to_string()),
+        };
+        let _ = app.emit("backup-cancelled", &event);
+        tracing::info!(job = %job_id, "Backup-Abbruch ausgelöst");
+        Ok(())
+    } else {
+        tracing::warn!(job = %job_id, "Kein laufender Backup-Job zum Abbrechen gefunden");
+        Err(crate::types::ErrorDto {
+            code: "BackupJobNotFound".to_string(),
+            message: format!("Kein laufender Backup-Job mit ID '{}' gefunden", job_id),
+            details: None,
+        })
+    }
+}
+
+/// Tauri-Command: Startet ein Backup und sendet Progress-, Completed- und Error-Events im einheitlichen Format an das Frontend.
+#[tauri::command]
+pub async fn run_backup_command(
+    app: tauri::AppHandle,
+    mut options: crate::rustic::backup::BackupOptions,
+) -> std::result::Result<(), crate::types::ErrorDto> {
+    tracing::info!("run_backup_command aufgerufen");
+    let job_id = options.job_id.clone().unwrap_or_else(|| "default".to_string());
+    options.job_id = Some(job_id.clone());
+
+    // Closure für Progress-Events
+    let app_progress = app.clone();
+    let job_id_progress = job_id.clone();
+    let progress_callback = move |progress: crate::rustic::backup::BackupProgress| {
+        let event = BackupEvent {
+            event_type: "progress".to_string(),
+            progress: Some(progress.clone()),
+            message: None,
+            job_id: job_id_progress.clone(),
+        };
+        let _ = app_progress.emit("backup-progress", &event);
+        tracing::debug!(
+            files = progress.files_processed,
+            bytes = progress.bytes_uploaded,
+            percent = ?progress.percent,
+            "Backup-Progress"
+        );
+    };
+
+    // Backup ausführen und Events senden
+    match crate::rustic::backup::run_backup(app.clone(), options, progress_callback).await {
+        Ok(_) => {
+            let event = BackupEvent {
+                event_type: "completed".to_string(),
+                progress: None,
+                message: Some("Backup erfolgreich abgeschlossen".to_string()),
+                job_id: job_id.clone(),
+            };
+            let _ = app.emit("backup-completed", &event);
+            Ok(())
+        }
+        Err(e) => {
+            let event = BackupEvent {
+                event_type: "error".to_string(),
+                progress: None,
+                message: Some(format!("Backup fehlgeschlagen: {}", e)),
+                job_id: job_id.clone(),
+            };
+            let _ = app.emit("backup-failed", &event);
+            Err(crate::types::ErrorDto::from(&e))
+        }
+    }
+}
 
 /// Erstellt einen neuen Backup-Job.
 /// TODO.md: Phase 1 Zeile 177 ✅ IMPLEMENTIERT
@@ -267,6 +366,7 @@ pub async fn get_backup_job(
         name: job.name.clone(),
         repository_id: job.repository_id.clone(),
         source_paths: job.source_paths.iter().map(|p| p.to_string_lossy().to_string()).collect(),
+        exclude_patterns: Some(job.exclude_patterns.clone()),
         tags: job.tags.clone(),
         schedule: job.schedule.clone(),
         enabled: job.enabled,
@@ -310,6 +410,7 @@ pub async fn list_backup_jobs(
                 .iter()
                 .map(|p| p.to_string_lossy().to_string())
                 .collect(),
+            exclude_patterns: Some(job.exclude_patterns),
             tags: job.tags,
             schedule: job.schedule,
             enabled: job.enabled,
@@ -325,11 +426,10 @@ pub async fn list_backup_jobs(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::RetentionPolicy;
 
     #[tokio::test]
     async fn test_create_backup_job_validation() {
-        let state = AppState::new().unwrap();
+        let _state = AppState::new().unwrap();
 
         // Tests disabled - State::new() not available in Tauri
         // TODO: Fix tests using proper Tauri test setup
@@ -343,7 +443,7 @@ mod tests {
         // Test disabled - State::new() not available in Tauri
         // TODO: Fix tests using proper Tauri test setup
         assert!(true);
-        
+
         /* Original test:
         let result = get_backup_job("nonexistent".to_string(), state).await;
 
@@ -423,9 +523,8 @@ pub async fn schedule_backup(
 
     // Hole Scheduler
     let mut scheduler_lock = state.scheduler.lock().await;
-    let scheduler = scheduler_lock
-        .as_mut()
-        .ok_or_else(|| "Scheduler nicht initialisiert".to_string())?;
+    let scheduler =
+        scheduler_lock.as_mut().ok_or_else(|| "Scheduler nicht initialisiert".to_string())?;
 
     // Erstelle Callback für geplanten Backup
     let job_id_clone = job_id.clone();
@@ -433,52 +532,44 @@ pub async fn schedule_backup(
     let state_clone = state.inner().clone();
 
     scheduler
-        .schedule_job(
-            job_id.clone(),
-            &cron_expression,
-            move || {
-                let job_id = job_id_clone.clone();
-                let app_handle = app_handle_clone.clone();
-                let state = state_clone.clone();
+        .schedule_job(job_id.clone(), &cron_expression, move || {
+            let job_id = job_id_clone.clone();
+            let app_handle = app_handle_clone.clone();
+            let _state = state_clone.clone();
 
-                Box::pin(async move {
-                    tracing::info!("Scheduled backup gestartet: {}", job_id);
+            Box::pin(async move {
+                tracing::info!("Scheduled backup gestartet: {}", job_id);
 
-                    // Event: Backup gestartet
-                    let _ = app_handle.emit(
-                        "scheduled-backup-started",
-                        serde_json::json!({
-                            "job_id": job_id,
-                            "time": chrono::Utc::now().to_rfc3339(),
-                        }),
-                    );
+                // Event: Backup gestartet
+                let _ = app_handle.emit(
+                    "scheduled-backup-started",
+                    serde_json::json!({
+                        "job_id": job_id,
+                        "time": chrono::Utc::now().to_rfc3339(),
+                    }),
+                );
 
-                    // Backup ausführen
-                    // TODO M3.2: Integriere run_backup hier
-                    // Vorläufig: Simuliere Backup-Ausführung
-                    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+                // Backup ausführen
+                // TODO M3.2: Integriere run_backup hier
+                // Vorläufig: Simuliere Backup-Ausführung
+                tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 
-                    // Event: Backup abgeschlossen
-                    let _ = app_handle.emit(
-                        "scheduled-backup-completed",
-                        serde_json::json!({
-                            "job_id": job_id,
-                            "time": chrono::Utc::now().to_rfc3339(),
-                        }),
-                    );
+                // Event: Backup abgeschlossen
+                let _ = app_handle.emit(
+                    "scheduled-backup-completed",
+                    serde_json::json!({
+                        "job_id": job_id,
+                        "time": chrono::Utc::now().to_rfc3339(),
+                    }),
+                );
 
-                    tracing::info!("Scheduled backup abgeschlossen: {}", job_id);
-                })
-            },
-        )
+                tracing::info!("Scheduled backup abgeschlossen: {}", job_id);
+            })
+        })
         .await
         .map_err(|e| format!("Scheduling fehlgeschlagen: {}", e))?;
 
-    tracing::info!(
-        "Backup-Job '{}' geplant mit Cron-Expression: {}",
-        job_id,
-        cron_expression
-    );
+    tracing::info!("Backup-Job '{}' geplant mit Cron-Expression: {}", job_id, cron_expression);
 
     Ok(())
 }
@@ -501,9 +592,8 @@ pub async fn unschedule_backup(
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
     let mut scheduler_lock = state.scheduler.lock().await;
-    let scheduler = scheduler_lock
-        .as_mut()
-        .ok_or_else(|| "Scheduler nicht initialisiert".to_string())?;
+    let scheduler =
+        scheduler_lock.as_mut().ok_or_else(|| "Scheduler nicht initialisiert".to_string())?;
 
     scheduler
         .remove_job(&job_id)
@@ -520,11 +610,12 @@ pub async fn unschedule_backup(
 /// # Returns
 /// Vektor mit Job-IDs aller geplanten Jobs
 #[tauri::command]
-pub async fn list_scheduled_backups(state: tauri::State<'_, AppState>) -> Result<Vec<String>, String> {
+pub async fn list_scheduled_backups(
+    state: tauri::State<'_, AppState>,
+) -> Result<Vec<String>, String> {
     let scheduler_lock = state.scheduler.lock().await;
-    let scheduler = scheduler_lock
-        .as_ref()
-        .ok_or_else(|| "Scheduler nicht initialisiert".to_string())?;
+    let scheduler =
+        scheduler_lock.as_ref().ok_or_else(|| "Scheduler nicht initialisiert".to_string())?;
 
     Ok(scheduler.list_scheduled_jobs())
 }
@@ -547,17 +638,9 @@ pub async fn list_job_history(
     let limit = limit.unwrap_or(100);
 
     let executions = if let Some(job_id) = job_id {
-        config
-            .get_job_executions(&job_id, limit)
-            .into_iter()
-            .cloned()
-            .collect()
+        config.get_job_executions(&job_id, limit).into_iter().cloned().collect()
     } else {
-        config
-            .get_all_job_executions(limit)
-            .into_iter()
-            .cloned()
-            .collect()
+        config.get_all_job_executions(limit).into_iter().cloned().collect()
     };
 
     Ok(executions)
@@ -580,4 +663,3 @@ mod scheduler_tests {
         assert!(validate_cron_expression("0 0 2 * * * *").is_err()); // Zu viele Felder
     }
 }
-

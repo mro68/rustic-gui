@@ -111,7 +111,6 @@
 
     try {
       const { initRepository } = await import('$lib/api/repositories');
-      const { store_repository_password } = await import('@tauri-apps/api/core');
 
       // Initialize repository
       const backendOpts = backendOptions.trim() ? JSON.parse(backendOptions.trim()) : undefined;
@@ -125,7 +124,11 @@
       // Store password in keychain if requested
       if (storePassword && password) {
         try {
-          await store_repository_password(repo.id, password);
+          const { invoke } = await import('@tauri-apps/api/core');
+          await invoke('store_repository_password', {
+            repoId: repo.id,
+            password: password,
+          });
         } catch (error) {
           console.warn('Failed to store password in keychain:', error);
         }
@@ -169,7 +172,9 @@
 </script>
 
 <Modal on:close={handleClose}>
-  <div slot="header">Repository hinzufügen</div>
+  {#snippet header()}
+    <h2>Repository hinzufügen</h2>
+  {/snippet}
   <div class="add-repo-dialog">
     <!-- Repository Type Selector -->
     <div class="form-group">
@@ -181,7 +186,7 @@
             onclick={() => selectRepositoryType(type.value)}
             role="button"
             tabindex="0"
-            on:keydown={(e) => e.key === 'Enter' && selectRepositoryType(type.value)}
+            onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && selectRepositoryType(type.value)}
           >
             <div class="repo-type-icon">{type.icon}</div>
             <div class="repo-type-name">{type.label}</div>
@@ -272,7 +277,7 @@
     </div>
   </div>
 
-  <div slot="footer">
+  {#snippet footer()}
     <Button variant="secondary" onclick={handleClose}>Abbrechen</Button>
     <Button variant="primary" onclick={handleSubmit} disabled={isSubmitting}>
       {#if isSubmitting}
@@ -281,7 +286,7 @@
         Repository hinzufügen
       {/if}
     </Button>
-  </div>
+  {/snippet}
 </Modal>
 
 {#if showToast}

@@ -40,18 +40,18 @@
 
   let { repositoryId = '' }: ChangePasswordDialogProps = $props();
 
-  let currentPassword = '';
-  let newPassword = '';
-  let confirmPassword = '';
-  let savePassword = true;
-  let isLoading = false;
+  let currentPassword = $state('');
+  let newPassword = $state('');
+  let confirmPassword = $state('');
+  let savePassword = $state(true);
+  let isLoading = $state(false);
 
-  let passwordStrength = {
+  let passwordStrength = $state({
     score: 0,
     label: 'Sehr schwach',
     color: '#ef4444',
     width: '20%',
-  };
+  });
 
   $effect(() => {
     updatePasswordStrength(newPassword);
@@ -161,7 +161,9 @@
 </script>
 
 <Modal on:close={handleClose}>
-  <div slot="header">Repository-Passwort ändern</div>
+  {#snippet header()}
+    <h2>Repository-Passwort ändern</h2>
+  {/snippet}
   <div class="change-password-form">
     <div class="form-section">
       <h3>Aktuelles Passwort</h3>
@@ -224,7 +226,7 @@
     </div>
   </div>
 
-  <div slot="footer">
+  {#snippet footer()}
     <Button variant="secondary" onclick={handleClose} disabled={isLoading}>Abbrechen</Button>
     <Button variant="primary" onclick={handleSubmit} disabled={!validateForm() || isLoading}>
       {#if isLoading}
@@ -233,7 +235,7 @@
         Passwort ändern
       {/if}
     </Button>
-  </div>
+  {/snippet}
 </Modal>
 
 <style>

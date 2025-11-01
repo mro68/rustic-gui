@@ -9,6 +9,8 @@
   import MainLayout from '$lib/components/layout/MainLayout.svelte';
   import BackupJobs from '$lib/components/pages/BackupJobs.svelte';
   import DashboardPage from '$lib/components/pages/DashboardPage.svelte';
+  import Repositories from '$lib/components/pages/Repositories.svelte';
+  import Settings from '$lib/components/pages/Settings.svelte';
   import Snapshots from '$lib/components/pages/Snapshots.svelte';
   import { currentPage } from '$lib/stores/router';
 
@@ -29,21 +31,13 @@
     {#if page === 'dashboard'}
       <DashboardPage />
     {:else if page === 'repositories'}
-      <div class="section-title">Repository-Management</div>
-      <div class="card">
-        <p>Hier werden die Repository-Verwaltungsfunktionen implementiert.</p>
-        <p>Features: Repository hinzufügen, öffnen, prüfen, konfigurieren.</p>
-      </div>
+      <Repositories />
     {:else if page === 'snapshots'}
       <Snapshots />
     {:else if page === 'backup-jobs'}
       <BackupJobs />
     {:else if page === 'settings'}
-      <div class="section-title">Einstellungen</div>
-      <div class="card">
-        <p>Hier werden Anwendungseinstellungen konfiguriert.</p>
-        <p>Features: Theme, Sprache, Sicherheit, About.</p>
-      </div>
+      <Settings />
     {/if}
   {/snippet}
 </MainLayout>

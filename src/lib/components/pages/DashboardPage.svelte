@@ -32,6 +32,7 @@
   import { listRepositories } from '../../api/repositories';
   import { setRepositories } from '../../stores/repositories';
   import type { RepositoryDto } from '../../types';
+  import AddRepositoryDialog from '../dialogs/AddRepositoryDialog.svelte';
   import ActivityLog from './ActivityLog.svelte';
   import RepositoryCard from './RepositoryCard.svelte';
   import StorageChart from './StorageChart.svelte';
@@ -44,6 +45,7 @@
   let error: string | null = $state(null);
   type LogEntry = { time: string; type: 'error' | 'warning' | 'info'; message: string };
   let logEntries: LogEntry[] = $state([]);
+  let showAddRepoDialog = $state(false);
 
   // Lädt die Repository-Liste
   async function refreshRepos() {
@@ -96,10 +98,10 @@
         aria-label="Repository öffnen"
         title="Neues Repository öffnen"
         onclick={() => {
-          /* TODO: Dialog öffnen */
+          showAddRepoDialog = true;
         }}
       >
-        <span class="btn-icon" aria-hidden="true">➕</span>
+        <span class="btn-icon" aria-hidden="true">➥</span>
         <span class="btn-text">Repository öffnen</span>
       </button>
     </Tooltip>
@@ -140,6 +142,16 @@
 
 <div class="section-title">Recent Activity</div>
 <ActivityLog {logEntries} />
+
+{#if showAddRepoDialog}
+  <AddRepositoryDialog
+    on:created={async () => {
+      showAddRepoDialog = false;
+      await refreshRepos();
+    }}
+    on:close={() => (showAddRepoDialog = false)}
+  />
+{/if}
 
 <style>
   .dashboard-toolbar {

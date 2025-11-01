@@ -97,6 +97,8 @@ export interface BackupJobDto {
   repository_id: string;
   /** Zu sichernde Quellpfade */
   source_paths: string[];
+  /** Ausschlussmuster (glob patterns) */
+  exclude_patterns?: string[];
   /** Job-Tags für Organisation */
   tags: string[];
   /** Cron-Ausdruck für Scheduling (optional) */

@@ -1,7 +1,7 @@
 use crate::{
     error::Result,
     rustic::backends::{
-        create_opendal_backend, create_rclone_backend, OpenDALConfig, RcloneConfig,
+        OpenDALConfig, RcloneConfig, create_opendal_backend, create_rclone_backend,
     },
     types::RepositoryDto,
 };
@@ -60,25 +60,25 @@ pub fn init_repository(
 
             // Lokales Backend
             let backend_opts = BackendOptions::default().repository(path);
-            backend_opts.to_backends().map_err(|e| {
-                crate::error::RusticGuiError::RusticError {
-                    message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
-                }
+            backend_opts.to_backends().map_err(|e| crate::error::RusticGuiError::RusticError {
+                message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
             })?
         }
         "s3" | "azblob" | "gcs" | "b2" => {
             // OpenDAL-Backend für Cloud-Provider
-            let opendal_config: OpenDALConfig = serde_json::from_value(
-                backend_options
-                    .ok_or_else(|| crate::error::RusticGuiError::InvalidConfiguration {
+            let opendal_config: OpenDALConfig =
+                serde_json::from_value(backend_options.ok_or_else(|| {
+                    crate::error::RusticGuiError::InvalidConfiguration {
                         message: "Backend-Optionen erforderlich für Cloud-Backends".to_string(),
-                    })?
-            )
-            .map_err(|e: serde_json::Error| crate::error::RusticGuiError::InvalidConfiguration {
-                message: format!("Ungültige Backend-Optionen: {}", e),
-            })?;
+                    }
+                })?)
+                .map_err(|e: serde_json::Error| {
+                    crate::error::RusticGuiError::InvalidConfiguration {
+                        message: format!("Ungültige Backend-Optionen: {}", e),
+                    }
+                })?;
 
-            let opendal_opts = create_opendal_backend(&opendal_config)?;
+            let _opendal_opts = create_opendal_backend(&opendal_config)?;
 
             tracing::info!(
                 "Erstelle OpenDAL-Backend: Provider={}, Endpoint={}",
@@ -88,26 +88,28 @@ pub fn init_repository(
 
             // Erstelle Backend-Optionen für OpenDAL
             // Hinweis: rustic_backend verwendet den Pfad-String für OpenDAL
-            let backend_opts = BackendOptions::default()
-                .repository(&format!("opendal:{}:{}", opendal_config.provider, opendal_config.endpoint));
+            let backend_opts = BackendOptions::default().repository(&format!(
+                "opendal:{}:{}",
+                opendal_config.provider, opendal_config.endpoint
+            ));
 
-            backend_opts.to_backends().map_err(|e| {
-                crate::error::RusticGuiError::RusticError {
-                    message: format!("OpenDAL-Backend-Erstellung fehlgeschlagen: {}", e),
-                }
+            backend_opts.to_backends().map_err(|e| crate::error::RusticGuiError::RusticError {
+                message: format!("OpenDAL-Backend-Erstellung fehlgeschlagen: {}", e),
             })?
         }
         "rclone" => {
             // Rclone-Backend
-            let rclone_config: RcloneConfig = serde_json::from_value(
-                backend_options
-                    .ok_or_else(|| crate::error::RusticGuiError::InvalidConfiguration {
+            let rclone_config: RcloneConfig =
+                serde_json::from_value(backend_options.ok_or_else(|| {
+                    crate::error::RusticGuiError::InvalidConfiguration {
                         message: "Backend-Optionen erforderlich für Rclone-Backend".to_string(),
-                    })?
-            )
-            .map_err(|e: serde_json::Error| crate::error::RusticGuiError::InvalidConfiguration {
-                message: format!("Ungültige Backend-Optionen: {}", e),
-            })?;
+                    }
+                })?)
+                .map_err(|e: serde_json::Error| {
+                    crate::error::RusticGuiError::InvalidConfiguration {
+                        message: format!("Ungültige Backend-Optionen: {}", e),
+                    }
+                })?;
 
             let _rclone_opts = create_rclone_backend(&rclone_config)?;
 
@@ -121,10 +123,8 @@ pub fn init_repository(
             let rclone_url = format!("rclone:{}:{}", rclone_config.remote_name, rclone_config.path);
             let backend_opts = BackendOptions::default().repository(&rclone_url);
 
-            backend_opts.to_backends().map_err(|e| {
-                crate::error::RusticGuiError::RusticError {
-                    message: format!("Rclone-Backend-Erstellung fehlgeschlagen: {}", e),
-                }
+            backend_opts.to_backends().map_err(|e| crate::error::RusticGuiError::RusticError {
+                message: format!("Rclone-Backend-Erstellung fehlgeschlagen: {}", e),
             })?
         }
         _ => {
@@ -145,21 +145,16 @@ pub fn init_repository(
     let config_opts = ConfigOptions::default();
 
     // Repository initialisieren (Keys generieren, Config schreiben)
-    repo.init(&key_opts, &config_opts)
-        .map_err(|e| crate::error::RusticGuiError::RusticError {
-            message: format!("Repository-Initialisierung fehlgeschlagen: {}", e),
-        })?;
+    repo.init(&key_opts, &config_opts).map_err(|e| crate::error::RusticGuiError::RusticError {
+        message: format!("Repository-Initialisierung fehlgeschlagen: {}", e),
+    })?;
 
     tracing::info!("Repository erfolgreich initialisiert: {}", path);
 
     // Erstelle DTO als Response (generiere ID und Name aus path)
     let repo_name = if backend_type == "local" {
         let path_buf = std::path::PathBuf::from(path);
-        path_buf
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("Unnamed Repository")
-            .to_string()
+        path_buf.file_name().and_then(|n| n.to_str()).unwrap_or("Unnamed Repository").to_string()
     } else {
         // Für Cloud-Backends: Extrahiere Namen aus path/endpoint
         path.split('/').last().unwrap_or("Cloud Repository").to_string()
@@ -201,9 +196,7 @@ pub fn open_repository(path: &str, password: &str) -> Result<OpenedRepository> {
     let path_buf = std::path::PathBuf::from(path);
 
     if !path_buf.exists() {
-        return Err(crate::error::RusticGuiError::RepositoryNotFound {
-            path: path.to_string(),
-        });
+        return Err(crate::error::RusticGuiError::RepositoryNotFound { path: path.to_string() });
     }
 
     // Prüfe ob config-Datei existiert
@@ -221,11 +214,10 @@ pub fn open_repository(path: &str, password: &str) -> Result<OpenedRepository> {
     let backend_opts = BackendOptions::default().repository(path);
 
     // Backend erstellen
-    let backends = backend_opts.to_backends().map_err(|e| {
-        crate::error::RusticGuiError::RusticError {
+    let backends =
+        backend_opts.to_backends().map_err(|e| crate::error::RusticGuiError::RusticError {
             message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
-        }
-    })?;
+        })?;
 
     // Repository erstellen und öffnen
     let repo = Repository::<NoProgressBars, ()>::new(&repo_opts, &backends)
@@ -263,9 +255,9 @@ pub fn open_repository(path: &str, password: &str) -> Result<OpenedRepository> {
 pub fn get_repository_info(path: &str, password: &str) -> Result<RepositoryDto> {
     // Repository öffnen um Informationen zu holen
     let opened = open_repository(path, password)?;
-    
+
     let path_buf = std::path::PathBuf::from(path);
-    
+
     Ok(RepositoryDto {
         id: format!("repo-{}", path_buf.file_name().and_then(|n| n.to_str()).unwrap_or("unknown")),
         name: path_buf.file_name().and_then(|n| n.to_str()).unwrap_or("Unknown").to_string(),
@@ -291,20 +283,17 @@ pub fn check_repository(path: &str, password: &str) -> Result<RepositoryDto> {
     let path_obj = Path::new(path);
 
     if !path_obj.exists() {
-        return Err(crate::error::RusticGuiError::RepositoryNotFound {
-            path: path.to_string(),
-        });
+        return Err(crate::error::RusticGuiError::RepositoryNotFound { path: path.to_string() });
     }
 
     // Versuche Repository zu öffnen - das ist schon ein grundlegender Check
     let (status, snapshot_count, total_size) = match open_repository(path, password) {
         Ok(opened) => {
-            tracing::info!("Repository-Check erfolgreich: {} Snapshots gefunden", opened.snapshot_count);
-            (
-                crate::types::RepositoryStatus::Healthy,
-                opened.snapshot_count,
-                opened.total_size,
-            )
+            tracing::info!(
+                "Repository-Check erfolgreich: {} Snapshots gefunden",
+                opened.snapshot_count
+            );
+            (crate::types::RepositoryStatus::Healthy, opened.snapshot_count, opened.total_size)
         }
         Err(e) => {
             tracing::warn!("Repository-Check fehlgeschlagen: {}", e);
@@ -321,7 +310,11 @@ pub fn check_repository(path: &str, password: &str) -> Result<RepositoryDto> {
 
     let dto = RepositoryDto {
         id: format!("repo-{}", path_obj.display()),
-        name: path_obj.file_name().and_then(|n| n.to_str()).unwrap_or("Unnamed Repository").to_string(),
+        name: path_obj
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("Unnamed Repository")
+            .to_string(),
         path: path.to_string(),
         repository_type: crate::types::RepositoryType::Local,
         status,
@@ -343,31 +336,24 @@ pub fn check_repository(path: &str, password: &str) -> Result<RepositoryDto> {
 ///
 /// # Returns
 /// Anzahl der gelöschten Pack-Dateien und freigegebener Speicher in Bytes
-pub fn prune_repository(
-    path: &str,
-    password: &str,
-    dry_run: bool,
-) -> Result<(u32, u64)> {
+pub fn prune_repository(path: &str, password: &str, dry_run: bool) -> Result<(u32, u64)> {
     tracing::info!("Prune Repository: {} (dry_run: {})", path, dry_run);
-    
+
     let path_obj = Path::new(path);
     if !path_obj.exists() {
-        return Err(crate::error::RusticGuiError::RepositoryNotFound {
-            path: path.to_string(),
-        });
+        return Err(crate::error::RusticGuiError::RepositoryNotFound { path: path.to_string() });
     }
 
     // Repository öffnen
     let repo_opts = RepositoryOptions::default().password(password.to_string());
     let backend_opts = BackendOptions::default().repository(path);
-    
-    let backends = backend_opts.to_backends().map_err(|e| {
-        crate::error::RusticGuiError::RusticError {
-            message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
-        }
-    })?;
 
-    let repo = Repository::<NoProgressBars, ()>::new(&repo_opts, &backends)
+    let backends =
+        backend_opts.to_backends().map_err(|e| crate::error::RusticGuiError::RusticError {
+            message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
+        })?;
+
+    let _repo = Repository::<NoProgressBars, ()>::new(&repo_opts, &backends)
         .map_err(|e| crate::error::RusticGuiError::RusticError {
             message: format!("Repository öffnen fehlgeschlagen: {}", e),
         })?
@@ -403,18 +389,12 @@ pub fn prune_repository(
 ///
 /// # Returns
 /// Ok(()) bei Erfolg
-pub fn change_password(
-    path: &str,
-    old_password: &str,
-    new_password: &str,
-) -> Result<()> {
+pub fn change_password(path: &str, old_password: &str, new_password: &str) -> Result<()> {
     tracing::info!("Ändere Repository-Passwort: {}", path);
-    
+
     let path_obj = Path::new(path);
     if !path_obj.exists() {
-        return Err(crate::error::RusticGuiError::RepositoryNotFound {
-            path: path.to_string(),
-        });
+        return Err(crate::error::RusticGuiError::RepositoryNotFound { path: path.to_string() });
     }
 
     // Validiere neues Passwort
@@ -427,28 +407,26 @@ pub fn change_password(
     // Repository mit altem Passwort öffnen
     let repo_opts = RepositoryOptions::default().password(old_password.to_string());
     let backend_opts = BackendOptions::default().repository(path);
-    
-    let backends = backend_opts.to_backends().map_err(|e| {
-        crate::error::RusticGuiError::RusticError {
+
+    let backends =
+        backend_opts.to_backends().map_err(|e| crate::error::RusticGuiError::RusticError {
             message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
-        }
-    })?;
+        })?;
 
     let _repo = Repository::<NoProgressBars, ()>::new(&repo_opts, &backends)
         .map_err(|e| crate::error::RusticGuiError::RusticError {
             message: format!("Repository öffnen fehlgeschlagen: {}", e),
         })?
         .open()
-        .map_err(|e| crate::error::RusticGuiError::AuthenticationFailed)?;
+        .map_err(|_e| crate::error::RusticGuiError::AuthenticationFailed)?;
 
     // TODO M1.5: Implementiere echten Passwort-Wechsel mit rustic_core
     // rustic_core hat wahrscheinlich eine change_password() oder set_password() Methode
     // Für jetzt als Placeholder - würde die Keys mit neuem Passwort neu verschlüsseln
-    
+
     tracing::info!("Passwort-Änderung erfolgreich (Placeholder-Implementierung)");
     Ok(())
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -519,7 +497,7 @@ mod tests {
     fn test_change_password_empty_new_password() {
         let temp_dir = TempDir::new().unwrap();
         let repo_path = temp_dir.path().join("test-repo");
-        
+
         // Initialisiere Repository
         let _ = init_repository(&repo_path.to_string_lossy(), "test-password", "local", None);
 
@@ -589,9 +567,9 @@ pub fn get_repository_stats(
     // Die alte API mit PackFile::TYPE und iter_type ist nicht mehr verfügbar
     // Neue API-Dokumentation prüfen: https://docs.rs/rustic_core/0.8.0
     // Temporär verwenden wir Platzhalter-Werte
-    
+
     tracing::warn!("Repository-Statistiken verwenden Platzhalter-Werte (API-Migration ausstehend)");
-    
+
     let index_count = 0u64; // Placeholder
     let pack_count = 0u64; // Placeholder
     let total_size = 0u64; // Placeholder

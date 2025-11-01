@@ -67,7 +67,9 @@
 </script>
 
 <Modal on:close={handleClose}>
-  <div slot="header">Snapshot-Details</div>
+  {#snippet header()}
+    <h2>Snapshot-Details</h2>
+  {/snippet}
   {#if snapshot}
     <div class="snapshot-details">
       <!-- Header Info -->
@@ -148,9 +150,9 @@
     <div class="no-data">Kein Snapshot ausgewählt</div>
   {/if}
 
-  <div slot="footer">
+  {#snippet footer()}
     <Button variant="secondary" onclick={handleClose}>Schließen</Button>
-  </div>
+  {/snippet}
 </Modal>
 
 <style>

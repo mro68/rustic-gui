@@ -47,14 +47,14 @@
   }: UnlockRepositoryDialogProps = $props();
 
   // Form state
-  let password = '';
-  let rememberPassword = true;
-  let isUnlocking = false;
+  let password = $state('');
+  let rememberPassword = $state(true);
+  let isUnlocking = $state(false);
 
   // Password strength
-  let passwordStrength = 0;
-  let strengthLabel = '';
-  let strengthColor = '';
+  let passwordStrength = $state(0);
+  let strengthLabel = $state('');
+  let strengthColor = $state('');
 
   $effect(() => {
     updatePasswordStrength(password);
@@ -141,7 +141,10 @@
 </script>
 
 <Modal on:close={handleClose}>
-  <div slot="header">Repository entsperren</div>
+  {#snippet header()}
+    Repository entsperren
+  {/snippet}
+  
   <div class="unlock-dialog">
     <!-- Repository Info -->
     <div class="repo-info">
@@ -194,7 +197,7 @@
     </div>
   </div>
 
-  <div slot="footer">
+  {#snippet footer()}
     <Button variant="secondary" onclick={handleClose}>Abbrechen</Button>
     <Button variant="primary" onclick={handleUnlock} disabled={isUnlocking || !password.trim()}>
       {#if isUnlocking}
@@ -203,7 +206,7 @@
         Repository entsperren
       {/if}
     </Button>
-  </div>
+  {/snippet}
 </Modal>
 
 <style>
