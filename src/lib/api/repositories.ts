@@ -93,6 +93,21 @@ export async function openRepository(path: string, password: string): Promise<Re
 }
 
 /**
+ * Wechselt das aktive Repository im Backend-State.
+ *
+ * @param repositoryId - Repository-ID aus der Konfiguration
+ * @param password - Passwort zum Entsperren des Repositories
+ * @returns Promise mit aktualisiertem Repository-DTO
+ * @throws Error wenn der Wechsel scheitert
+ */
+export async function switchRepository(
+  repositoryId: string,
+  password: string
+): Promise<RepositoryDto> {
+  return await invoke<RepositoryDto>('switch_repository', { repositoryId, password });
+}
+
+/**
  * Prüft Repository-Integrität (v1 - mit Pfad und Passwort).
  *
  * @param path - Pfad zum Repository

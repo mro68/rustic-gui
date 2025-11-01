@@ -26,16 +26,16 @@ impl From<&RusticGuiError> for ErrorDto {
             JsonError(e) => ("JsonError", error.to_string(), Some(e.to_string())),
             TomlError(msg) => ("TomlError", error.to_string(), Some(msg.clone())),
             Internal(msg) => ("Internal", error.to_string(), Some(msg.clone())),
-            UnsupportedBackend { backend_type } => {
-                ("UnsupportedBackend", error.to_string(), Some(format!("backend_type: {}", backend_type)))
-            }
+            UnsupportedBackend { backend_type } => (
+                "UnsupportedBackend",
+                error.to_string(),
+                Some(format!("backend_type: {}", backend_type)),
+            ),
             InvalidConfiguration { message } => {
                 ("InvalidConfiguration", error.to_string(), Some(message.clone()))
             }
             RcloneNotFound => ("RcloneNotFound", error.to_string(), None),
-            RcloneError { message } => {
-                ("RcloneError", error.to_string(), Some(message.clone()))
-            }
+            RcloneError { message } => ("RcloneError", error.to_string(), Some(message.clone())),
         };
         ErrorDto { code: code.to_string(), message, details }
     }
@@ -109,9 +109,7 @@ pub type Result<T> = std::result::Result<T, RusticGuiError>;
 // Konvertierung von rustic_core Fehlern
 impl From<rustic_core::RusticError> for RusticGuiError {
     fn from(error: rustic_core::RusticError) -> Self {
-        RusticGuiError::RusticError {
-            message: error.to_string(),
-        }
+        RusticGuiError::RusticError { message: error.to_string() }
     }
 }
 

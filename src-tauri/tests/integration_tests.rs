@@ -110,7 +110,7 @@ mod integration_tests {
         let local = RepositoryType::Local;
         let json = serde_json::to_string(&local).unwrap();
         assert!(json.contains("Local"));
-        
+
         let sftp = RepositoryType::Sftp;
         let json = serde_json::to_string(&sftp).unwrap();
         assert!(json.contains("Sftp"));
@@ -122,7 +122,7 @@ mod integration_tests {
         let healthy = RepositoryStatus::Healthy;
         let json = serde_json::to_string(&healthy).unwrap();
         assert!(json.contains("Healthy"));
-        
+
         let warning = RepositoryStatus::Warning;
         let json = serde_json::to_string(&warning).unwrap();
         assert!(json.contains("Warning"));

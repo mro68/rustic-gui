@@ -2,7 +2,6 @@
 ///
 /// Unterstützt SFTP, Google Drive, Dropbox, OneDrive, pCloud, Mega,
 /// FTP/FTPS, WebDAV und viele weitere Provider via rclone.
-
 use crate::error::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -56,15 +55,10 @@ impl RcloneManager {
     /// # Returns
     /// true wenn Remote existiert, false sonst
     pub fn remote_exists(&self, remote_name: &str) -> bool {
-        match std::process::Command::new("rclone")
-            .args(&["listremotes"])
-            .output()
-        {
+        match std::process::Command::new("rclone").args(&["listremotes"]).output() {
             Ok(output) => {
                 let remotes = String::from_utf8_lossy(&output.stdout);
-                remotes.lines().any(|line| {
-                    line.trim_end_matches(':') == remote_name
-                })
+                remotes.lines().any(|line| line.trim_end_matches(':') == remote_name)
             }
             Err(_) => false,
         }
@@ -75,19 +69,16 @@ impl RcloneManager {
     /// # Returns
     /// Vec mit Remote-Namen
     pub fn list_remotes(&self) -> Result<Vec<String>> {
-        let output = std::process::Command::new("rclone")
-            .args(&["listremotes"])
-            .output()
-            .map_err(|e| crate::error::RusticGuiError::RcloneError {
-                message: format!("Fehler beim Auflisten von Remotes: {}", e),
+        let output =
+            std::process::Command::new("rclone").args(&["listremotes"]).output().map_err(|e| {
+                crate::error::RusticGuiError::RcloneError {
+                    message: format!("Fehler beim Auflisten von Remotes: {}", e),
+                }
             })?;
 
         if !output.status.success() {
             return Err(crate::error::RusticGuiError::RcloneError {
-                message: format!(
-                    "Rclone-Fehler: {}",
-                    String::from_utf8_lossy(&output.stderr)
-                ),
+                message: format!("Rclone-Fehler: {}", String::from_utf8_lossy(&output.stderr)),
             });
         }
 
@@ -176,7 +167,7 @@ pub fn create_sftp_backend(
     options.insert("host".to_string(), host.to_string());
     options.insert("port".to_string(), port.to_string());
     options.insert("user".to_string(), user.to_string());
-    
+
     // Passwort nur setzen wenn nicht leer
     if !password.is_empty() {
         options.insert("pass".to_string(), password.to_string());
@@ -185,12 +176,7 @@ pub fn create_sftp_backend(
     // Remote-Name basierend auf Host generieren
     let remote_name = format!("rustic_sftp_{}", host.replace(".", "_").replace(":", "_"));
 
-    Ok(RcloneConfig {
-        remote_name,
-        provider: "sftp".to_string(),
-        path: path.to_string(),
-        options,
-    })
+    Ok(RcloneConfig { remote_name, provider: "sftp".to_string(), path: path.to_string(), options })
 }
 
 /// Validiert eine Rclone-Konfiguration
@@ -222,21 +208,12 @@ mod tests {
 
     #[test]
     fn test_create_sftp_backend() {
-        let config = create_sftp_backend(
-            "sftp.example.com",
-            22,
-            "testuser",
-            "testpass",
-            "/backup",
-        )
-        .unwrap();
+        let config =
+            create_sftp_backend("sftp.example.com", 22, "testuser", "testpass", "/backup").unwrap();
 
         assert_eq!(config.provider, "sftp");
         assert_eq!(config.path, "/backup");
-        assert_eq!(
-            config.options.get("host"),
-            Some(&"sftp.example.com".to_string())
-        );
+        assert_eq!(config.options.get("host"), Some(&"sftp.example.com".to_string()));
         assert_eq!(config.options.get("port"), Some(&"22".to_string()));
         assert_eq!(config.options.get("user"), Some(&"testuser".to_string()));
         assert_eq!(config.options.get("pass"), Some(&"testpass".to_string()));
@@ -244,14 +221,8 @@ mod tests {
 
     #[test]
     fn test_create_sftp_backend_without_password() {
-        let config = create_sftp_backend(
-            "sftp.example.com",
-            22,
-            "testuser",
-            "",
-            "/backup",
-        )
-        .unwrap();
+        let config =
+            create_sftp_backend("sftp.example.com", 22, "testuser", "", "/backup").unwrap();
 
         assert!(config.options.get("pass").is_none());
     }
@@ -318,9 +289,6 @@ mod tests {
 
         let backend_options = create_rclone_backend(&config).unwrap();
         assert_eq!(backend_options.get("type"), Some(&"sftp".to_string()));
-        assert_eq!(
-            backend_options.get("host"),
-            Some(&"example.com".to_string())
-        );
+        assert_eq!(backend_options.get("host"), Some(&"example.com".to_string()));
     }
 }

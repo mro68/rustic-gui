@@ -84,6 +84,40 @@ export function setError(msg: string | null): void {
 }
 
 /**
+ * Wechselt das aktive Repository über das Backend und aktualisiert den Store.
+ *
+ * @param repositoryId - Repository-ID die aktiviert werden soll
+ * @param password - Passwort zum Entsperren bzw. Cachen
+ * @returns Repository-DTO bei Erfolg oder null bei Fehler
+ */
+export async function switchActiveRepository(
+  repositoryId: string,
+  password: string
+): Promise<RepositoryDto | null> {
+  setLoading(true);
+  setError(null);
+
+  try {
+    const repository = await api.switchRepository(repositoryId, password);
+
+    _repositories.update((repos) =>
+      repos.map((entry) => (entry.id === repository.id ? repository : entry))
+    );
+
+    setActiveRepository(repositoryId);
+    return repository;
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : 'Repository konnte nicht gewechselt werden';
+    setError(message);
+    console.error('switchActiveRepository error:', err);
+    return null;
+  } finally {
+    setLoading(false);
+  }
+}
+
+/**
  * Lädt alle Repositories vom Backend.
  *
  * Setzt loading=true, ruft API ab, aktualisiert Store.

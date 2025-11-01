@@ -29,9 +29,7 @@ pub async fn save_settings(
     }
 
     // Persistiere Config
-    state
-        .save_config()
-        .map_err(|e| format!("Fehler beim Speichern der Config: {}", e))?;
+    state.save_config().map_err(|e| format!("Fehler beim Speichern der Config: {}", e))?;
 
     tracing::info!("Einstellungen erfolgreich gespeichert");
 
@@ -62,9 +60,7 @@ pub async fn reset_settings(state: tauri::State<'_, AppState>) -> Result<AppSett
     }
 
     // Persistiere Config
-    state
-        .save_config()
-        .map_err(|e| format!("Fehler beim Speichern der Config: {}", e))?;
+    state.save_config().map_err(|e| format!("Fehler beim Speichern der Config: {}", e))?;
 
     Ok(default_settings)
 }
@@ -72,10 +68,7 @@ pub async fn reset_settings(state: tauri::State<'_, AppState>) -> Result<AppSett
 /// Aktualisiert nur das Theme
 /// M4.4: Settings-Backend-Integration
 #[tauri::command]
-pub async fn update_theme(
-    theme: String,
-    state: tauri::State<'_, AppState>,
-) -> Result<(), String> {
+pub async fn update_theme(theme: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
     tracing::debug!("Aktualisiere Theme: {}", theme);
 
     {
@@ -83,9 +76,7 @@ pub async fn update_theme(
         config.settings.theme = theme;
     }
 
-    state
-        .save_config()
-        .map_err(|e| format!("Fehler beim Speichern: {}", e))?;
+    state.save_config().map_err(|e| format!("Fehler beim Speichern: {}", e))?;
 
     Ok(())
 }

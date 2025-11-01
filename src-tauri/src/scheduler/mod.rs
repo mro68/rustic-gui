@@ -2,7 +2,6 @@
 ///
 /// Dieser Modul implementiert automatisierte Backup-Jobs mit Cron-Scheduling
 /// basierend auf tokio-cron-scheduler.
-
 use anyhow::Result;
 use futures::future::BoxFuture;
 use std::collections::HashMap;
@@ -33,10 +32,7 @@ impl BackupScheduler {
 
         tracing::info!("BackupScheduler erfolgreich initialisiert");
 
-        Ok(Self {
-            scheduler,
-            jobs: HashMap::new(),
-        })
+        Ok(Self { scheduler, jobs: HashMap::new() })
     }
 
     /// Plant einen neuen Job
@@ -133,9 +129,9 @@ impl BackupScheduler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Arc;
-    use tokio::time::{sleep, Duration};
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use tokio::time::{Duration, sleep};
 
     #[tokio::test]
     async fn test_scheduler_creation() {
@@ -181,16 +177,12 @@ mod tests {
         let mut scheduler = BackupScheduler::new().await.unwrap();
 
         scheduler
-            .schedule_job("job1".to_string(), "0 0 * * * *", || {
-                Box::pin(async {})
-            })
+            .schedule_job("job1".to_string(), "0 0 * * * *", || Box::pin(async {}))
             .await
             .unwrap();
 
         scheduler
-            .schedule_job("job2".to_string(), "0 0 * * * *", || {
-                Box::pin(async {})
-            })
+            .schedule_job("job2".to_string(), "0 0 * * * *", || Box::pin(async {}))
             .await
             .unwrap();
 
@@ -205,16 +197,12 @@ mod tests {
         let mut scheduler = BackupScheduler::new().await.unwrap();
 
         scheduler
-            .schedule_job("duplicate".to_string(), "0 0 * * * *", || {
-                Box::pin(async {})
-            })
+            .schedule_job("duplicate".to_string(), "0 0 * * * *", || Box::pin(async {}))
             .await
             .unwrap();
 
         let result = scheduler
-            .schedule_job("duplicate".to_string(), "0 0 * * * *", || {
-                Box::pin(async {})
-            })
+            .schedule_job("duplicate".to_string(), "0 0 * * * *", || Box::pin(async {}))
             .await;
 
         assert!(result.is_err());
@@ -225,9 +213,7 @@ mod tests {
         let mut scheduler = BackupScheduler::new().await.unwrap();
 
         let result = scheduler
-            .schedule_job("invalid".to_string(), "invalid cron", || {
-                Box::pin(async {})
-            })
+            .schedule_job("invalid".to_string(), "invalid cron", || Box::pin(async {}))
             .await;
 
         assert!(result.is_err());
@@ -240,9 +226,7 @@ mod tests {
         assert!(!scheduler.has_job("test"));
 
         scheduler
-            .schedule_job("test".to_string(), "0 0 * * * *", || {
-                Box::pin(async {})
-            })
+            .schedule_job("test".to_string(), "0 0 * * * *", || Box::pin(async {}))
             .await
             .unwrap();
 

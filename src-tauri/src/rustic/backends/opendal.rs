@@ -2,7 +2,6 @@
 ///
 /// Unterstützt AWS S3, Azure Blob Storage, Google Cloud Storage,
 /// Backblaze B2, Wasabi, MinIO und andere S3-kompatible Services.
-
 use crate::error::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -64,10 +63,7 @@ pub fn create_opendal_backend(config: &OpenDALConfig) -> Result<BTreeMap<String,
             // AWS S3 oder S3-kompatible Services
             options.insert("bucket".to_string(), config.endpoint.clone());
             options.insert("access_key_id".to_string(), config.access_key.clone());
-            options.insert(
-                "secret_access_key".to_string(),
-                config.secret_key.clone(),
-            );
+            options.insert("secret_access_key".to_string(), config.secret_key.clone());
 
             if let Some(region) = &config.region {
                 options.insert("region".to_string(), region.clone());
@@ -94,10 +90,7 @@ pub fn create_opendal_backend(config: &OpenDALConfig) -> Result<BTreeMap<String,
             // Backblaze B2
             options.insert("bucket".to_string(), config.endpoint.clone());
             options.insert("application_key_id".to_string(), config.access_key.clone());
-            options.insert(
-                "application_key".to_string(),
-                config.secret_key.clone(),
-            );
+            options.insert("application_key".to_string(), config.secret_key.clone());
         }
         _ => {
             return Err(crate::error::RusticGuiError::UnsupportedBackend {
@@ -177,14 +170,8 @@ mod tests {
         let options = create_opendal_backend(&config).unwrap();
 
         assert_eq!(options.get("bucket"), Some(&"my-test-bucket".to_string()));
-        assert_eq!(
-            options.get("access_key_id"),
-            Some(&"test-access-key".to_string())
-        );
-        assert_eq!(
-            options.get("secret_access_key"),
-            Some(&"test-secret-key".to_string())
-        );
+        assert_eq!(options.get("access_key_id"), Some(&"test-access-key".to_string()));
+        assert_eq!(options.get("secret_access_key"), Some(&"test-secret-key".to_string()));
         assert_eq!(options.get("region"), Some(&"us-west-2".to_string()));
     }
 
@@ -202,10 +189,7 @@ mod tests {
 
         let options = create_opendal_backend(&config).unwrap();
 
-        assert_eq!(
-            options.get("endpoint"),
-            Some(&"http://localhost:9000".to_string())
-        );
+        assert_eq!(options.get("endpoint"), Some(&"http://localhost:9000".to_string()));
     }
 
     #[test]
@@ -223,14 +207,8 @@ mod tests {
         let options = create_opendal_backend(&config).unwrap();
 
         assert_eq!(options.get("container"), Some(&"my-container".to_string()));
-        assert_eq!(
-            options.get("account_name"),
-            Some(&"storageaccountname".to_string())
-        );
-        assert_eq!(
-            options.get("account_key"),
-            Some(&"storage-account-key".to_string())
-        );
+        assert_eq!(options.get("account_name"), Some(&"storageaccountname".to_string()));
+        assert_eq!(options.get("account_key"), Some(&"storage-account-key".to_string()));
     }
 
     #[test]
@@ -247,10 +225,7 @@ mod tests {
 
         let options = create_opendal_backend(&config).unwrap();
 
-        assert_eq!(
-            options.get("bucket"),
-            Some(&"my-gcs-bucket".to_string())
-        );
+        assert_eq!(options.get("bucket"), Some(&"my-gcs-bucket".to_string()));
         assert!(options.get("credential").is_some());
     }
 

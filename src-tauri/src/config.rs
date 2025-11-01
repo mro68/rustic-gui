@@ -1,7 +1,7 @@
 use crate::types::*;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// Hauptkonfiguration der Anwendung
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -134,20 +134,23 @@ impl Default for AppConfig {
 }
 
 impl AppConfig {
-    /// Lädt Konfiguration von der Festplatte
-    pub fn load() -> Result<Self> {
-        let path = Self::config_path()?;
-
+    /// Lädt Konfiguration aus einer angegebenen Datei.
+    pub fn load_from_path(path: &Path) -> Result<Self> {
         if !path.exists() {
-            tracing::info!("Keine Konfigurationsdatei gefunden, verwende Standardkonfiguration");
+            tracing::debug!(
+                "Konfigurationsdatei {} existiert nicht – verwende Default",
+                path.display()
+            );
             return Ok(Self::default());
         }
 
-        let content = std::fs::read_to_string(&path)
-            .context("Konfigurationsdatei konnte nicht gelesen werden")?;
+        let content = std::fs::read_to_string(path).with_context(|| {
+            format!("Konfigurationsdatei {} konnte nicht gelesen werden", path.display())
+        })?;
 
-        let config: Self =
-            toml::from_str(&content).context("Konfiguration konnte nicht geparst werden")?;
+        let config: Self = toml::from_str(&content).with_context(|| {
+            format!("Konfiguration in {} konnte nicht geparst werden", path.display())
+        })?;
 
         tracing::debug!(
             "Konfiguration geladen: {} Repositories, {} Backup-Jobs",
@@ -158,24 +161,38 @@ impl AppConfig {
         Ok(config)
     }
 
-    /// Speichert Konfiguration auf die Festplatte
-    pub fn save(&self) -> Result<()> {
-        let path = Self::config_path()?;
-
-        // Übergeordnetes Verzeichnis erstellen falls nötig
+    /// Speichert Konfiguration in der angegebenen Datei.
+    pub fn save_to_path(&self, path: &Path) -> Result<()> {
         if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent)
-                .context("Konfigurationsverzeichnis konnte nicht erstellt werden")?;
+            std::fs::create_dir_all(parent).with_context(|| {
+                format!(
+                    "Konfigurationsverzeichnis {} konnte nicht erstellt werden",
+                    parent.display()
+                )
+            })?;
         }
 
         let toml = toml::to_string_pretty(self)
             .context("Konfiguration konnte nicht serialisiert werden")?;
-
-        std::fs::write(&path, toml).context("Konfiguration konnte nicht geschrieben werden")?;
+        std::fs::write(path, toml).with_context(|| {
+            format!("Konfiguration konnte nicht geschrieben werden: {}", path.display())
+        })?;
 
         tracing::debug!("Konfiguration gespeichert nach: {}", path.display());
 
         Ok(())
+    }
+
+    /// Lädt Konfiguration von der Festplatte
+    pub fn load() -> Result<Self> {
+        let path = Self::config_path()?;
+        Self::load_from_path(&path)
+    }
+
+    /// Speichert Konfiguration auf die Festplatte
+    pub fn save(&self) -> Result<()> {
+        let path = Self::config_path()?;
+        self.save_to_path(&path)
     }
 
     /// Gibt den plattformspezifischen Konfigurationspfad zurück
@@ -184,6 +201,14 @@ impl AppConfig {
     /// - Windows: `%APPDATA%\rustic-gui\config.toml`
     /// - macOS: `~/Library/Application Support/rustic-gui/config.toml`
     pub fn config_path() -> Result<PathBuf> {
+        if let Ok(custom_path) = std::env::var("RUSTIC_GUI_CONFIG_PATH") {
+            return Ok(PathBuf::from(custom_path));
+        }
+
+        if let Ok(portable_dir) = std::env::var("RUSTIC_GUI_PORTABLE_PATH") {
+            return Ok(PathBuf::from(portable_dir).join("config.toml"));
+        }
+
         let config_dir =
             dirs::config_dir().context("Konfigurationsverzeichnis konnte nicht bestimmt werden")?;
 
@@ -247,12 +272,7 @@ impl AppConfig {
 
     /// Gibt die letzten N Job-Executions für einen Job zurück
     pub fn get_job_executions(&self, job_id: &str, limit: usize) -> Vec<&JobExecution> {
-        self.job_executions
-            .iter()
-            .filter(|e| e.job_id == job_id)
-            .rev()
-            .take(limit)
-            .collect()
+        self.job_executions.iter().filter(|e| e.job_id == job_id).rev().take(limit).collect()
     }
 
     /// Gibt alle Job-Executions zurück

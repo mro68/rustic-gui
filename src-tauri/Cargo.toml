@@ -44,6 +44,9 @@ keyring = "3.6.3"
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.0", features = ["v4", "serde"] }
 ts-rs = { version = "11.1.0", features = ["serde-compat"] }
+aes-gcm = { version = "0.10", features = ["std"] }
+rand = "0.8"
+base64 = "0.21"
 
 [dev-dependencies]
 tempfile = "3.0"

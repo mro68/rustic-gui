@@ -211,11 +211,8 @@ pub fn switch_repository(
     password: String,
     state: tauri::State<'_, AppState>,
 ) -> std::result::Result<crate::types::RepositoryDto, crate::types::ErrorDto> {
-    // 1. Altes Repository schließen (TODO M2: Wenn Caching implementiert ist)
-    // Für M1: Wir öffnen Repositories bei Bedarf, kein Caching
-
-    // 2. Repo-Config laden
-    let (path, repo_name, backend_type) = {
+    // Hole Pfad und Metadaten aus der Konfiguration
+    let (path, repo_name, backend_type, password_stored) = {
         let config = state.config.lock();
         let repo = config
             .get_repository(&repository_id)
@@ -224,14 +221,55 @@ pub fn switch_repository(
             })
             .map_err(|e| crate::types::ErrorDto::from(&e))?;
 
-        (repo.path.clone(), repo.name.clone(), repo.backend_type.clone())
+        (repo.path.clone(), repo.name.clone(), repo.backend_type.clone(), repo.password_stored)
     };
 
-    // 3. Repository öffnen und validieren (aber nicht im State speichern für M1)
-    let opened = crate::rustic::repository::open_repository(&path, &password)
+    // Öffne Repository und lege es im Cache ab
+    let repository = state
+        .open_repository_with_password(&repository_id, &password)
         .map_err(|e| crate::types::ErrorDto::from(&e))?;
 
-    // 4. Repository-Info für Frontend erstellen
+    // Passwort sicher speichern (mandatory)
+    crate::keychain::store_password(&repository_id, &password).map_err(|e| {
+        crate::types::ErrorDto {
+            code: "KeychainStoreFailed".to_string(),
+            message: format!("Passwort konnte nicht gespeichert werden: {}", e),
+            details: None,
+        }
+    })?;
+
+    // Aktualisiere Config falls Passwort bisher nicht persistiert war
+    if !password_stored {
+        {
+            let mut config = state.config.lock();
+            if let Some(repo) = config.repositories.iter_mut().find(|r| r.id == repository_id) {
+                repo.password_stored = true;
+            }
+        }
+
+        state.save_config().map_err(|e| crate::types::ErrorDto {
+            code: "ConfigError".to_string(),
+            message: format!("Config-Speicherung fehlgeschlagen: {}", e),
+            details: None,
+        })?;
+    }
+
+    // Aktives Repository im State setzen
+    state.set_current_repository(Some(repository_id.clone()));
+
+    // Snapshot-Zähler ermitteln
+    let snapshot_count = match repository.get_all_snapshots() {
+        Ok(snaps) => snaps.len() as u32,
+        Err(err) => {
+            tracing::warn!(
+                "Snapshots für Repository {} konnten nicht gelesen werden: {}",
+                repository_id,
+                err
+            );
+            0
+        }
+    };
+
     let info = crate::types::RepositoryDto {
         id: repository_id.clone(),
         name: repo_name,
@@ -244,19 +282,11 @@ pub fn switch_repository(
             crate::config::BackendType::Rclone => crate::types::RepositoryType::Rclone,
         },
         status: crate::types::RepositoryStatus::Healthy,
-        snapshot_count: opened.snapshot_count,
-        total_size: opened.total_size,
+        snapshot_count,
+        total_size: 0,
         last_accessed: Some(chrono::Utc::now().to_rfc3339()),
         created_at: chrono::Utc::now().to_rfc3339(),
     };
-
-    // 6. TODO M2: Repository in State speichern für Performance
-    // Für jetzt lassen wir es weg wegen Type-Komplexität
-
-    // 7. Passwort aktualisieren in Keychain
-    if let Err(e) = crate::keychain::store_password(&repository_id, &password) {
-        tracing::warn!("Passwort konnte nicht in Keychain aktualisiert werden: {}", e);
-    }
 
     tracing::info!("Repository gewechselt: {} ({})", repository_id, path);
 

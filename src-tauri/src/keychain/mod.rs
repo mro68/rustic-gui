@@ -119,16 +119,12 @@ pub fn save_cloud_credentials(
     // Access Key speichern
     let access_entry = Entry::new(SERVICE_NAME, &access_key_id)
         .context("Access-Key-Eintrag konnte nicht erstellt werden")?;
-    access_entry
-        .set_password(access_key)
-        .context("Access Key konnte nicht gespeichert werden")?;
+    access_entry.set_password(access_key).context("Access Key konnte nicht gespeichert werden")?;
 
     // Secret Key speichern
     let secret_entry = Entry::new(SERVICE_NAME, &secret_key_id)
         .context("Secret-Key-Eintrag konnte nicht erstellt werden")?;
-    secret_entry
-        .set_password(secret_key)
-        .context("Secret Key konnte nicht gespeichert werden")?;
+    secret_entry.set_password(secret_key).context("Secret Key konnte nicht gespeichert werden")?;
 
     tracing::debug!(
         "Cloud-Credentials für Repository '{}' ({}) erfolgreich gespeichert",
@@ -155,16 +151,14 @@ pub fn load_cloud_credentials(repo_id: &str, provider: &str) -> Result<(String, 
     // Access Key laden
     let access_entry = Entry::new(SERVICE_NAME, &access_key_id)
         .context("Access-Key-Eintrag konnte nicht erstellt werden")?;
-    let access_key = access_entry
-        .get_password()
-        .context("Access Key konnte nicht geladen werden")?;
+    let access_key =
+        access_entry.get_password().context("Access Key konnte nicht geladen werden")?;
 
     // Secret Key laden
     let secret_entry = Entry::new(SERVICE_NAME, &secret_key_id)
         .context("Secret-Key-Eintrag konnte nicht erstellt werden")?;
-    let secret_key = secret_entry
-        .get_password()
-        .context("Secret Key konnte nicht geladen werden")?;
+    let secret_key =
+        secret_entry.get_password().context("Secret Key konnte nicht geladen werden")?;
 
     tracing::debug!(
         "Cloud-Credentials für Repository '{}' ({}) erfolgreich geladen",
@@ -198,11 +192,7 @@ pub fn delete_cloud_credentials(repo_id: &str, provider: &str) -> Result<()> {
         .context("Secret-Key-Eintrag konnte nicht erstellt werden")?;
     let _ = secret_entry.set_password(""); // Ignoriere Fehler
 
-    tracing::debug!(
-        "Cloud-Credentials für Repository '{}' ({}) gelöscht",
-        repo_id,
-        provider
-    );
+    tracing::debug!("Cloud-Credentials für Repository '{}' ({}) gelöscht", repo_id, provider);
 
     Ok(())
 }

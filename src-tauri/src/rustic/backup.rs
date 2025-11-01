@@ -1,6 +1,9 @@
 use crate::error::RusticGuiError;
 use rustic_backend::BackendOptions;
-use rustic_core::{BackupOptions as RusticBackupOptions, NoProgressBars, PathList, Repository, RepositoryOptions, SnapshotOptions};
+use rustic_core::{
+    BackupOptions as RusticBackupOptions, NoProgressBars, PathList, Repository, RepositoryOptions,
+    SnapshotOptions,
+};
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 use tauri::Emitter;
@@ -45,15 +48,11 @@ where
     // Validierung
     if options.repository.is_empty() {
         error!("Kein Repository angegeben");
-        return Err(RusticGuiError::InvalidConfig {
-            field: "repository".into(),
-        });
+        return Err(RusticGuiError::InvalidConfig { field: "repository".into() });
     }
     if options.source_paths.is_empty() {
         error!("Keine Quellpfade angegeben");
-        return Err(RusticGuiError::InvalidConfig {
-            field: "source_paths".into(),
-        });
+        return Err(RusticGuiError::InvalidConfig { field: "source_paths".into() });
     }
 
     let repo_path = options.repository.clone();
@@ -72,9 +71,7 @@ where
     // Backend erstellen
     let backends = backend_opts.to_backends().map_err(|e| {
         error!(?e, "Backend-Erstellung fehlgeschlagen");
-        RusticGuiError::RusticError {
-            message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
-        }
+        RusticGuiError::RusticError { message: format!("Backend-Erstellung fehlgeschlagen: {}", e) }
     })?;
 
     // Repository öffnen
@@ -103,33 +100,27 @@ where
     let source = PathList::from_string(&source_str)
         .map_err(|e| {
             error!(?e, "Source-Pfade ungültig");
-            RusticGuiError::InvalidConfig {
-                field: "source_paths".into(),
-            }
+            RusticGuiError::InvalidConfig { field: "source_paths".into() }
         })?
         .sanitize()
         .map_err(|e| {
             error!(?e, "Source-Pfade-Sanitierung fehlgeschlagen");
-            RusticGuiError::InvalidConfig {
-                field: "source_paths".into(),
-            }
+            RusticGuiError::InvalidConfig { field: "source_paths".into() }
         })?;
 
     // Snapshot-Optionen erstellen
     let mut snap_opts = SnapshotOptions::default();
-    
+
     // Tags hinzufügen
     if let Some(ref tags) = options.tags {
         if !tags.is_empty() {
             snap_opts = snap_opts.add_tags(&tags.join(",")).map_err(|e| {
                 error!(?e, "Tags hinzufügen fehlgeschlagen");
-                RusticGuiError::InvalidConfig {
-                    field: "tags".into(),
-                }
+                RusticGuiError::InvalidConfig { field: "tags".into() }
             })?;
         }
     }
-    
+
     let snapshot = snap_opts.to_snapshot().map_err(|e| {
         error!(?e, "Snapshot-Erstellung fehlgeschlagen");
         RusticGuiError::RusticError {
@@ -140,12 +131,12 @@ where
     // Backup-Optionen erstellen
     let backup_opts = RusticBackupOptions::default();
     // TODO M1.2.1: Add exclude patterns to backup_opts when we figure out the API
-    
+
     // Progress-Tracking mit simuliertem Progress
     // TODO M1.2.1: Implement real progress tracking with rustic_core callbacks
     let total_files = source.len() as u64;
     let total_bytes = 1_000_000u64; // Placeholder
-    
+
     // Sende initialen Progress
     on_progress(BackupProgress {
         files_processed: 0,
@@ -159,9 +150,7 @@ where
     // Führe Backup aus
     let result_snapshot = repo.backup(&backup_opts, &source, snapshot).map_err(|e| {
         error!(?e, "Backup fehlgeschlagen");
-        RusticGuiError::BackupFailed {
-            reason: format!("Backup fehlgeschlagen: {}", e),
-        }
+        RusticGuiError::BackupFailed { reason: format!("Backup fehlgeschlagen: {}", e) }
     })?;
 
     // Sende finalen Progress
@@ -175,7 +164,7 @@ where
     });
 
     info!(repo = %repo_path, snapshot_id = %result_snapshot.id, "Backup erfolgreich abgeschlossen");
-    
+
     // Return snapshot ID
     Ok(result_snapshot.id.to_string())
 }
@@ -210,24 +199,24 @@ mod tests {
         // Create a temporary repository for testing
         let temp_repo = TempDir::new().unwrap();
         let repo_path = temp_repo.path().to_str().unwrap();
-        
+
         // Create a temporary source directory
         let temp_source = TempDir::new().unwrap();
         let source_path = temp_source.path().to_str().unwrap();
-        
+
         // Create a test file in source
         std::fs::write(temp_source.path().join("test.txt"), b"test content").unwrap();
-        
+
         // Initialize the repository first
         let repo_opts = RepositoryOptions::default().password("test-password");
         let backend_opts = BackendOptions::default().repository(repo_path);
         let backends = backend_opts.to_backends().unwrap();
-        
+
         use rustic_core::{ConfigOptions, KeyOptions};
         let _ = Repository::<NoProgressBars, ()>::new(&repo_opts, &backends)
             .unwrap()
             .init(&KeyOptions::default(), &ConfigOptions::default());
-        
+
         let options = BackupOptions {
             repository: repo_path.to_string(),
             source_paths: vec![source_path.to_string()],
@@ -236,15 +225,15 @@ mod tests {
             compression: None,
             job_id: Some("testjob1".to_string()),
         };
-        
+
         let progress_vec = Arc::new(Mutex::new(Vec::new()));
         let progress_clone = progress_vec.clone();
         let cb = move |progress: BackupProgress| {
             progress_clone.lock().unwrap().push(progress);
         };
-        
+
         let result = run_backup_logic(&options, cb).await;
-        
+
         // The backup should succeed (or at least not fail with invalid config)
         match result {
             Ok(snapshot_id) => {
@@ -299,24 +288,24 @@ mod tests {
         // Create a temporary repository for testing
         let temp_repo = TempDir::new().unwrap();
         let repo_path = temp_repo.path().to_str().unwrap();
-        
+
         // Create a temporary source directory
         let temp_source = TempDir::new().unwrap();
         let source_path = temp_source.path().to_str().unwrap();
-        
+
         // Create a test file
         std::fs::write(temp_source.path().join("test.txt"), b"test content").unwrap();
-        
+
         // Initialize the repository
         let repo_opts = RepositoryOptions::default().password("test-password");
         let backend_opts = BackendOptions::default().repository(repo_path);
         let backends = backend_opts.to_backends().unwrap();
-        
+
         use rustic_core::{ConfigOptions, KeyOptions};
         let _ = Repository::<NoProgressBars, ()>::new(&repo_opts, &backends)
             .unwrap()
             .init(&KeyOptions::default(), &ConfigOptions::default());
-        
+
         let options = BackupOptions {
             repository: repo_path.to_string(),
             source_paths: vec![source_path.to_string()],
@@ -325,21 +314,24 @@ mod tests {
             compression: None,
             job_id: Some("testjob2".to_string()),
         };
-        
+
         let progress_vec = Arc::new(Mutex::new(Vec::new()));
         let progress_clone = progress_vec.clone();
         let cb = move |progress: BackupProgress| {
             progress_clone.lock().unwrap().push(progress);
         };
-        
+
         let result = run_backup_logic(&options, cb).await;
-        
+
         // Check that we got progress events
         match result {
             Ok(_) => {
                 let progress = progress_vec.lock().unwrap();
                 // We should have at least initial and final progress events
-                assert!(progress.len() >= 2, "Should have at least 2 progress events (start and end)");
+                assert!(
+                    progress.len() >= 2,
+                    "Should have at least 2 progress events (start and end)"
+                );
             }
             Err(e) => {
                 // For now, we accept certain errors since the implementation is still being refined

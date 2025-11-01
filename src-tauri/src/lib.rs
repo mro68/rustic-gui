@@ -39,6 +39,7 @@ pub mod keychain;
 pub mod rustic;
 pub mod scheduler;
 pub mod state;
+pub mod storage;
 pub mod types;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -72,11 +73,7 @@ async fn restore_scheduled_jobs(
     let mut restored_count = 0;
 
     for (job_id, cron_expression) in jobs_to_schedule {
-        tracing::info!(
-            "Stelle geplanten Job wieder her: {} ({})",
-            job_id,
-            cron_expression
-        );
+        tracing::info!("Stelle geplanten Job wieder her: {} ({})", job_id, cron_expression);
 
         let job_id_clone = job_id.clone();
         let app_handle_clone = app_handle.clone();
@@ -85,43 +82,39 @@ async fn restore_scheduled_jobs(
         let mut scheduler_lock = state.scheduler.lock().await;
         if let Some(scheduler) = scheduler_lock.as_mut() {
             match scheduler
-                .schedule_job(
-                    job_id.clone(),
-                    &cron_expression,
-                    move || {
-                        let job_id = job_id_clone.clone();
-                        let app_handle = app_handle_clone.clone();
-                        let _state = state_clone.clone();
+                .schedule_job(job_id.clone(), &cron_expression, move || {
+                    let job_id = job_id_clone.clone();
+                    let app_handle = app_handle_clone.clone();
+                    let _state = state_clone.clone();
 
-                        Box::pin(async move {
-                            tracing::info!("Scheduled backup gestartet: {}", job_id);
+                    Box::pin(async move {
+                        tracing::info!("Scheduled backup gestartet: {}", job_id);
 
-                            // Event: Backup gestartet
-                            let _ = app_handle.emit(
-                                "scheduled-backup-started",
-                                serde_json::json!({
-                                    "job_id": job_id,
-                                    "time": chrono::Utc::now().to_rfc3339(),
-                                }),
-                            );
+                        // Event: Backup gestartet
+                        let _ = app_handle.emit(
+                            "scheduled-backup-started",
+                            serde_json::json!({
+                                "job_id": job_id,
+                                "time": chrono::Utc::now().to_rfc3339(),
+                            }),
+                        );
 
-                            // TODO M3.3: Integriere run_backup hier
-                            // Vorläufig: Simuliere Backup-Ausführung
-                            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+                        // TODO M3.3: Integriere run_backup hier
+                        // Vorläufig: Simuliere Backup-Ausführung
+                        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 
-                            // Event: Backup abgeschlossen
-                            let _ = app_handle.emit(
-                                "scheduled-backup-completed",
-                                serde_json::json!({
-                                    "job_id": job_id,
-                                    "time": chrono::Utc::now().to_rfc3339(),
-                                }),
-                            );
+                        // Event: Backup abgeschlossen
+                        let _ = app_handle.emit(
+                            "scheduled-backup-completed",
+                            serde_json::json!({
+                                "job_id": job_id,
+                                "time": chrono::Utc::now().to_rfc3339(),
+                            }),
+                        );
 
-                            tracing::info!("Scheduled backup abgeschlossen: {}", job_id);
-                        })
-                    },
-                )
+                        tracing::info!("Scheduled backup abgeschlossen: {}", job_id);
+                    })
+                })
                 .await
             {
                 Ok(_) => {
@@ -153,7 +146,7 @@ pub fn run() {
         .manage(app_state)
         .setup(move |app| {
             let app_handle = app.handle().clone();
-            
+
             // Scheduler async initialisieren
             tauri::async_runtime::block_on(async {
                 app_state_clone
