@@ -4,6 +4,13 @@
 
 ---
 
+## 🔧 Toolchain & Setup
+
+- **Vitest** (Node.js 20, jsdom) für Frontend-Komponenten und Stores. `npm test` führt alle Tests aus, `npm run test:watch` startet den Watch-Modus. Projektweite Mocks und Assertions werden in `src/test-setup.ts` gepflegt.
+- **Rust Tests** via `cargo test`. Asynchrone Pfade verwenden `#[tokio::test]`; portable-spezifische Logik liegt unter `src-tauri/src/storage`.
+- **Coverage**: `npm run test:coverage` erzeugt Vitest-Berichte, `cargo tarpaulin --out Html` generiert Rust-Coverage.
+- **E2E**: Keine automatisierte End-to-End-Suite vorhanden. Neue E2E-Ansätze bitte vorab hier dokumentieren (z.B. Playwright-Konzept).
+
 ## 🧪 Test-Pyramide
 
 ```
@@ -18,9 +25,10 @@
 ```
 
 ### Verteilung
+
 - **Unit-Tests**: 70% (schnell, isoliert)
 - **Integration-Tests**: 25% (Backend ↔ rustic_core)
-- **E2E-Tests**: 5% (komplette User-Flows)
+- **E2E-Tests**: 5% (komplette User-Flows) — _derzeit nicht implementiert_
 
 ---
 
@@ -29,6 +37,7 @@
 ### ✅ IMMER testen
 
 **Business-Logik:**
+
 - Backup-Job-Validierung
 - Snapshot-Filtering/Sorting
 - Retention-Policy-Berechnung
@@ -36,11 +45,13 @@
 - Cron-Expression-Parsing
 
 **Utils:**
+
 - Formatierungs-Funktionen (Bytes, Datum)
 - Validierungs-Funktionen
 - Parser (Config, JSON)
 
 **Kritische Pfade:**
+
 - Repository-Öffnen
 - Backup-Ausführung
 - Restore-Operation
@@ -73,10 +84,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'src/test-setup.ts',
-      ],
+      exclude: ['node_modules/', 'src/test-setup.ts'],
     },
   },
 });
@@ -292,9 +300,7 @@ describe('repositories store', () => {
   });
 
   it('setzt aktives Repository', async () => {
-    const mockRepos = [
-      { id: '1', name: 'Repo 1', path: '/path/1', backendType: 'local' },
-    ];
+    const mockRepos = [{ id: '1', name: 'Repo 1', path: '/path/1', backendType: 'local' }];
 
     vi.mocked(invoke).mockResolvedValue(mockRepos);
     await loadRepositories();
@@ -354,9 +360,7 @@ describe('Backup API', () => {
     it('wirft Fehler bei Backend-Fehler', async () => {
       vi.mocked(invoke).mockRejectedValue(new Error('Backup fehlgeschlagen'));
 
-      await expect(runBackup('job-1', 'password')).rejects.toThrow(
-        'Backup fehlgeschlagen'
-      );
+      await expect(runBackup('job-1', 'password')).rejects.toThrow('Backup fehlgeschlagen');
     });
   });
 
@@ -368,10 +372,7 @@ describe('Backup API', () => {
       const callback = vi.fn();
       const unlisten = await onBackupProgress('job-1', callback);
 
-      expect(listen).toHaveBeenCalledWith(
-        'backup-progress-job-1',
-        expect.any(Function)
-      );
+      expect(listen).toHaveBeenCalledWith('backup-progress-job-1', expect.any(Function));
       expect(unlisten).toBe(mockUnlisten);
     });
   });
@@ -808,10 +809,10 @@ npm run test:ui
 #[test]
 fn test_debug() {
     env_logger::init(); // Aktiviert logging in Tests
-    
+
     let result = some_function();
     dbg!(&result); // Debug-Print
-    
+
     assert!(result.is_ok());
 }
 
@@ -938,7 +939,7 @@ async fn flaky_test() {
     let start = Instant::now();
     do_async_work().await;
     let duration = start.elapsed();
-    
+
     // Kann je nach System-Last fehlschlagen!
     assert!(duration < Duration::from_millis(100));
 }
@@ -955,11 +956,11 @@ async fn stable_test() {
 #[tokio::test]
 async fn test_with_mock_time() {
     tokio::time::pause(); // Pausiert Zeit
-    
+
     let start = Instant::now();
     tokio::time::advance(Duration::from_secs(10)).await;
     let duration = start.elapsed();
-    
+
     assert_eq!(duration, Duration::from_secs(10));
 }
 ```
@@ -987,7 +988,7 @@ use rustic_gui::backup::*;
 
 fn benchmark_snapshot_parsing(c: &mut Criterion) {
     let json = include_str!("../fixtures/large_snapshot.json");
-    
+
     c.bench_function("parse large snapshot", |b| {
         b.iter(|| {
             parse_snapshot(black_box(json))
@@ -999,7 +1000,7 @@ fn benchmark_path_normalization(c: &mut Criterion) {
     let paths: Vec<_> = (0..1000)
         .map(|i| format!("/path/to/file{}", i))
         .collect();
-    
+
     c.bench_function("normalize 1000 paths", |b| {
         b.iter(|| {
             paths.iter().map(|p| normalize_path(p)).collect::<Vec<_>>()
@@ -1026,6 +1027,7 @@ cargo bench --bench backup_bench -- --baseline main
 ## ✅ Testing-Checkliste
 
 ### Unit-Tests
+
 - [ ] Business-Logik getestet
 - [ ] Utils getestet
 - [ ] Error-Cases getestet
@@ -1033,12 +1035,14 @@ cargo bench --bench backup_bench -- --baseline main
 - [ ] Mocks verwendet wo nötig
 
 ### Integration-Tests
+
 - [ ] Kritische User-Flows getestet
 - [ ] API-Integration getestet
 - [ ] rustic_core-Integration getestet
 - [ ] Real-World-Scenarios
 
 ### Qualität
+
 - [ ] Tests sind lesbar
 - [ ] Tests sind wartbar
 - [ ] Keine Flaky-Tests
@@ -1047,5 +1051,5 @@ cargo bench --bench backup_bench -- --baseline main
 
 ---
 
-**Version**: 1.0  
-**Letzte Aktualisierung**: 2025-10-26
+**Version**: 1.1  
+**Letzte Aktualisierung**: 2025-11-01

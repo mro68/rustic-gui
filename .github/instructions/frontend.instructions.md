@@ -19,20 +19,17 @@
 ### Mockup-Übersicht
 
 ```
-mockups/
-├── 01-main-window.png             # Hauptfenster (Sidebar + Content)
-├── 02-dashboard.png               # Dashboard-View
-├── 03-repositories-list.png       # Repository-Liste
-├── 04-create-repo-dialog.png      # Repository hinzufügen
-├── 05-backup-jobs-list.png        # Job-Übersicht
-├── 06-create-job-dialog.png       # Job-Wizard (mehrstufig)
-├── 07-snapshots-list.png          # Snapshot-Liste
-├── 08-snapshot-detail.png         # Snapshot-Details
-├── 09-snapshot-compare.png        # Snapshot-Vergleich
-├── 10-restore-browser.png         # File-Browser für Restore
-├── 11-restore-dialog.png          # Restore-Optionen
-└── 12-settings.png                # Einstellungen
+docs/mockups/
+├── rustic_gui_mockup.html                # Hauptfenster, Dashboard, Listenansichten
+├── rustic_backup_dialogs.html            # Backup-Wizard & Job-bezogene Dialoge
+├── rustic_repo_security_dialogs.html     # Repository-Setup, Security-Flows
+├── rustic_restore_dialogs.html           # Restore- und Snapshot-Vergleichsdialoge
+├── rustic_advanced_ui_mockup.html        # Erweiterte Snapshot-Funktionen
+├── rustic_location_picker.html           # Unified Location Picker
+└── portable_notice.html                  # Portable-Build-Hinweise (nur Layout-Referenz)
 ```
+
+> 💡 Die HTML-Mockups enthalten inline CSS/JS. Öffne sie im Browser, um das erwartete Layout, Verhalten und die Farbwerte pixelgenau zu sehen.
 
 ---
 
@@ -496,7 +493,16 @@ src/
 
 ## 📦 State Management (Svelte Stores)
 
-### Store-Pattern
+### Store-Pattern (Legacy + Runes Hybrid)
+
+Rustic GUI nutzt bereits **Svelte 5**, bleibt aber aus Kompatibilitätsgründen bei den klassischen `writable`/`derived` Stores für globale Zustände. Innerhalb neuer Komponenten dürfen Svelte-5-Runes (`$state`, `$derived`, `$effect`) genutzt werden, solange sie nicht mit den bestehenden Stores kollidieren.
+
+**Richtlinien:**
+
+- Behalte bestehende Stores (`src/lib/stores/*.ts`) im klassischen Pattern bei.
+- Wenn zusätzlicher lokaler Zustand benötigt wird, verwende in Komponenten `let foo = $state(initial)`.
+- Greife in Runes-Komponenten auf Stores über `$store` zu (Svelte kompiliert dies weiterhin korrekt).
+- Verwende `setContext`/`getContext` nur, wenn das Mockup oder bestehende Patterns es vorgeben.
 
 ```typescript
 // src/lib/stores/repositories.ts
@@ -1558,5 +1564,5 @@ export let open = false; export let snapshotId: string;
 
 ---
 
-**Version**: 1.0  
-**Letzte Aktualisierung**: 2025-10-26
+**Version**: 1.1  
+**Letzte Aktualisierung**: 2025-11-01

@@ -76,6 +76,7 @@
 #### 1. UI-Komponenten (Svelte)
 
 **Hierarchie:**
+
 ```
 Pages (Routen)
   └─> Layout-Komponenten (Sidebar, Header)
@@ -84,16 +85,20 @@ Pages (Routen)
 ```
 
 **Verantwortlichkeiten:**
+
 - **Pages**: Routing, Daten-Loading, Layout-Komposition
 - **Feature-Komponenten**: Feature-spezifische UI-Logik
 - **Shared-Komponenten**: Wiederverwendbare UI-Elemente
 
 **Kommunikation:**
+
 - Props down (Parent → Child)
 - Events up (Child → Parent via dispatch)
 - Stores für globalen State
 
 #### 2. State Management (Stores)
+
+> ℹ️ **Svelte 5 + Legacy Stores**: Das Projekt setzt bereits Svelte 5 ein, nutzt für globale Zustände aber weiterhin klassische `writable`/`derived` Stores in `src/lib/stores`. Lokaler Komponenten-State darf gern über Svelte-5-Runes (`$state`, `$derived`, `$effect`) laufen. Migriere einen Store nur vollständig, wenn alle abhängigen Komponenten angepasst werden.
 
 **Store-Typen:**
 
@@ -116,6 +121,7 @@ export const repositories = {
 ```
 
 **Store-Organisation:**
+
 ```
 stores/
 ├── repositories.ts    # Repository-Verwaltung
@@ -128,12 +134,14 @@ stores/
 #### 3. API-Layer (TypeScript Wrapper)
 
 **Zweck:**
+
 - Kapselt Tauri IPC-Aufrufe
 - Type-Safety für Backend-Kommunikation
 - Zentrale Error-Handling-Logik
 - Event-Listener-Management
 
 **Struktur:**
+
 ```typescript
 // api/backup.ts
 export async function runBackup(jobId: string): Promise<BackupResult> {
@@ -152,6 +160,7 @@ export async function onBackupProgress(
 #### 1. Tauri Commands (Rust)
 
 **Command-Pattern:**
+
 ```rust
 #[tauri::command]
 pub async fn command_name(
@@ -166,6 +175,7 @@ pub async fn command_name(
 ```
 
 **Command-Organisation:**
+
 ```
 src/
 ├── main.rs              # Command-Registrierung
@@ -218,23 +228,25 @@ async fn run_rustic_backup(
 #### 3. State Management (Rust)
 
 **AppState-Pattern:**
+
 ```rust
 pub struct AppState {
     // Aktuell geöffnetes Repository
     pub current_repo: Arc<Mutex<Option<Repository>>>,
-    
+
     // Laufende Backups (für Cancellation)
     pub cancellation_tokens: Arc<Mutex<HashMap<String, CancellationToken>>>,
-    
+
     // Scheduler für zeitgesteuerte Jobs
     pub scheduler: Arc<Mutex<BackupScheduler>>,
-    
+
     // Config
     pub config: Arc<Mutex<AppConfig>>,
 }
 ```
 
 **State-Zugriff in Commands:**
+
 ```rust
 #[tauri::command]
 pub async fn some_command(
@@ -244,7 +256,7 @@ pub async fn some_command(
     let repo = state.current_repo.lock().unwrap()
         .as_ref()
         .ok_or("Kein Repository geöffnet")?;
-    
+
     // Mit Repository arbeiten
     Ok(())
 }
@@ -405,6 +417,7 @@ UI-Update (Svelte Reaktivität)
 ```
 
 **Beispiel-Events:**
+
 - `backup-progress-{jobId}` → Progress-Updates
 - `backup-completed-{jobId}` → Backup fertig
 - `backup-failed-{jobId}` → Backup-Fehler
@@ -473,6 +486,15 @@ export interface BackupResult {
 ```
 
 ### Rust Structs (Backend)
+
+## 💾 Portable Konfiguration
+
+- Portable Builds speichern ihre Einstellungen nicht im klassischen `dirs::config_dir`, sondern über den **PortableStore** (`src-tauri/src/storage/portable.rs`).
+- Die Daten landen als `portable-config.dat` neben dem Binary und sind mit **AES-256-GCM** verschlüsselt. Der Schlüssel wird aus einem Salt + Passphrase abgeleitet; bitte niemals im Klartext ablegen oder loggen.
+- Bei schreibgeschützten Medien wird automatisch auf ein Fallback-Verzeichnis im temporären Ordner ausgewichen. In diesem Fall feuert der Backend-State das Event `portable-store-fallback`, das im Frontend einen Hinweisbanner auslösen muss.
+- Wenn du neue Settings-Files oder Caches einführst, halte dich an dieses Muster. Portable Builds dürfen keine unverschlüsselten TOML-Dateien ausgeben.
+
+---
 
 ```rust
 // src/types.rs
@@ -576,6 +598,7 @@ pub struct RetentionPolicy {
 ```
 
 **Regeln:**
+
 1. ✅ Passwort nie loggen
 2. ✅ Nur in Memory halten (Session)
 3. ✅ Optional in System-Keychain speichern
@@ -589,6 +612,7 @@ pub struct RetentionPolicy {
 ### Lazy-Loading-Strategie
 
 **FileTree (Restore-Browser):**
+
 ```
 1. Initial: Nur Root-Level laden
 2. On-Expand: Unterverzeichnis nachladen
@@ -597,6 +621,7 @@ pub struct RetentionPolicy {
 ```
 
 **Snapshot-Liste:**
+
 ```
 1. Paginierung: 50 Snapshots pro Seite
 2. Virtual Scrolling: Bei >100 Items
@@ -606,6 +631,7 @@ pub struct RetentionPolicy {
 ### Concurrency
 
 **Frontend:**
+
 ```typescript
 // Parallele API-Calls
 const [repos, jobs, snapshots] = await Promise.all([
@@ -619,6 +645,7 @@ const debouncedSearch = debounce(searchSnapshots, 300);
 ```
 
 **Backend:**
+
 ```rust
 // Parallele Verarbeitung mit tokio
 let results = stream::iter(items)
@@ -643,7 +670,7 @@ API-Wrapper catch
      ├─> Log to console
      ├─> Show Toast
      └─> Return/Throw
-     
+
 Backend Error
      │
      ▼
@@ -652,7 +679,7 @@ Service-Layer catch
      ├─> Log (tracing)
      ├─> Map to user-friendly message
      └─> Return Result<T, String>
-     
+
 Tauri Command
      │
      ▼
@@ -664,6 +691,7 @@ Frontend receives Err
 ### Error-Types
 
 **Frontend:**
+
 ```typescript
 class BackupError extends Error {
   constructor(
@@ -675,15 +703,16 @@ class BackupError extends Error {
 ```
 
 **Backend:**
+
 ```rust
 #[derive(Debug, Error)]
 pub enum BackupError {
     #[error("Repository nicht gefunden: {0}")]
     RepositoryNotFound(String),
-    
+
     #[error("Authentifizierung fehlgeschlagen")]
     AuthenticationFailed,
-    
+
     // ... weitere
 }
 ```
@@ -705,6 +734,7 @@ ERROR → Fehler (Production)
 ### Log-Struktur
 
 **Backend:**
+
 ```rust
 tracing::info!(
     job_id = %job_id,
@@ -715,6 +745,7 @@ tracing::info!(
 ```
 
 **Frontend:**
+
 ```typescript
 console.log('[Backup]', {
   jobId,
@@ -725,9 +756,19 @@ console.log('[Backup]', {
 
 ---
 
+## 🚀 Distribution
+
+- **Linux**: `npm run tauri:build` erzeugt ein AppImage (`src-tauri/tauri.conf.json → linux > appimage`). Achte darauf, neue Assets in `bundle > resources` zu whitelisten.
+- **Windows**: Neben dem MSI-Bundle wird eine portable `.exe` erstellt. Die Portable-Variante muss immer mit dem verschlüsselten PortableStore zusammenspielen; zusätzliche Dateien gehören in `portableResources`.
+- **macOS**: Aktuell nur Entwicklungs-Builds (`npm run tauri dev`). Für notarized Releases bitte zuerst dieses Dokument erweitern.
+- **Dokumentation**: Jeder neue Build-Schritt oder zusätzliche Abhängigkeit (z.B. `appimage-tool`, Signaturzertifikate) muss in `README.md` und `workflow.instructions.md` festgehalten werden.
+
+---
+
 ## ✅ Architektur-Checkliste
 
 ### Design-Principles
+
 - [ ] Separation of Concerns (UI / Logic / Data)
 - [ ] Single Responsibility
 - [ ] DRY (Don't Repeat Yourself)
@@ -735,6 +776,7 @@ console.log('[Backup]', {
 - [ ] YAGNI (You Aren't Gonna Need It)
 
 ### Patterns
+
 - [ ] Repository-Pattern für Data-Access
 - [ ] Service-Pattern für Business-Logic
 - [ ] Store-Pattern für State-Management
@@ -742,12 +784,14 @@ console.log('[Backup]', {
 - [ ] Event-Pattern für Async-Communication
 
 ### Security
+
 - [ ] Input-Validierung (Frontend + Backend)
 - [ ] Passwort-Handling sicher
 - [ ] Keine Secrets in Logs
 - [ ] Error-Messages user-friendly (keine Details)
 
 ### Performance
+
 - [ ] Lazy-Loading wo möglich
 - [ ] Caching wo sinnvoll
 - [ ] Debouncing bei User-Input
@@ -755,5 +799,5 @@ console.log('[Backup]', {
 
 ---
 
-**Version**: 1.0  
-**Letzte Aktualisierung**: 2025-10-26
+**Version**: 1.1  
+**Letzte Aktualisierung**: 2025-11-01

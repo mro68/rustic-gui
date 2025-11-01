@@ -1,277 +1,124 @@
-# Rustic GUI - Development Roadmap v3.0
+# Rustic GUI Roadmap
 
-> **REALISTISCHE Projekt-Roadmap basierend auf tatsächlichem Implementierungsstand**
->
-> Version: 3.1 | Status: ✅ BUILD SUCCESS - Phase 1 100% | Aktualisiert: 2025-10-31
+> Stand: 2025-11-01 &nbsp;·&nbsp; Verantwortlich: Rustic GUI Team
 
 ---
 
-## ✅ Phase 0 ABGESCHLOSSEN!
+## Aktueller Projektstatus
 
-**Das Projekt kompiliert jetzt erfolgreich!**
-
-```bash
-✅ cargo build - Finished `dev` profile [unoptimized + debuginfo]
-✅ 0 Compile-Fehler (war: 18 Fehler)
-✅ 28 Warnings (war: 36 Warnings)
-```
-
-**Nächster Schritt: Phase 1 (MVP Core Features)**
-
----
-
-## �📊 Projekt-Übersicht
-
-### Ziel
-
-**Produktionsreife Desktop-Anwendung** für rustic Backup-Management mit vollständiger rustic_core/rustic_backend Integration, Cloud-Storage-Support (S3, Azure, GCS via OpenDAL + Rclone), Job-Scheduling und Multi-Repository-Management.
-
-### Aktueller Status (2025-10-31) - KORRIGIERT
-
-- ✅ **UI-Layer:** ~90% vorhanden (Komponenten existieren, Backend-Integration fehlt)
-- 🔴 **Backend-Integration:** ~30% funktional (Code existiert, aber nicht getestet/vollständig)
-- 🔴 **Cloud-Backends:** 0% funktional (nur Code-Skelett vorhanden)
-- 🟡 **Job-Scheduler:** ~40% (Struktur da, nicht integriert/getestet)
-- 🔴 **Testing:** ~5% (Build broken = Tests laufen nicht)
-
-### Tatsächlicher Gesamtfortschritt: ~20-30%
-
-**NICHT** die vorher genannten ~53%! Die vorherige Roadmap war zu optimistisch.
-
-### Geschätzte verbleibende Dauer bis v1.0
-
-**~108 Stunden / 3 Wochen** (bei Vollzeit-Entwicklung)
-
-- Phase 0 (Notfall): 8h
-- Phase 1 (MVP): 25h
-- Phase 2 (Erweitert): 30h
-- Phase 3 (Advanced): 25h
-- Phase 4 (Testing+Docs): 20h
-
-**Kritischer Pfad:** Phase 0 → Phase 1 → MVP (33h / 1 Woche)
-
-### Technologie-Stack
-
-**Frontend:**
-
-- Svelte 5 (Runes API) + TypeScript 5.6+
-- TailwindCSS (via CDN, kein Build-Step)
-- Vite 6.0 + SvelteKit (File-Router)
-
-**Backend:**
-
-- Rust 1.75+ (Edition 2021) + Tauri 2.0
-- **rustic_core 0.8.0** - Backup-Engine ([API Docs](docs/rustic/rustic_core_api.md))
-- **rustic_backend 0.5.3** - Storage-Backends ([API Docs](docs/rustic/rustic_backend_api.md))
-- **librclone 0.9.0** - 70+ Cloud-Provider via rclone
-- **tokio-cron-scheduler 0.13** - Job-Scheduling
-- **keyring 3.6** - Passwort-Verwaltung (OS Keychain)
-
-**Build Targets:**
-
-- Linux: AppImage (primär)
-- Windows: EXE + MSI Installer
+- **Build & Laufzeit**
+  - `cargo build` und `npm run build` kompilieren ohne Blocker; Runtime-Features sind jedoch nur teilweise funktionsfähig, weil mehrere Tauri-Commands noch Platzhalter verwenden.
+  - Portable-Konfiguration wird beim Start über `AppState::new()` geladen; verschlüsselte Speicherung funktioniert, fällt bei schreibgeschützten Medien korrekt auf ein Fallback-Verzeichnis zurück.
+- **Backend (Tauri + Rust)**
+  - Repository-, Backup-, Snapshot- und Restore-Commands sind strukturell vorhanden (`src-tauri/src/commands/*`).
+  - Wichtige Operationen wie `check_repository`, `prune_repository`, `change_password` und `delete_snapshot` liefern noch Platzhalter- oder Fehlermeldungen.
+  - `run_backup_command`/-Optionen öffnen Repositories und senden Events, aber Passwort-Weitergabe, echte Progress-Kopplung und Fehlerbehandlung sind nicht abgeschlossen.
+  - Scheduler (`BackupScheduler`) initialisiert und stellt Jobs wieder her, führt aber keine echten Backups aus (Simulation via `tokio::sleep`).
+- **Frontend (Svelte 5 + TypeScript)**
+  - Layout, Navigation und Kernseiten existieren; Stores laden reale Daten über die Tauri-API.
+  - Zahlreiche Dialoge (Restore, Snapshot-Vergleich, Repository-Wartung) sind UI-seitig angelegt, aber ohne vollständige Backend-Verknüpfung.
+  - Snapshots-Seite: Liste/Filter funktionieren, der Vergleich liefert einfache Pfad-Diffs, Restore/Compare-Dialoge warten auf Wiring.
+  - Backup-Jobs-Seite: CRUD läuft über API, „Job ausführen“ und Scheduler-Status sind Platzhalter.
+- **Tests & Qualität**
+  - Vitest-Konfiguration aktiv (`npm test` → `vitest run`), aber nur wenige Komponenten-/Store-Tests vorhanden.
+  - Rust-Tests existieren (PortableStore, Scheduler), manche Commands enthalten deaktivierte Assertions.
+  - Keine automatisierten End-To-End-Tests.
 
 ---
 
-## 🎯 Phasen-Übersicht (NEU - Realistisch)
+## Feature-Breakdown (Status nach Funktionsbereich)
 
-| Phase                                     | Beschreibung            | Dauer    | Status   | Priorität | Blocker?      |
-| ----------------------------------------- | ----------------------- | -------- | -------- | --------- | ------------- |
-| **[Phase 0](#phase-0-notfall-reparatur)** | Build Fix + Basis-Demo  | 8h       | ✅ 100%  | � DONE    | ✅ RESOLVED   |
-| **[Phase 1](#phase-1-mvp-core)**          | MVP Core Features       | 25h      | ✅ 100%  | � DONE    | ✅ RESOLVED   |
-| **[Phase 2](#phase-2-erweiterte-basis)**  | Cloud + Scheduler       | 30h      | 🔴 5%    | 🟠 HIGH   | ❌ NO         |
-| **[Phase 3](#phase-3-advanced-features)** | Erweiterte Features     | 25h      | � 0%     | 🟡 MEDIUM | ❌ NO         |
-| **[Phase 4](#phase-4-testing--release)**  | Testing, Docs & Release | 20h      | � 10%    | � HIGH    | ❌ NO         |
-| **GESAMT**                                |                         | **108h** | **~20%** |           | **2 Blocker** |
+### Backend
 
-### Alte Milestones (M0-M6) archiviert
+- [x] AppState mit Repository-Cache, Scheduler und PortableStore (AES-256-GCM) (`src-tauri/src/state.rs`, `storage/portable.rs`)
+- [x] Settings-Commands (`get_settings`, `save_settings`, `reset_settings`, `update_theme`)
+- [~] Repository-Commands (listen/switchen funktionieren, Health/Prune/Passwort sind Stubs)
+- [~] Backup-Ausführung (Command-Struktur + Events vorhanden, Passwort-Handling/Progress ausständig)
+- [~] Snapshot-Management (Listen/Tagging fertig, Batch-Löschen ok, Einzel-Löschen TODO)
+- [~] Restore (`restore_files_v1` ruft rustic::restore, Fehler-/Progresswerte Platzhalter)
+- [ ] Scheduled Backups (Callbacks simulieren nur Erfolg; echte Job-Ausführung muss integriert werden)
 
-Die vorherigen Milestones M1-M6 waren zu optimistisch dokumentiert. Status siehe `docs/reports/archive/`.
+### Frontend
 
-## 📋 Detaillierte Phasen
+- [x] MainLayout, Sidebar, Router-Store (`src/lib/components/layout`, `src/lib/stores/router.ts`)
+- [x] Settings-Seite inkl. Backend-Speicherung
+- [~] Repositories-Seite (Listen/Löschen funktionieren, Unlock/Check/Prune-Dialoge ohne Backend-Funktionen)
+- [~] Snapshots-Seite (Liste & Filter ok, Restore/Compare/Advanced Filter fehlen)
+- [~] Backup-Jobs (CRUD und Dialoge vorhanden, Run/Scheduler-Infos fehlen)
+- [ ] Restore-Dialog-Flow (FileTree lädt Daten, aber Restore-Button nicht verdrahtet)
+- [ ] Dashboard-Widgets (Platzhalterdaten, keine echten Statistiken)
 
-### Phase 0: NOTFALL-REPARATUR 🎉 ABGESCHLOSSEN
+### Packaging & Distribution
 
-**Dauer:** 8h (1 Tag) | **Status:** ✅ 100% - ABGESCHLOSSEN  
-**Priorität:** � ERLEDIGT | **Blocker:** ✅ Gelöst
+- [x] `npm run tauri:build` erzeugt AppImage (Linux) und portable Windows-EXE (`src-tauri/tauri.conf.json` Targets)
+- [x] Portable-Deployments speichern `config.toml` verschlüsselt neben dem Binary; Fallback-Verzeichnis (Temp) wird protokolliert
+- [ ] Release-Automatisierung / Signierung (keine Pipelines dokumentiert)
+- [ ] Installer-Pfade testen (Windows MSI, Linux Desktopeinträge)
 
-**Ziel:** Projekt kompilierbar machen und minimalen Funktionsumfang demonstrieren können.
+### Qualität & Infrastruktur
 
-#### Tasks
+- [x] ESLint, Prettier, svelte-check und Clippy konfiguriert
+- [~] Unit-Tests (Vitest + Rust) vorhanden, aber geringe Abdeckung
+- [ ] Integrations-/E2E-Tests
+- [ ] CI/CD-Pipeline für Build, Test, Packaging
 
-**Task 0.1: Build-Fehler beheben** (2h) ✅
-
-- ✅ PackFile-Error in `src-tauri/src/rustic/repository.rs:593,602` gefixt
-- ✅ rustic_core 0.8.0 API-Änderungen nachvollzogen
-- ✅ Feature temporär deaktiviert mit Placeholder (get_repository_stats)
-- ✅ 4 Commands deaktiviert (compare_snapshots, forget_snapshots, add/remove_snapshot_tags)
-
-**Task 0.2: Warnings bereinigen** (1h) ✅
-
-- ✅ Unused imports entfernt (3 Stellen: RepositoryConfig, DiffResultDto/Stats, RetentionPolicy)
-- ✅ Snake_case Namen korrigiert (snapshotId, targetPath, jobId)
-- ✅ Warnings reduziert: 36 → 28 (8 behoben)
-
-**Task 0.3: Dokumentation** (2h) ✅
-
-- ✅ `docs/reports/2025-10-31-phase0-build-fix-notes.md` erstellt
-- ✅ Alle deaktivierten Commands dokumentiert
-- ✅ Migration-Plan für Phase 1 erstellt
-
-**Deliverables:**
-
-- ✅ `cargo build` erfolgreich (0 Fehler, 28 Warnings)
-- ✅ Dokumentation vollständig
-- ✅ Roadmap aktualisiert
+Legende: `[x]` fertig · `[~]` teilweise · `[ ]` offen
 
 ---
 
-### Phase 1: MVP CORE FEATURES 🎯
+## Kurzfristige Prioritäten (November 2025)
 
-**Dauer:** 25h (3-4 Tage) | **Status:** � 75% - FAST FERTIG  
-**Priorität:** 🔴 HÖCHSTE | **Abhängigkeit:** Phase 0 ✅ ABGESCHLOSSEN
-
-**Ziel:** Minimaler funktionsfähiger Prototyp - Backup/Restore für lokale Repositories.
-
-#### ✅ Abgeschlossene Arbeiten (2025-10-31)
-
-**Task 1.1: Repository State-Architektur** ✅
-
-- ✅ CachedRepository mit Arc<Repository> + 5min Timeout
-- ✅ `AppState::get_repository(id)` mit Cache-Logik
-- ✅ `AppState::set_current_repository(id)`
-- ✅ `AppState::get_current_repository_id()`
-- ✅ `AppState::with_current_repo()` helper
-- ✅ forget_snapshots() reaktiviert mit State-System
-
-**Task 1.2: Command-Migration** ✅
-
-- ✅ Alte Commands in lib.rs identifiziert
-- ✅ Neue Commands nutzen State-System
-- ✅ forget_snapshots nutzt rustic_core::delete_snapshots API
-
-**Task 1.3: Repository-Statistics** ✅
-
-- ✅ get_repository_stats() nutzt State-System
-- ✅ Integration mit rustic_core API (Placeholder für Pack-Stats)
-
-**Task 1.4: Snapshot-Commands Refactoring** ✅
-
-- ✅ compare_snapshots: Implementiert mit get_snapshots() und paths-basiertem Vergleich
-- ✅ add_snapshot_tags: Implementiert mit save_snapshots() API + StringList::from_str
-- ✅ remove_snapshot_tags: Implementiert mit save_snapshots() API + StringList::from_str
-- ✅ Alle 3 Commands aktiviert in lib.rs
-- ✅ Build erfolgreich (0 Fehler, 28 Warnings)
-- ✅ Tests erfolgreich (64 passed)
-
-**Deliverables:**
-
-- ✅ `cargo build` erfolgreich
-- ✅ Alle MVP-Core-Commands funktional
-- ✅ State-System vollständig integriert
-- ✅ Tests laufen erfolgreich
+1. **Repository-Wartung vervollständigen**
+   - `check_repository`, `prune_repository`, `change_password` mit echter rustic_core-Logik implementieren.
+   - Dialoge auf der Repositories-Seite aktivieren und mit vernünftigen Status-/Fehlermeldungen versehen.
+2. **Backup/Restore Ende-zu-Ende**
+   - Passwortdurchleitung & Progress-Callbacks in `run_backup_command` und `restore_files_v1` vervollständigen.
+   - Frontend-Buttons („Backup jetzt“, „Restore“) an die Commands anbinden; Events abonnieren.
+3. **Scheduler nutzbar machen**
+   - Geplante Jobs sollen reale Backups starten (`schedule_backup`, `restore_scheduled_jobs`).
+   - Job-Historie und Statusfelder (`last_run`, `next_run`) in UI/Config pflegen.
+4. **Snapshot-Lifecycle abrunden**
+   - Einzelnes Löschen (`delete_snapshot`) fertigstellen, Restore-Dialog wire-up, Diff-UI verbessern.
+5. **Test- & Dokumentationslücken schließen**
+   - Vitest- und Rust-Tests für die oben genannten neuen Funktionen ergänzen.
+   - CHANGELOG und README aktualisieren, sobald Features greifen.
 
 ---
 
-### Phase 2: ERWEITERTE BASIS
+## Milestones
 
-| Risiko                                        | Wahrscheinlichkeit | Impact     | Mitigation                                    |
-| --------------------------------------------- | ------------------ | ---------- | --------------------------------------------- |
-| rustic_core API-Breaking-Changes              | 🟢 Niedrig         | 🔴 Hoch    | v0.8.0 ist stabil, keine Änderungen erwartet  |
-| Performance bei großen Repos (>10k Snapshots) | 🟡 Mittel          | 🟡 Mittel  | Lazy-Loading, Pagination, Optimierung in M4   |
-| Cloud-Backend Authentifizierung komplex       | 🟠 Mittel          | 🟠 Mittel  | OpenDAL abstrahiert viel, gute Docs vorhanden |
-| Testing verzögert Release                     | 🟡 Mittel          | 🟠 Mittel  | Parallel zu M1-M4 entwickeln, nicht am Ende   |
-| Keychain-Probleme (Linux Distros)             | 🟡 Mittel          | 🟢 Niedrig | Fallback auf manuelle Passwort-Eingabe        |
+### Milestone A – MVP „Lokale Backups“ (Ziel: KW 46)
 
-#### Task 2.4: Portable-Store Fallback-Hinweis (UI + Backend)
+- Repository- und Passwort-Fluss stabil
+- Manuelles Backup/Restore inkl. Progress & Fehlerhandling
+- Snapshot-Liste mit Löschen, Restore und Tagging
+- Settings persistiert, PortableStore-Status im UI sichtbar
 
-- [x] Backend sendet `portable-store-status` Event & Command (2025-11-02)
-- [x] Frontend konsumiert Status und zeigt Toast-Warnung bei Fallback (2025-11-02)
-- [ ] UI-Mockup-Varianten (Banner/Settings-Hinweis) evaluieren
-- [x] Keychain-/Passwortfluss dokumentiert inkl. Fehlerpfade (`docs/features/keychain-password-flow.md`, 2025-11-01)
+### Milestone B – Geplante Backups & Cloud (Ziel: KW 48)
 
-### Abhängigkeits-Graph
+- Scheduler führt echte Backups aus und protokolliert Ergebnisse
+- Connection-Test & Location-Picker für S3/rclone vollständig
+- Repository-Health (check/prune) funktionsfähig
+- UI-Feedback für portable Fallbacks und Keychain-Status
 
-```
+### Milestone C – Beta-Qualität (Ziel: KW 50)
 
-M0 (Setup) ✅
-↓
-M1 (rustic_core) 🔴 ← BLOCKER
-↓
-├→ M2 (Cloud-Backends) 🟠
-├→ M3 (Job-Scheduler) 🟠
-└→ M4 (Advanced Features) 🟡
-↓
-M5 (Testing & QA) 🔴 ← BLOCKER
-↓
-M6 (Release) 🟢
-
-```
-
-**Kritischer Pfad:** M1 → M2 → M3 → M5 → M6 = 187h
+- Testabdeckung: ≥60 % Kernlogik (Vitest + Rust)
+- Release-Pipeline (AppImage, Windows portable + Signierung)
+- Benutzer-Dokumentation & Onboarding
+- Performance-/Stabilitätsprüfung mit großen Repositories
 
 ---
 
-## 🔗 Ressourcen & Referenzen
+## Referenzen & nächste Schritte
 
-### Interne Dokumentation
+| Thema                            | Relevante Dateien                                                                                                      |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Portable Store & Verschlüsselung | `src-tauri/src/state.rs`, `src-tauri/src/storage/portable.rs`                                                          |
+| Repository-Commands              | `src-tauri/src/commands/repository.rs`                                                                                 |
+| Backup & Scheduler               | `src-tauri/src/commands/backup.rs`, `src-tauri/src/rustic/backup.rs`, `src-tauri/src/scheduler/mod.rs`                 |
+| Snapshot/Restore                 | `src-tauri/src/commands/snapshot.rs`, `src-tauri/src/commands/restore.rs`, `src/lib/components/pages/Snapshots.svelte` |
+| Frontend Stores                  | `src/lib/stores/*.ts`                                                                                                  |
+| Test-Setup                       | `src/test-setup.ts`, `package.json (npm test)`, Rust Tests in `src-tauri/src/*`                                        |
 
-- **[AI Instructions](.github/copilot-instructions.md)** - Entwicklungs-Guidelines für KI
-- **[Backend Instructions](.github/instructions/backend.instructions.md)** - Rust/Tauri Best Practices
-- **[Frontend Instructions](.github/instructions/frontend.instructions.md)** - Svelte/TypeScript Patterns
-- **[Backup/Restore Instructions](.github/instructions/backup-restore-snapshots.instructions.md)** - Feature-Implementation
-- **[Testing Instructions](.github/instructions/testing.instructions.md)** - Test-Strategie
-
-### API-Dokumentation
-
-- **[rustic_core API](docs/rustic/rustic_core_api.md)** - Backup-Engine Referenz
-- **[rustic_backend API](docs/rustic/rustic_backend_api.md)** - Storage-Backends Referenz
-
-### UI-Mockups
-
-- **[Haupt-UI](docs/mockups/rustic_gui_mockup.html)** - Dashboard, Navigation, Settings
-- **[Backup-Dialoge](docs/mockups/rustic_backup_dialogs.html)** - Job-Creation, Run-Dialog
-- **[Repository & Security](docs/mockups/rustic_repo_security_dialogs.html)** - Add Repo, Unlock, Check, Prune
-- **[Restore-Dialoge](docs/mockups/rustic_restore_dialogs.html)** - File-Browser, Restore-Options
-- **[Location Picker](docs/mockups/rustic_location_picker.html)** - Unified Location-Auswahl
-- **[Advanced UI](docs/mockups/rustic_advanced_ui_mockup.html)** - Snapshot-Filter, Vergleich, Pagination
-
-### Externe Referenzen
-
-- **rustic_core:** https://docs.rs/rustic_core
-- **rustic_backend:** https://docs.rs/rustic_backend
-- **Tauri 2.0:** https://v2.tauri.app/
-- **Svelte 5:** https://svelte-5-preview.vercel.app/
-- **OpenDAL:** https://opendal.apache.org/
-- **Rclone:** https://rclone.org/
-
----
-
-## 📝 Change Log
-
-### v2.0 - 2025-10-31
-
-- **🔄 Roadmap-Restrukturierung:** Fokus-Shift von "UI-First" zu "Backend-Integration-First"
-- **📂 Modulare Struktur:** Milestones in separate Dateien ausgelagert (`docs/roadmaps/`)
-- **🎯 Neue Priorisierung:** M1 rustic_core Integration als höchste Priorität
-- **☁️ Cloud-Focus:** M2 dedicated zu Cloud-Backends (OpenDAL + Rclone)
-- **🧪 Testing-Strategie:** M5 mit 60/40 Coverage-Zielen definiert
-- **📊 Zeitschätzungen:** Realistische 227h basierend auf aktueller Analyse
-
-### v1.0 - 2025-10-26
-
-- Initiale Roadmap mit M0-M6 Struktur
-- UI-First-Ansatz (abgelöst durch v2.0)
-
----
-
-**Version:** 2.0
-**Letzte Aktualisierung:** 2025-10-31
-**Maintainer:** Rustic GUI Team
-
-🚀 **Los geht's mit [M1: rustic_core Integration](docs/roadmaps/M1-rustic-core-integration.md)!**
-
-```
-
-```
+Bitte ROADMAP nach Abschluss jedes Tasks aktualisieren und mit Commit `docs: roadmap aktualisiert (<kurzbeschreibung>)` einchecken.
