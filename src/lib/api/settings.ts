@@ -26,6 +26,18 @@ export interface AppSettings {
  * @returns Promise mit App-Einstellungen
  * @throws Error wenn Laden fehlschlägt
  */
+/**
+ * Holt die aktuellen Anwendungseinstellungen vom Backend.
+ *
+ * @returns Promise mit AppSettings-Objekt
+ * @throws Error wenn Backend-Communication fehlschlägt
+ *
+ * @example
+ * ```typescript
+ * const settings = await getSettings();
+ * console.log(settings.theme); // 'system', 'light', 'dark'
+ * ```
+ */
 export async function getSettings(): Promise<AppSettings> {
   return await invoke<AppSettings>('get_settings');
 }
@@ -36,6 +48,20 @@ export async function getSettings(): Promise<AppSettings> {
  * @param settings - Einstellungen zum Speichern
  * @returns Promise (void)
  * @throws Error wenn Speichern fehlschlägt
+ */
+/**
+ * Speichert geänderte Anwendungseinstellungen.
+ *
+ * @param settings - Zu speichernde Settings (vollständiges AppSettings-Objekt)
+ * @returns Promise<void>
+ * @throws Error wenn Speicherung fehlschlägt oder Validierung fehlschlägt
+ *
+ * @example
+ * ```typescript
+ * const currentSettings = await getSettings();
+ * currentSettings.theme = 'dark';
+ * await saveSettings(currentSettings);
+ * ```
  */
 export async function saveSettings(settings: AppSettings): Promise<void> {
   await invoke('save_settings', { settings });

@@ -31,7 +31,31 @@ struct BackupCancelEvent {
     message: Option<String>,
 }
 
-/// Tauri-Command: Bricht ein laufendes Backup ab und sendet ein Cancel-Event.
+/// Bricht ein laufendes Backup ab und sendet Cancellation-Event.
+///
+/// Verwendet das Cancellation-Token-System um Backups sicher abzubrechen.
+/// Sendet ein `backup-cancelled` Event an das Frontend.
+///
+/// # Arguments
+/// * `app` - Tauri AppHandle für Events
+/// * `job_id` - ID des abzubrechenden Backup-Jobs
+/// * `state` - AppState mit Cancellation-Tokens
+///
+/// # Returns
+/// `Result<(), ErrorDto>` - Ok bei Erfolg, Fehler wenn Job nicht gefunden
+///
+/// # Errors
+/// - `BackupJobNotFound`: Kein laufender Backup-Job mit der angegebenen ID
+///
+/// # Events
+/// Sendet `backup-cancelled` Event mit:
+/// ```json
+/// {
+///   "type": "cancelled",
+///   "jobId": "job-123",
+///   "message": "Backup wurde abgebrochen"
+/// }
+/// ```
 #[tauri::command]
 pub async fn cancel_backup(
     app: tauri::AppHandle,
@@ -59,7 +83,55 @@ pub async fn cancel_backup(
     }
 }
 
-/// Tauri-Command: Startet ein Backup und sendet Progress-, Completed- und Error-Events im einheitlichen Format an das Frontend.
+/// Startet ein Backup und sendet Progress/Completed/Error-Events.
+///
+/// Führt ein Backup mit den angegebenen Optionen aus und sendet
+/// regelmäßige Progress-Updates an das Frontend. Unterstützt Cancellation
+/// via `cancel_backup` Command.
+///
+/// # Arguments
+/// * `app` - Tauri AppHandle für Event-Emission
+/// * `options` - Backup-Optionen (Source-Pfade, Exclude-Patterns, Tags, etc.)
+///
+/// # Returns
+/// `Result<(), ErrorDto>` - Ok bei erfolgreichem Backup, Fehler sonst
+///
+/// # Errors
+/// - `BackupFailed`: Backup konnte nicht abgeschlossen werden
+/// - `RepositoryLocked`: Repository ist durch anderen Prozess gesperrt
+/// - `IoError`: Dateisystem-Fehler während Backup
+///
+/// # Events
+/// ## Progress-Events (`backup-progress`)
+/// ```json
+/// {
+///   "type": "progress",
+///   "jobId": "job-123",
+///   "progress": {
+///     "files_processed": 42,
+///     "bytes_uploaded": 1048576,
+///     "percent": 35.5
+///   }
+/// }
+/// ```
+///
+/// ## Completion-Event (`backup-completed`)
+/// ```json
+/// {
+///   "type": "completed",
+///   "jobId": "job-123",
+///   "message": "Backup erfolgreich abgeschlossen"
+/// }
+/// ```
+///
+/// ## Error-Event (`backup-error`)
+/// ```json
+/// {
+///   "type": "error",
+///   "jobId": "job-123",
+///   "message": "Fehler: ..."
+/// }
+/// ```
 #[tauri::command]
 pub async fn run_backup_command(
     app: tauri::AppHandle,

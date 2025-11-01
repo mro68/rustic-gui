@@ -30,6 +30,42 @@ import { invoke } from '@tauri-apps/api/core';
  * @returns Promise mit Repository-DTO
  * @throws Error wenn Initialisierung fehlschlägt
  */
+/**
+ * Initialisiert ein neues rustic Repository.
+ *
+ * Erstellt ein Repository mit den angegebenen Parametern,
+ * speichert das Passwort im System-Keychain und fügt es
+ * zur App-Konfiguration hinzu.
+ *
+ * @param path - Repository-Pfad (lokal oder remote URL)
+ * @param password - Verschlüsselungspasswort (min. 8 Zeichen empfohlen)
+ * @param backend_type - Backend-Typ ('local', 's3', 'sftp', 'rest', 'rclone')
+ * @param backend_options - Optional: Backend-spezifische Optionen (JSON)
+ * @returns Promise mit RepositoryDto (ID, Name, Path, etc.)
+ * @throws Error wenn Repository-Initialisierung fehlschlägt
+ *
+ * @example
+ * ```typescript
+ * // Lokales Repository
+ * const repo = await initRepository(
+ *   '/backup/my-repo',
+ *   'my-secure-password',
+ *   'local'
+ * );
+ *
+ * // S3 Repository
+ * const s3Repo = await initRepository(
+ *   's3:my-bucket/backups',
+ *   'password',
+ *   's3',
+ *   {
+ *     region: 'eu-central-1',
+ *     access_key_id: 'AKIAIOSFODNN7EXAMPLE',
+ *     secret_access_key: 'wJalrX...'
+ *   }
+ * );
+ * ```
+ */
 export async function initRepository(
   path: string,
   password: string,

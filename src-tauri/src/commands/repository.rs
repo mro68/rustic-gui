@@ -5,7 +5,35 @@
 use crate::state::AppState;
 use crate::types::RepositoryDto;
 
-/// Initialisiert ein neues Repository
+/// Initialisiert ein neues Repository und speichert es in der Konfiguration.
+///
+/// Erstellt ein rustic Repository mit den angegebenen Parametern,
+/// speichert das Passwort im System-Keychain und fügt das Repository
+/// zur App-Konfiguration hinzu.
+///
+/// # Arguments
+/// * `path` - Pfad zum Repository (lokal oder remote)
+/// * `password` - Verschlüsselungspasswort für das Repository
+/// * `backend_type` - Typ des Backends ("local", "s3", "sftp", "rest", "rclone")
+/// * `backend_options` - Optional: Backend-spezifische Optionen (JSON)
+/// * `state` - AppState mit Config und Keychain-Zugriff
+///
+/// # Returns
+/// `Result<RepositoryDto, ErrorDto>` - Repository-Informationen oder Fehler
+///
+/// # Errors
+/// - Repository konnte nicht erstellt werden (ungültiger Pfad, Backend-Fehler)
+/// - Config konnte nicht gespeichert werden
+///
+/// # Examples
+/// ```ignore
+/// // Via Tauri Command vom Frontend aufgerufen (TypeScript)
+/// await invoke('init_repository', {
+///   path: '/backup/repo',
+///   password: 'secret',
+///   backend_type: 'local',
+/// });
+/// ```
 #[tauri::command]
 pub fn init_repository(
     path: String,
@@ -15,8 +43,13 @@ pub fn init_repository(
     state: tauri::State<'_, AppState>,
 ) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
     // 1. Repository initialisieren mit rustic_core
-    let dto = crate::rustic::repository::init_repository(&path, &password, &backend_type, backend_options)
-        .map_err(|e| crate::types::ErrorDto::from(&e))?;
+    let dto = crate::rustic::repository::init_repository(
+        &path,
+        &password,
+        &backend_type,
+        backend_options,
+    )
+    .map_err(|e| crate::types::ErrorDto::from(&e))?;
 
     // 2. Repository-ID generieren
     let repo_id = dto.id.clone();
@@ -67,7 +100,23 @@ pub fn init_repository(
     Ok(dto)
 }
 
-/// Öffnet ein existierendes Repository
+/// Öffnet ein existierendes Repository und validiert die Zugangsdaten.
+///
+/// Prüft ob das Repository zugänglich ist und gibt Metadata zurück.
+/// Das Repository wird NICHT in der Konfiguration gespeichert -
+/// nutzen Sie dafür `switch_repository` nach erfolgreichem Öffnen.
+///
+/// # Arguments
+/// * `path` - Pfad zum Repository
+/// * `password` - Repository-Passwort
+///
+/// # Returns
+/// `Result<RepositoryDto, ErrorDto>` - Repository-Metadata oder Fehler
+///
+/// # Errors
+/// - Repository nicht gefunden unter dem angegebenen Pfad
+/// - Falsches Passwort (AuthenticationFailed)
+/// - Repository ist korrupt oder nicht rustic-kompatibel
 #[tauri::command]
 pub fn open_repository(
     path: String,
@@ -80,8 +129,15 @@ pub fn open_repository(
     // Gib ein DTO zurück (ohne das Repository zu speichern)
     // Das eigentliche Speichern geschieht via switch_repository
     Ok(RepositoryDto {
-        id: format!("repo-{}", std::path::Path::new(&path).file_name().and_then(|n| n.to_str()).unwrap_or("unknown")),
-        name: std::path::Path::new(&path).file_name().and_then(|n| n.to_str()).unwrap_or("Unknown Repository").to_string(),
+        id: format!(
+            "repo-{}",
+            std::path::Path::new(&path).file_name().and_then(|n| n.to_str()).unwrap_or("unknown")
+        ),
+        name: std::path::Path::new(&path)
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("Unknown Repository")
+            .to_string(),
         path: path.clone(),
         repository_type: crate::types::RepositoryType::Local,
         status: crate::types::RepositoryStatus::Healthy,
@@ -92,7 +148,21 @@ pub fn open_repository(
     })
 }
 
-/// Holt Repository-Informationen
+/// Holt detaillierte Repository-Informationen ohne das Repository zu öffnen.
+///
+/// Liest Metadaten wie Snapshot-Count, Größe, etc. aus dem Repository.
+/// Ähnlich wie `open_repository`, aber ohne Speicherung in Config.
+///
+/// # Arguments
+/// * `path` - Repository-Pfad
+/// * `password` - Repository-Passwort
+///
+/// # Returns
+/// `Result<RepositoryDto, ErrorDto>` - Detaillierte Repository-Informationen
+///
+/// # Errors
+/// - Repository nicht gefunden oder nicht lesbar
+/// - Authentifizierung fehlgeschlagen
 #[tauri::command]
 pub fn get_repository_info(
     path: String,
@@ -208,7 +278,9 @@ pub fn store_repository_password(
 
 /// Lädt Repository-Passwort
 #[tauri::command]
-pub fn get_repository_password(repo_id: String) -> std::result::Result<String, crate::types::ErrorDto> {
+pub fn get_repository_password(
+    repo_id: String,
+) -> std::result::Result<String, crate::types::ErrorDto> {
     crate::keychain::load_password(&repo_id).map_err(|e| crate::types::ErrorDto {
         code: "KeychainLoadFailed".to_string(),
         message: format!("Passwort laden fehlgeschlagen: {}", e),
@@ -218,7 +290,9 @@ pub fn get_repository_password(repo_id: String) -> std::result::Result<String, c
 
 /// Löscht Repository-Passwort
 #[tauri::command]
-pub fn delete_repository_password(repo_id: String) -> std::result::Result<(), crate::types::ErrorDto> {
+pub fn delete_repository_password(
+    repo_id: String,
+) -> std::result::Result<(), crate::types::ErrorDto> {
     crate::keychain::delete_password(&repo_id).map_err(|e| crate::types::ErrorDto {
         code: "KeychainDeleteFailed".to_string(),
         message: format!("Passwort löschen fehlgeschlagen: {}", e),
@@ -418,7 +492,9 @@ pub async fn test_repository_connection(
     match backend_type.as_str() {
         "s3" | "azblob" | "gcs" | "b2" => {
             // OpenDAL-Backend testen
-            use crate::rustic::backends::{create_opendal_backend, validate_opendal_config, OpenDALConfig};
+            use crate::rustic::backends::{
+                OpenDALConfig, create_opendal_backend, validate_opendal_config,
+            };
 
             let config: OpenDALConfig = serde_json::from_value(backend_options)
                 .map_err(|e| format!("Ungültige Backend-Konfiguration: {}", e))?;
@@ -444,7 +520,9 @@ pub async fn test_repository_connection(
         }
         "rclone" => {
             // Rclone-Backend testen
-            use crate::rustic::backends::{create_rclone_backend, validate_rclone_config, RcloneConfig, RcloneManager};
+            use crate::rustic::backends::{
+                RcloneConfig, RcloneManager, create_rclone_backend, validate_rclone_config,
+            };
 
             let config: RcloneConfig = serde_json::from_value(backend_options)
                 .map_err(|e| format!("Ungültige Rclone-Konfiguration: {}", e))?;
@@ -454,8 +532,8 @@ pub async fn test_repository_connection(
                 .map_err(|e| format!("Validierung fehlgeschlagen: {}", e))?;
 
             // Prüfe ob rclone installiert ist
-            let _rclone_mgr = RcloneManager::new()
-                .map_err(|e| format!("Rclone-Manager-Fehler: {}", e))?;
+            let _rclone_mgr =
+                RcloneManager::new().map_err(|e| format!("Rclone-Manager-Fehler: {}", e))?;
 
             // Erstelle Backend-Optionen
             let _backend_opts = create_rclone_backend(&config)
@@ -510,8 +588,9 @@ pub async fn save_favorite_location(
     use crate::types::{FavoriteLocation, FavoriteLocationType};
 
     // Parse location type
-    let location_type: FavoriteLocationType = serde_json::from_value(serde_json::json!(location_type))
-        .map_err(|e| format!("Ungültiger Location-Typ: {}", e))?;
+    let location_type: FavoriteLocationType =
+        serde_json::from_value(serde_json::json!(location_type))
+            .map_err(|e| format!("Ungültiger Location-Typ: {}", e))?;
 
     // Erstelle neue Favorite
     let favorite = FavoriteLocation {
@@ -531,8 +610,7 @@ pub async fn save_favorite_location(
     }
 
     // Config speichern
-    state.save_config()
-        .map_err(|e| format!("Config-Speicherung fehlgeschlagen: {}", e))?;
+    state.save_config().map_err(|e| format!("Config-Speicherung fehlgeschlagen: {}", e))?;
 
     tracing::info!("Favorite Location gespeichert: {}", favorite.name);
 
@@ -549,13 +627,11 @@ pub async fn list_favorite_locations(
     let mut favorites = config.favorite_locations.clone();
 
     // Sortiere nach letzter Verwendung (neueste zuerst)
-    favorites.sort_by(|a, b| {
-        match (&b.last_used, &a.last_used) {
-            (Some(b_time), Some(a_time)) => b_time.cmp(a_time),
-            (Some(_), None) => std::cmp::Ordering::Less,
-            (None, Some(_)) => std::cmp::Ordering::Greater,
-            (None, None) => b.created_at.cmp(&a.created_at),
-        }
+    favorites.sort_by(|a, b| match (&b.last_used, &a.last_used) {
+        (Some(b_time), Some(a_time)) => b_time.cmp(a_time),
+        (Some(_), None) => std::cmp::Ordering::Less,
+        (None, Some(_)) => std::cmp::Ordering::Greater,
+        (None, None) => b.created_at.cmp(&a.created_at),
     });
 
     tracing::debug!("Liefere {} Favorite Locations", favorites.len());
@@ -581,8 +657,7 @@ pub async fn update_favorite_last_used(
     }
 
     // Config speichern
-    state.save_config()
-        .map_err(|e| format!("Config-Speicherung fehlgeschlagen: {}", e))?;
+    state.save_config().map_err(|e| format!("Config-Speicherung fehlgeschlagen: {}", e))?;
 
     tracing::debug!("Favorite Location {} als verwendet markiert", id);
 
@@ -607,8 +682,7 @@ pub async fn delete_favorite_location(
     }
 
     // Config speichern
-    state.save_config()
-        .map_err(|e| format!("Config-Speicherung fehlgeschlagen: {}", e))?;
+    state.save_config().map_err(|e| format!("Config-Speicherung fehlgeschlagen: {}", e))?;
 
     tracing::info!("Favorite Location {} gelöscht", id);
 

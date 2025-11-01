@@ -14,6 +14,24 @@ import { invoke } from '@tauri-apps/api/core';
  * @returns Promise (void)
  * @throws Error wenn Keychain-Zugriff fehlschlägt oder Passwort nicht gespeichert werden kann
  */
+/**
+ * Speichert ein Repository-Passwort im System-Keychain.
+ *
+ * Nutzt den nativen Credential-Store des Betriebssystems:
+ * - Linux: GNOME Keyring / KWallet
+ * - Windows: Windows Credential Manager
+ * - macOS: Keychain Access
+ *
+ * @param repoId - Eindeutige Repository-ID
+ * @param password - Zu speicherndes Passwort
+ * @returns Promise<void>
+ * @throws Error wenn Keychain-Zugriff fehlschlägt
+ *
+ * @example
+ * ```typescript
+ * await storeRepositoryPassword('repo-123', 'my-password');
+ * ```
+ */
 export async function storeRepositoryPassword(repoId: string, password: string): Promise<void> {
   await invoke('store_repository_password', { repoId, password });
 }
@@ -24,6 +42,23 @@ export async function storeRepositoryPassword(repoId: string, password: string):
  * @param repoId - Repository-ID
  * @returns Promise mit dem gespeicherten Passwort
  * @throws Error wenn Keychain-Zugriff fehlschlägt oder Passwort nicht gefunden
+ */
+/**
+ * Holt ein gespeichertes Repository-Passwort aus dem System-Keychain.
+ *
+ * @param repoId - Repository-ID
+ * @returns Promise<string> - Das gespeicherte Passwort
+ * @throws Error wenn Passwort nicht gefunden oder Keychain-Zugriff fehlschlägt
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   const password = await getRepositoryPassword('repo-123');
+ *   console.log('Passwort gefunden');
+ * } catch (error) {
+ *   console.error('Passwort nicht im Keychain gespeichert');
+ * }
+ * ```
  */
 export async function getRepositoryPassword(repoId: string): Promise<string> {
   return await invoke('get_repository_password', { repoId });
