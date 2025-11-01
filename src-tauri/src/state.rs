@@ -7,6 +7,7 @@ use rustic_core::{NoProgressBars, OpenStatus, Repository, RepositoryOptions};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use tauri::Emitter;
 use tokio::sync::Mutex as AsyncMutex;
 use tokio_util::sync::CancellationToken;
 
@@ -161,17 +162,33 @@ impl AppState {
 
             // 3. Passwort aus Keychain holen (falls gespeichert)
             let password = if repo_config.password_stored {
-                crate::keychain::load_password(repository_id).map_err(|e| {
-                    crate::error::RusticGuiError::Internal(format!(
-                        "Passwort konnte nicht geladen werden: {}",
-                        e
-                    ))
-                })?
+                match crate::keychain::load_password(repository_id) {
+                    Ok(value) => value,
+                    Err(err @ crate::error::RusticGuiError::PasswordMissing { .. }) => {
+                        drop(config);
+                        {
+                            let mut cfg = self.config.lock();
+                            if cfg.set_repository_password_stored(repository_id, false) {
+                                drop(cfg);
+                                if let Err(save_err) = self.save_config() {
+                                    tracing::warn!(
+                                        "Konfiguration konnte nach Passwort-Update nicht gespeichert werden: {}",
+                                        save_err
+                                    );
+                                }
+                            }
+                        }
+                        return Err(err);
+                    }
+                    Err(err) => {
+                        return Err(err);
+                    }
+                }
             } else {
-                return Err(crate::error::RusticGuiError::Internal(
-                    "Passwort nicht gespeichert - Repository muss erst entsperrt werden"
-                        .to_string(),
-                ));
+                drop(config);
+                return Err(crate::error::RusticGuiError::PasswordMissing {
+                    repo_id: repository_id.to_string(),
+                });
             };
 
             (repo_config, password)
@@ -273,6 +290,27 @@ impl AppState {
     /// Liefert Statusinformationen zum portablen Speicher.
     pub fn portable_status(&self) -> PortableStoreStatus {
         self.portable_store.lock().status()
+    }
+
+    /// Sendet den aktuellen Status des portablen Speichers an das Frontend und protokolliert ihn.
+    pub fn emit_portable_status_event(&self, app_handle: &tauri::AppHandle) {
+        let status = self.portable_status();
+
+        if status.fallback_used {
+            tracing::warn!(
+                portable_dir = status.portable_dir,
+                effective_dir = status.effective_dir,
+                "Portabler Speicher nutzt schreibbares Fallback-Verzeichnis"
+            );
+        } else {
+            tracing::info!(effective_dir = status.effective_dir, "Portabler Speicher aktiv");
+        }
+
+        if let Err(err) = app_handle.emit("portable-store-status", &status) {
+            tracing::warn!("Portable-Status-Event konnte nicht gesendet werden: {}", err);
+        } else {
+            tracing::debug!(fallback_used = status.fallback_used, "Portable-Status-Event gesendet");
+        }
     }
 }
 

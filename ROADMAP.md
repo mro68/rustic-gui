@@ -184,6 +184,13 @@ Die vorherigen Milestones M1-M6 waren zu optimistisch dokumentiert. Status siehe
 | Testing verzögert Release                     | 🟡 Mittel          | 🟠 Mittel  | Parallel zu M1-M4 entwickeln, nicht am Ende   |
 | Keychain-Probleme (Linux Distros)             | 🟡 Mittel          | 🟢 Niedrig | Fallback auf manuelle Passwort-Eingabe        |
 
+#### Task 2.4: Portable-Store Fallback-Hinweis (UI + Backend)
+
+- [x] Backend sendet `portable-store-status` Event & Command (2025-11-02)
+- [x] Frontend konsumiert Status und zeigt Toast-Warnung bei Fallback (2025-11-02)
+- [ ] UI-Mockup-Varianten (Banner/Settings-Hinweis) evaluieren
+- [x] Keychain-/Passwortfluss dokumentiert inkl. Fehlerpfade (`docs/features/keychain-password-flow.md`, 2025-11-01)
+
 ### Abhängigkeits-Graph
 
 ```

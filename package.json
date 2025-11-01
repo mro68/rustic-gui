@@ -32,6 +32,7 @@
     "@tauri-apps/cli": "^2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/svelte": "^5.2.8",
+    "@types/node": "^24.9.2",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.0.0",
@@ -44,6 +45,6 @@
     "svelte-eslint-parser": "1.4.0",
     "typescript": "5.9.3",
     "vite": "7.1.12",
-    "vitest": "^4.0.4"
+    "vitest": "^4.0.0"
   }
 }

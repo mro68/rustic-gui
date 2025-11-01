@@ -299,11 +299,11 @@ pub fn store_repository_password(
     repo_id: String,
     password: String,
 ) -> std::result::Result<(), crate::types::ErrorDto> {
-    crate::keychain::store_password(&repo_id, &password).map_err(|e| crate::types::ErrorDto {
-        code: "KeychainStoreFailed".to_string(),
-        message: format!("Passwort speichern fehlgeschlagen: {}", e),
-        details: None,
-    })
+    if let Err(err) = crate::keychain::store_password(&repo_id, &password) {
+        tracing::error!(repo_id = %repo_id, error = %err, "Passwort konnte nicht gespeichert werden");
+        return Err(crate::types::ErrorDto::from(&err));
+    }
+    Ok(())
 }
 
 /// Lädt Repository-Passwort
@@ -311,10 +311,9 @@ pub fn store_repository_password(
 pub fn get_repository_password(
     repo_id: String,
 ) -> std::result::Result<String, crate::types::ErrorDto> {
-    crate::keychain::load_password(&repo_id).map_err(|e| crate::types::ErrorDto {
-        code: "KeychainLoadFailed".to_string(),
-        message: format!("Passwort laden fehlgeschlagen: {}", e),
-        details: None,
+    crate::keychain::load_password(&repo_id).map_err(|err| {
+        tracing::warn!(repo_id = %repo_id, error = %err, "Passwort konnte nicht geladen werden");
+        crate::types::ErrorDto::from(&err)
     })
 }
 
@@ -323,11 +322,11 @@ pub fn get_repository_password(
 pub fn delete_repository_password(
     repo_id: String,
 ) -> std::result::Result<(), crate::types::ErrorDto> {
-    crate::keychain::delete_password(&repo_id).map_err(|e| crate::types::ErrorDto {
-        code: "KeychainDeleteFailed".to_string(),
-        message: format!("Passwort löschen fehlgeschlagen: {}", e),
-        details: None,
-    })
+    if let Err(err) = crate::keychain::delete_password(&repo_id) {
+        tracing::error!(repo_id = %repo_id, error = %err, "Passwort konnte nicht aus Keychain entfernt werden");
+        return Err(crate::types::ErrorDto::from(&err));
+    }
+    Ok(())
 }
 
 /// Listet alle Repositories auf
@@ -430,8 +429,15 @@ pub async fn check_repository(
 
     // Versuche Passwort zu laden
     let password = if password_stored {
-        crate::keychain::load_password(&id)
-            .map_err(|e| format!("Passwort konnte nicht geladen werden: {}", e))?
+        match crate::keychain::load_password(&id) {
+            Ok(pwd) => pwd,
+            Err(crate::error::RusticGuiError::PasswordMissing { .. }) => {
+                return Err("Passwort nicht gespeichert - Repository muss entsperrt werden".into());
+            }
+            Err(err) => {
+                return Err(format!("Passwort konnte nicht geladen werden: {}", err));
+            }
+        }
     } else {
         return Err("Passwort nicht gespeichert - Repository muss entsperrt werden".into());
     };
@@ -462,8 +468,15 @@ pub async fn prune_repository(
 
     // Versuche Passwort zu laden
     let _password = if password_stored {
-        crate::keychain::load_password(&id)
-            .map_err(|e| format!("Passwort konnte nicht geladen werden: {}", e))?
+        match crate::keychain::load_password(&id) {
+            Ok(pwd) => pwd,
+            Err(crate::error::RusticGuiError::PasswordMissing { .. }) => {
+                return Err("Passwort nicht gespeichert - Repository muss entsperrt werden".into());
+            }
+            Err(err) => {
+                return Err(format!("Passwort konnte nicht geladen werden: {}", err));
+            }
+        }
     } else {
         return Err("Passwort nicht gespeichert - Repository muss entsperrt werden".into());
     };
@@ -503,6 +516,18 @@ pub async fn change_password(
     // Speichere neues Passwort
     crate::keychain::store_password(&id, &new_pass)
         .map_err(|e| format!("Neues Passwort konnte nicht gespeichert werden: {}", e))?;
+
+    // Kennzeichne Passwort als gespeichert und persistiere Config
+    let was_updated = {
+        let mut config = state.config.lock();
+        config.set_repository_password_stored(&id, true)
+    };
+
+    if was_updated {
+        state
+            .save_config()
+            .map_err(|e| format!("Konfiguration konnte nicht aktualisiert werden: {}", e))?;
+    }
 
     tracing::info!("Passwort für Repository '{}' geändert", id);
     Ok(())

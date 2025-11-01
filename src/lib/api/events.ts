@@ -1,6 +1,6 @@
 import type { UnlistenFn } from '@tauri-apps/api/event';
 import { listen } from '@tauri-apps/api/event';
-import type { BackupProgress } from '../types';
+import type { BackupProgress, PortableStoreStatus } from '../types';
 
 /**
  * Event-Listener-Setup für Backup-Progress, Completed, Failed
@@ -59,5 +59,19 @@ export async function onBackupFailed(
 ): Promise<UnlistenFn> {
   return await listen('backup-failed', (event) =>
     callback(event.payload as { jobId: string; error: string })
+  );
+}
+
+/**
+ * Hört auf Events zum Status des portablen Speichers.
+ *
+ * @param callback - Callback mit aktuellem PortableStoreStatus
+ * @returns Promise mit Unlisten-Funktion
+ */
+export async function onPortableStoreStatus(
+  callback: (_data: PortableStoreStatus) => void // eslint-disable-line no-unused-vars
+): Promise<UnlistenFn> {
+  return await listen('portable-store-status', (event) =>
+    callback(event.payload as PortableStoreStatus)
   );
 }

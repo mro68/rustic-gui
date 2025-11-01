@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Portable Notice</title>
+  <style>
+    :root {
+      --bg-primary: #1a1d2e;
+      --bg-secondary: #22273a;
+      --bg-tertiary: #2d3348;
+      --color-primary: #3b82f6;
+      --color-warning: #fbbf24;
+      --color-error: #ef4444;
+      --color-success: #22c55e;
+      --text-primary: #f4f4f5;
+      --text-secondary: #a1a1aa;
+      --border-color: #343a52;
+    }
+
+    body {
+      background: var(--bg-primary);
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+      color: var(--text-primary);
+      padding: 40px;
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+    }
+
+    .preview-column {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 420px;
+    }
+
+    .preview-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .notice-banner {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.16) 0%, rgba(37, 99, 235, 0.08) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .notice-banner.warning {
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.18) 0%, rgba(251, 191, 36, 0.08) 100%);
+      border-color: rgba(251, 191, 36, 0.55);
+    }
+
+    .notice-banner.success {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(34, 197, 94, 0.08) 100%);
+      border-color: rgba(34, 197, 94, 0.45);
+    }
+
+    .notice-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(59, 130, 246, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--color-primary);
+      flex-shrink: 0;
+    }
+
+    .notice-banner.warning .notice-icon {
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--color-warning);
+    }
+
+    .notice-banner.success .notice-icon {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--color-success);
+    }
+
+    .notice-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .notice-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .notice-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    .notice-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin-top: 8px;
+    }
+
+    .meta-item {
+      background: rgba(45, 51, 72, 0.6);
+      border: 1px solid rgba(82, 91, 122, 0.6);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .notice-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .notice-button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--color-primary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s ease, border 0.2s ease;
+    }
+
+    .notice-button:hover {
+      background: rgba(59, 130, 246, 0.25);
+      border-color: rgba(59, 130, 246, 0.7);
+    }
+
+    .notice-close {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .modal-backdrop {
+      position: relative;
+      background: rgba(17, 24, 39, 0.65);
+      padding: 28px;
+      border-radius: 14px;
+      backdrop-filter: blur(14px);
+    }
+
+    .modal-dialog {
+      background: var(--bg-secondary);
+      border-radius: 14px;
+      padding: 28px;
+      border: 1px solid var(--border-color);
+      width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-column">
+    <div class="preview-title">Banner (Fallback aktiv)</div>
+    <div class="notice-banner warning">
+      <div class="notice-icon">!</div>
+      <div class="notice-content">
+        <div class="notice-title">Portabler Speicher im Fallback-Modus</div>
+        <div class="notice-description">
+          Die Konfiguration wird aktuell unter <strong>~/AppData/Local/rustic-gui/fallback</strong> gespeichert,
+          weil das portable Verzeichnis nicht beschreibbar war.
+        </div>
+        <div class="notice-meta">
+          <div class="meta-item">Original: ./config/portable</div>
+          <div class="meta-item">Status: Schreibgeschützt erkannt</div>
+          <div class="meta-item">Verschlüsselung aktiv</div>
+        </div>
+        <div class="notice-actions">
+          <button class="notice-button">Anleitung öffnen</button>
+          <button class="notice-button">Logdatei anzeigen</button>
+        </div>
+      </div>
+      <button class="notice-close">×</button>
+    </div>
+  </div>
+
+  <div class="preview-column">
+    <div class="preview-title">Modal (Update erforderlich)</div>
+    <div class="modal-backdrop">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <div class="modal-title">Portable Installation aktualisieren</div>
+          <button class="notice-close">×</button>
+        </div>
+        <div class="notice-banner">
+          <div class="notice-icon">ℹ</div>
+          <div class="notice-content">
+            <div class="notice-title">Konvertierung empfohlen</div>
+            <div class="notice-description">
+              Diese portable Installation nutzt noch das alte Konfigurationsformat.
+              Bitte exportiere die Einstellungen und importiere sie nach der Aktualisierung erneut.
+            </div>
+          </div>
+        </div>
+        <div class="notice-actions">
+          <button class="notice-button">JSON exportieren</button>
+          <button class="notice-button">Hinweise anzeigen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

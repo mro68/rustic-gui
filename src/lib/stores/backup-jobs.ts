@@ -102,6 +102,33 @@ export async function loadJobs(): Promise<void> {
 }
 
 /**
+ * Fügt einen neuen Backup-Job zur Liste hinzu.
+ *
+ * @param job - Der hinzuzufügende Backup-Job
+ */
+export function addJob(job: BackupJobDto): void {
+  _jobs.update((list) => [...list, job]);
+}
+
+/**
+ * Aktualisiert einen existierenden Backup-Job.
+ *
+ * @param updatedJob - Der aktualisierte Backup-Job (wird anhand der ID zugeordnet)
+ */
+export function updateJob(updatedJob: BackupJobDto): void {
+  _jobs.update((list) => list.map((job) => (job.id === updatedJob.id ? updatedJob : job)));
+}
+
+/**
+ * Entfernt einen Backup-Job anhand seiner ID.
+ *
+ * @param jobId - Die ID des zu entfernenden Jobs
+ */
+export function removeJob(jobId: string): void {
+  _jobs.update((list) => list.filter((job) => job.id !== jobId));
+}
+
+/**
  * Setzt den Backup-Job-Store auf Initialzustand zurück.
  *
  * Löscht alle Jobs, laufenden Job, Loading-State und Fehler.

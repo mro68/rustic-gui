@@ -222,6 +222,16 @@ impl AppConfig {
         self.repositories.push(config);
     }
 
+    /// Setzt das Flag, ob ein Passwort im Keychain gespeichert ist.
+    pub fn set_repository_password_stored(&mut self, id: &str, stored: bool) -> bool {
+        if let Some(repo) = self.repositories.iter_mut().find(|r| r.id == id) {
+            repo.password_stored = stored;
+            true
+        } else {
+            false
+        }
+    }
+
     /// Entfernt ein Repository aus der Konfiguration
     pub fn remove_repository(&mut self, id: &str) -> bool {
         let initial_len = self.repositories.len();

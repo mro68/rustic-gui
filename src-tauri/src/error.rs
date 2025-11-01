@@ -12,6 +12,9 @@ impl From<&RusticGuiError> for ErrorDto {
             }
             RepositoryLocked => ("RepositoryLocked", error.to_string(), None),
             AuthenticationFailed => ("AuthenticationFailed", error.to_string(), None),
+            PasswordMissing { repo_id } => {
+                ("PasswordMissing", error.to_string(), Some(format!("repo_id: {}", repo_id)))
+            }
             SnapshotNotFound { id } => {
                 ("SnapshotNotFound", error.to_string(), Some(format!("id: {}", id)))
             }
@@ -26,6 +29,9 @@ impl From<&RusticGuiError> for ErrorDto {
             JsonError(e) => ("JsonError", error.to_string(), Some(e.to_string())),
             TomlError(msg) => ("TomlError", error.to_string(), Some(msg.clone())),
             Internal(msg) => ("Internal", error.to_string(), Some(msg.clone())),
+            KeychainError { message } => {
+                ("KeychainError", error.to_string(), Some(message.clone()))
+            }
             UnsupportedBackend { backend_type } => (
                 "UnsupportedBackend",
                 error.to_string(),
@@ -60,6 +66,9 @@ pub enum RusticGuiError {
     #[error("Authentifizierung fehlgeschlagen")]
     AuthenticationFailed,
 
+    #[error("Kein Passwort für Repository '{repo_id}' in der Keychain gespeichert")]
+    PasswordMissing { repo_id: String },
+
     #[error("Snapshot nicht gefunden: {id}")]
     SnapshotNotFound { id: String },
 
@@ -89,6 +98,9 @@ pub enum RusticGuiError {
 
     #[error("Interner Fehler: {0}")]
     Internal(String),
+
+    #[error("Keychain-Fehler: {message}")]
+    KeychainError { message: String },
 
     #[error("Backend nicht unterstützt: {backend_type}")]
     UnsupportedBackend { backend_type: String },

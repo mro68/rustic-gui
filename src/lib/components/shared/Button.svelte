@@ -40,21 +40,20 @@
     children?: Snippet;
   }
 
-  let {
-    variant = 'primary',
-    size = 'md',
-    loading = false,
-    disabled = false,
-    icon = null,
-    type = 'button',
-    ariaLabel = undefined,
-    tooltip = undefined,
-    onclick = undefined,
-    children,
-  }: ButtonProps = $props();
+  // Props als exportierte Variablen (test-kompatibel)
+  export let variant: ButtonProps['variant'] = 'primary';
+  export let size: ButtonProps['size'] = 'md';
+  export let loading: boolean = false;
+  export let disabled: boolean = false;
+  export let icon: any = null;
+  export let type: ButtonProps['type'] = 'button';
+  export let ariaLabel: string | undefined = undefined;
+  export let tooltip: string | undefined = undefined;
+  export let onclick: (() => void) | undefined = undefined;
+  export let children: Snippet | undefined = undefined;
 
-  // Kombinierte Klassen
-  let btnClass = $derived(`btn btn-${variant} btn-${size} ${loading ? 'is-loading' : ''}`);
+  // Kombinierte Klassen (reactive)
+  $: btnClass = `btn btn-${variant} btn-${size} ${loading ? 'is-loading' : ''}`.trim();
 </script>
 
 <Tooltip text={tooltip}>
@@ -69,7 +68,7 @@
     {#if loading}
       <span class="spinner" aria-hidden="true"></span>
     {:else if icon}
-      <span class="btn-icon" aria-hidden="true">
+      <span class="btn-icon" role="img" aria-hidden="true">
         {#if typeof icon === 'string'}
           {icon}
         {:else}
@@ -99,9 +98,8 @@
       box-shadow 0.12s,
       transform 0.08s;
     outline: none;
-    padding: 10px 20px;
-    height: 40px;
-    font-size: 14px;
+  }
+  .btn-primary {
     background: #3b82f6;
     color: #fff;
   }
@@ -124,9 +122,16 @@
       0 6px 18px rgba(37, 99, 235, 0.12),
       0 0 0 4px rgba(59, 130, 246, 0.12);
   }
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
   .btn-danger {
-    background: var(--color-error);
+    background: #ef4444;
     color: #fff;
+  }
+  .btn-danger:hover {
+    background: #dc2626;
   }
   .btn-sm {
     height: 32px;
@@ -153,10 +158,18 @@
     width: 18px;
     height: 18px;
     border: 2.5px solid #fff;
-    border-top: 2.5px solid var(--color-primary-dark);
+    border-top: 2.5px solid #2563eb;
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
     margin-right: 4px;
+  }
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
   @media (max-width: 768px) {
     .btn {

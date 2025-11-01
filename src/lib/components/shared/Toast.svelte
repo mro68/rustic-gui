@@ -17,25 +17,18 @@
    * />
    * ```
    */
+  import { onMount, onDestroy } from 'svelte';
   import type { Snippet } from 'svelte';
 
-  let {
-    type = 'info',
-    title,
-    message = '',
-    duration = 3500,
-    onClose,
-    children,
-  }: {
-    type?: 'success' | 'error' | 'warning' | 'info';
-    title?: string;
-    message?: string;
-    duration?: number;
-    onClose?: () => void;
-    children?: Snippet;
-  } = $props();
+  // Props als normale Variablen (test-kompatibel)
+  export let type: 'success' | 'error' | 'warning' | 'info' = 'info';
+  export let title: string | undefined = undefined;
+  export let message: string = '';
+  export let duration: number = 3500;
+  export let onClose: (() => void) | undefined = undefined;
+  export let children: Snippet | undefined = undefined;
 
-  let visible = $state(true);
+  let visible: boolean = true;
   let timer: any;
 
   function startTimer() {
@@ -53,7 +46,7 @@
     }
   }
 
-  $effect(() => {
+  onMount(() => {
     startTimer();
     return () => clearTimer();
   });
@@ -75,9 +68,7 @@
   }
 
   // Derive icon from type
-  const icon = $derived(
-    type === 'success' ? '✔️' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'
-  );
+  $: icon = type === 'success' ? '✔️' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
 </script>
 
 {#if visible}

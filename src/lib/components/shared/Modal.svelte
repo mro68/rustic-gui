@@ -1,76 +1,28 @@
 <script lang="ts">
-  /* eslint-env browser */
-  /**
-   * Universelle Modal-Komponente für Rustic GUI.
-   *
-   * Bietet Backdrop-Overlay, ESC-Schließen, verschiedene Größen
-   * und Accessibility-Features (Focus-Trap, ARIA).
-   *
-   * @component
-   *
-   * @example
-   * ```svelte
-   * <Modal bind:open={showDialog} size="medium" on:close={handleClose}>
-   *   <svelte:fragment slot="header">
-   *     <h2>Bestätigung</h2>
-   *   </svelte:fragment>
-   *   <p>Möchten Sie wirklich fortfahren?</p>
-   *   <svelte:fragment slot="footer">
-   *     <Button onclick={handleClose}>Abbrechen</Button>
-   *     <Button variant="primary">Bestätigen</Button>
-   *   </svelte:fragment>
-   * </Modal>
-   * ```
-   */
-  import { createEventDispatcher, onMount, tick } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import type { Snippet } from 'svelte';
 
-  interface ModalProps {
-    /** Steuert Sichtbarkeit des Modals */
-    open?: boolean;
-    /** Schließt Modal bei ESC-Taste */
-    closeOnEsc?: boolean;
-    /** Schließt Modal bei Klick auf Backdrop */
-    closeOnBackdrop?: boolean;
-    /** Modal-Größe */
-    size?: 'small' | 'medium' | 'large';
-    /** Aria-Label für Accessibility */
-    ariaLabel?: string;
-    /** Header content */
-    header?: Snippet;
-    /** Main content */
-    children?: Snippet;
-    /** Footer content */
-    footer?: Snippet;
-  }
+  export let open: boolean = false;
+  export let closeOnEsc: boolean = true;
+  export let closeOnBackdrop: boolean = true;
+  export let size: 'small' | 'medium' | 'large' = 'medium';
+  export let ariaLabel: string | undefined = undefined;
+  export let onclose: (() => void) | undefined = undefined;
+  export let header: Snippet | undefined = undefined;
+  export let children: Snippet | undefined = undefined;
+  export let footer: Snippet | undefined = undefined;
 
-  let {
-    open = $bindable(false),
-    closeOnEsc = true,
-    closeOnBackdrop = true,
-    size = 'medium',
-    ariaLabel = undefined,
-    header,
-    children,
-    footer,
-  }: ModalProps = $props();
-
-  const dispatch = createEventDispatcher();
-  let modalRef: HTMLDivElement | null = $state(null);
-  let modalDialogRef: HTMLDivElement | null = $state(null);
-  let localOpen = $state(open);
-  let closing = $state(false);
-  // generate stable-ish id for aria
+  let modalRef: HTMLDivElement | null = null;
+  let modalDialogRef: HTMLDivElement | null = null;
+  let closing: boolean = false;
   const dialogId = `modal-${Math.random().toString(36).slice(2, 9)}`;
 
   function close() {
-    // start close animation and dispatch after animation finished
     if (closing) return;
     closing = true;
-    // wait for animation duration (match CSS below)
     setTimeout(() => {
       closing = false;
-      dispatch('close');
+      onclose?.();
     }, 180);
   }
 
@@ -87,9 +39,6 @@
   }
 
   onMount(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    }
     window.addEventListener('keydown', handleKeydown);
     return () => {
       document.body.style.overflow = '';
@@ -97,38 +46,21 @@
     };
   });
 
-  // Handle open/close state changes
-  $effect(() => {
+  $: {
     if (open) {
       document.body.style.overflow = 'hidden';
-      localOpen = true;
-      // focus next tick when opened
       tick().then(() => modalDialogRef && modalDialogRef.focus());
     } else {
-      // if parent closed externally, animate close
-      if (localOpen && !closing) {
-        closing = true;
-        setTimeout(() => {
-          closing = false;
-          localOpen = false;
-          document.body.style.overflow = '';
-        }, 180);
-      } else {
-        document.body.style.overflow = '';
-      }
+      document.body.style.overflow = '';
     }
-  });
+  }
 </script>
 
-/* eslint-env browser */
-{#if localOpen}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
+{#if open}
   <div
     class="modal-backdrop {closing ? 'modal-closing' : ''}"
     bind:this={modalRef}
     role="presentation"
-    aria-hidden="true"
     onclick={handleBackdropClick}
   >
     <div
@@ -189,15 +121,9 @@
     outline: none;
     animation: popIn 0.18s;
   }
-  .modal-small {
-    max-width: 400px;
-  }
-  .modal-medium {
-    max-width: 600px;
-  }
-  .modal-large {
-    max-width: 900px;
-  }
+  .modal-small { max-width: 400px; }
+  .modal-medium { max-width: 600px; }
+  .modal-large { max-width: 900px; }
   .modal-closing.modal-dialog,
   .modal-closing.modal-backdrop {
     animation: fadeOut 0.18s forwards;
@@ -245,31 +171,15 @@
     gap: 12px;
   }
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
   @keyframes popIn {
-    from {
-      transform: scale(0.97);
-      opacity: 0.7;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
+    from { transform: scale(0.97); opacity: 0.7; }
+    to { transform: scale(1); opacity: 1; }
   }
   @keyframes fadeOut {
-    from {
-      opacity: 1;
-      transform: none;
-    }
-    to {
-      opacity: 0;
-      transform: scale(0.995);
-    }
+    from { opacity: 1; transform: none; }
+    to { opacity: 0; transform: scale(0.995); }
   }
 </style>

@@ -44,6 +44,22 @@ export type RepositoryType = 'Local' | 'Sftp' | 'S3' | 'Rest' | 'Rclone';
 export type RepositoryStatus = 'Healthy' | 'Warning' | 'Unavailable' | 'Locked';
 
 /**
+ * Statusinformationen für den portablen Konfigurationsspeicher.
+ */
+export interface PortableStoreStatus {
+  /** Ursprüngliches Verzeichnis neben der Binary */
+  portable_dir: string;
+  /** Effektiv genutztes Verzeichnis (Fallback bei Bedarf) */
+  effective_dir: string;
+  /** Gibt an, ob das ursprüngliche Verzeichnis schreibgeschützt war */
+  read_only: boolean;
+  /** Ob ein Fallback-Verzeichnis verwendet wird */
+  fallback_used: boolean;
+  /** Kennzeichnet, ob die Konfigurationsdatei verschlüsselt vorliegt */
+  encrypted: boolean;
+}
+
+/**
  * Snapshot Data Transfer Object.
  *
  * Repräsentiert einen einzelnen Backup-Snapshot.

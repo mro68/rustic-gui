@@ -160,12 +160,16 @@ pub fn run() {
                     .expect("Wiederherstellung geplanter Jobs fehlgeschlagen");
             });
 
+            // Status des portablen Speichers an das Frontend senden
+            app_state_clone.emit_portable_status_event(&app_handle);
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             // --- System/Utility ---
             greet,
             commands::system::prepare_shutdown,
+            commands::system::get_portable_status,
             // --- Repository Management ---
             commands::repository::init_repository,
             commands::repository::open_repository,

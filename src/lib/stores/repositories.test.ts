@@ -8,7 +8,7 @@ import {
   loadRepositories,
   loading,
   repositories,
-  reset,
+  resetRepositories,
   setActiveRepository,
   setError,
   setLoading,
@@ -22,7 +22,7 @@ vi.mock('$lib/api/repositories');
 describe('repositories store', () => {
   beforeEach(() => {
     // Reset store state
-    reset();
+    resetRepositories();
     vi.clearAllMocks();
   });
 
@@ -234,7 +234,7 @@ describe('repositories store', () => {
       setError('Error');
 
       // Reset
-      reset();
+      resetRepositories();
 
       // Verify: Alles zurückgesetzt
       expect(get(repositories)).toEqual([]);

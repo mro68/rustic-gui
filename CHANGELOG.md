@@ -9,6 +9,15 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+#### 2025-11-01 - Keychain Passwortfluss Dokumentation
+
+- Neue Dokumentation `docs/features/keychain-password-flow.md` beschreibt Speicherung, Laden und Fehlerpfade (PasswordMissing, KeychainError) samt Auswirkungen auf Scheduler und Portable-Mode.
+
+#### 2025-11-02 - Portable-Store Fallback Hinweis
+
+- Backend sendet `portable-store-status` Event und stellt `get_portable_status` Command bereit
+- Frontend registriert Listener, aktualisiert System-Store und zeigt Warn-Toast bei Fallback-Verwendung
+
 #### 2025-10-31 - Phase 1: MVP Core Features (✅ 100% ABGESCHLOSSEN)
 
 - **Repository State-Architektur (Task 1.1):**
@@ -42,6 +51,10 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   - Alle 3 Commands in lib.rs aktiviert
 
 ### Fixed
+
+#### 2025-11-01 - Keychain Flag Konsistenz
+
+- `change_password` Command aktualisiert das Config-Flag `password_stored` und speichert die Konfiguration sofort, sodass Unlock-Dialogs nach Passwortwechsel nicht mehr unerwartet erscheinen.
 
 #### 2025-10-31 - Phase 0: Notfall-Reparatur (✅ 100% ABGESCHLOSSEN)
 

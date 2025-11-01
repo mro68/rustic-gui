@@ -3,6 +3,7 @@
 // Referenz: TODO.md Integration-Zusammenfassung Zeile 338
 
 use crate::state::AppState;
+use crate::storage::PortableStoreStatus;
 
 /// Bereitet sauberen Shutdown vor (prüft laufende Operationen)
 #[tauri::command]
@@ -25,6 +26,12 @@ pub fn prepare_shutdown(
 
     tracing::info!("Shutdown vorbereitet - keine laufenden Operationen");
     Ok(true) // Shutdown erlaubt
+}
+
+/// Liefert Statusinformationen zum portablen Konfigurationsspeicher.
+#[tauri::command]
+pub fn get_portable_status(state: tauri::State<'_, AppState>) -> PortableStoreStatus {
+    state.portable_status()
 }
 
 /// Health-Check für ein Repository

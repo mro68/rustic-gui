@@ -1,5 +1,7 @@
 <!-- Tooltip.svelte: Einfache Tooltip-Komponente -->
 <script lang="ts">
+  import type { Snippet } from 'svelte';
+
   /**
    * Tooltip-Komponente für Hover-Informationen.
    *
@@ -23,21 +25,23 @@
     text?: string;
     position?: 'top' | 'bottom' | 'left' | 'right';
     class?: string;
-    children?: any;
+    children?: Snippet;
   } = $props();
 </script>
 
 {#if text}
   <div class="tooltip {className}" role="tooltip">
     <div class="tooltip-trigger">
-      {@render children?.()}
+      {#if children}
+        {@render children()}
+      {/if}
     </div>
     <div class="tooltip-text tooltip-{position}" aria-hidden="true">
       {text}
     </div>
   </div>
-{:else}
-  {@render children?.()}
+{:else if children}
+  {@render children()}
 {/if}
 
 <style>

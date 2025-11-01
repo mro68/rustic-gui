@@ -305,9 +305,11 @@ impl PortableEncryption {
         let mut nonce_bytes = [0u8; NONCE_SIZE];
         OsRng.fill_bytes(&mut nonce_bytes);
 
-        let nonce = Nonce::from_slice(&nonce_bytes);
+        let mut nonce = Nonce::default();
+        nonce.copy_from_slice(&nonce_bytes);
+
         let ciphertext =
-            cipher.encrypt(nonce, plaintext).map_err(|e| RusticGuiError::ConfigError {
+            cipher.encrypt(&nonce, plaintext).map_err(|e| RusticGuiError::ConfigError {
                 message: format!("Verschlüsselung der Konfiguration fehlgeschlagen: {}", e),
             })?;
 
@@ -352,10 +354,11 @@ impl PortableEncryption {
             }
         })?;
 
-        cipher.decrypt(Nonce::from_slice(&nonce_bytes), ciphertext.as_ref()).map_err(|e| {
-            RusticGuiError::ConfigError {
-                message: format!("Konfiguration konnte nicht entschlüsselt werden: {}", e),
-            }
+        let mut nonce = Nonce::default();
+        nonce.copy_from_slice(&nonce_bytes);
+
+        cipher.decrypt(&nonce, ciphertext.as_ref()).map_err(|e| RusticGuiError::ConfigError {
+            message: format!("Konfiguration konnte nicht entschlüsselt werden: {}", e),
         })
     }
 

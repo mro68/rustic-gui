@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use crate::error::{Result as RusticResult, RusticGuiError};
 use keyring::{Entry, Error as KeyringError};
 
 /// Service-Name für Keychain-Einträge
@@ -18,11 +18,17 @@ const SERVICE_NAME: &str = "rustic-gui";
 /// - Auf Linux: GNOME Keyring oder KWallet
 /// - Auf Windows: Windows Credential Manager
 /// - Auf macOS: Keychain
-pub fn store_password(repo_id: &str, password: &str) -> Result<()> {
-    let entry = Entry::new(SERVICE_NAME, repo_id)
-        .context("Keychain-Eintrag konnte nicht erstellt werden")?;
+pub fn store_password(repo_id: &str, password: &str) -> RusticResult<()> {
+    let entry = Entry::new(SERVICE_NAME, repo_id).map_err(|err| RusticGuiError::KeychainError {
+        message: format!(
+            "Keychain-Eintrag für '{}' konnte nicht erstellt werden: {}",
+            repo_id, err
+        ),
+    })?;
 
-    entry.set_password(password).context("Passwort konnte nicht gespeichert werden")?;
+    entry.set_password(password).map_err(|err| RusticGuiError::KeychainError {
+        message: format!("Passwort konnte nicht gespeichert werden ({}): {}", repo_id, err),
+    })?;
 
     tracing::debug!("Passwort für Repository '{}' erfolgreich gespeichert", repo_id);
 
@@ -36,11 +42,25 @@ pub fn store_password(repo_id: &str, password: &str) -> Result<()> {
 ///
 /// # Returns
 /// * `Result<String>` - Das geladene Passwort oder Fehler
-pub fn load_password(repo_id: &str) -> Result<String> {
-    let entry = Entry::new(SERVICE_NAME, repo_id)
-        .context("Keychain-Eintrag konnte nicht erstellt werden")?;
+pub fn load_password(repo_id: &str) -> RusticResult<String> {
+    let entry = Entry::new(SERVICE_NAME, repo_id).map_err(|err| RusticGuiError::KeychainError {
+        message: format!(
+            "Keychain-Eintrag für '{}' konnte nicht erstellt werden: {}",
+            repo_id, err
+        ),
+    })?;
 
-    let password = entry.get_password().context("Passwort konnte nicht geladen werden")?;
+    let password = match entry.get_password() {
+        Ok(value) => value,
+        Err(KeyringError::NoEntry) => {
+            return Err(RusticGuiError::PasswordMissing { repo_id: repo_id.to_string() });
+        }
+        Err(err) => {
+            return Err(RusticGuiError::KeychainError {
+                message: format!("Passwort konnte nicht geladen werden ({}): {}", repo_id, err),
+            });
+        }
+    };
 
     tracing::debug!("Passwort für Repository '{}' erfolgreich geladen", repo_id);
 
@@ -59,12 +79,14 @@ pub fn load_password(repo_id: &str) -> Result<String> {
 /// In der aktuellen keyring-Version gibt es keine delete_password Methode.
 /// Stattdessen versuchen wir das Passwort zu überschreiben mit einem leeren String
 /// oder ignorieren den Fehler wenn das Passwort nicht existiert.
-pub fn delete_password(repo_id: &str) -> Result<()> {
-    let entry = Entry::new(SERVICE_NAME, repo_id)
-        .context("Keychain-Eintrag konnte nicht erstellt werden")?;
+pub fn delete_password(repo_id: &str) -> RusticResult<()> {
+    let entry = Entry::new(SERVICE_NAME, repo_id).map_err(|err| RusticGuiError::KeychainError {
+        message: format!(
+            "Keychain-Eintrag für '{}' konnte nicht erstellt werden: {}",
+            repo_id, err
+        ),
+    })?;
 
-    // Versuche das Passwort zu "löschen" indem wir es mit leerem String überschreiben
-    // Das ist nicht perfekt, aber die beste verfügbare Option
     match entry.set_password("") {
         Ok(_) => {
             tracing::debug!(
@@ -74,11 +96,12 @@ pub fn delete_password(repo_id: &str) -> Result<()> {
             Ok(())
         }
         Err(KeyringError::NoEntry) => {
-            // Passwort existiert nicht - das ist ok
             tracing::debug!("Passwort für Repository '{}' war nicht gespeichert", repo_id);
             Ok(())
         }
-        Err(e) => Err(anyhow::anyhow!("Passwort konnte nicht gelöscht werden: {}", e)),
+        Err(err) => Err(RusticGuiError::KeychainError {
+            message: format!("Passwort konnte nicht gelöscht werden ({}): {}", repo_id, err),
+        }),
     }
 }
 /// Prüft ob ein Passwort für ein Repository gespeichert ist.
@@ -89,10 +112,7 @@ pub fn delete_password(repo_id: &str) -> Result<()> {
 /// # Returns
 /// * `bool` - true wenn Passwort vorhanden, false sonst
 pub fn has_password(repo_id: &str) -> bool {
-    match load_password(repo_id) {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    load_password(repo_id).is_ok()
 }
 
 /// Speichert Cloud-Credentials sicher in der System-Keychain.
@@ -111,20 +131,40 @@ pub fn save_cloud_credentials(
     provider: &str,
     access_key: &str,
     secret_key: &str,
-) -> Result<()> {
+) -> RusticResult<()> {
     // Composite Keys für Keychain
     let access_key_id = format!("{}:{}:access_key", repo_id, provider);
     let secret_key_id = format!("{}:{}:secret_key", repo_id, provider);
 
     // Access Key speichern
-    let access_entry = Entry::new(SERVICE_NAME, &access_key_id)
-        .context("Access-Key-Eintrag konnte nicht erstellt werden")?;
-    access_entry.set_password(access_key).context("Access Key konnte nicht gespeichert werden")?;
+    let access_entry =
+        Entry::new(SERVICE_NAME, &access_key_id).map_err(|err| RusticGuiError::KeychainError {
+            message: format!(
+                "Access-Key-Eintrag konnte nicht erstellt werden ({} - {}): {}",
+                repo_id, provider, err
+            ),
+        })?;
+    access_entry.set_password(access_key).map_err(|err| RusticGuiError::KeychainError {
+        message: format!(
+            "Access Key konnte nicht gespeichert werden ({} - {}): {}",
+            repo_id, provider, err
+        ),
+    })?;
 
     // Secret Key speichern
-    let secret_entry = Entry::new(SERVICE_NAME, &secret_key_id)
-        .context("Secret-Key-Eintrag konnte nicht erstellt werden")?;
-    secret_entry.set_password(secret_key).context("Secret Key konnte nicht gespeichert werden")?;
+    let secret_entry =
+        Entry::new(SERVICE_NAME, &secret_key_id).map_err(|err| RusticGuiError::KeychainError {
+            message: format!(
+                "Secret-Key-Eintrag konnte nicht erstellt werden ({} - {}): {}",
+                repo_id, provider, err
+            ),
+        })?;
+    secret_entry.set_password(secret_key).map_err(|err| RusticGuiError::KeychainError {
+        message: format!(
+            "Secret Key konnte nicht gespeichert werden ({} - {}): {}",
+            repo_id, provider, err
+        ),
+    })?;
 
     tracing::debug!(
         "Cloud-Credentials für Repository '{}' ({}) erfolgreich gespeichert",
@@ -144,21 +184,39 @@ pub fn save_cloud_credentials(
 ///
 /// # Returns
 /// * `Result<(String, String)>` - Tuple aus (access_key, secret_key) oder Fehler
-pub fn load_cloud_credentials(repo_id: &str, provider: &str) -> Result<(String, String)> {
+pub fn load_cloud_credentials(repo_id: &str, provider: &str) -> RusticResult<(String, String)> {
     let access_key_id = format!("{}:{}:access_key", repo_id, provider);
     let secret_key_id = format!("{}:{}:secret_key", repo_id, provider);
 
     // Access Key laden
-    let access_entry = Entry::new(SERVICE_NAME, &access_key_id)
-        .context("Access-Key-Eintrag konnte nicht erstellt werden")?;
-    let access_key =
-        access_entry.get_password().context("Access Key konnte nicht geladen werden")?;
+    let access_entry =
+        Entry::new(SERVICE_NAME, &access_key_id).map_err(|err| RusticGuiError::KeychainError {
+            message: format!(
+                "Access-Key-Eintrag konnte nicht erstellt werden ({} - {}): {}",
+                repo_id, provider, err
+            ),
+        })?;
+    let access_key = access_entry.get_password().map_err(|err| RusticGuiError::KeychainError {
+        message: format!(
+            "Access Key konnte nicht geladen werden ({} - {}): {}",
+            repo_id, provider, err
+        ),
+    })?;
 
     // Secret Key laden
-    let secret_entry = Entry::new(SERVICE_NAME, &secret_key_id)
-        .context("Secret-Key-Eintrag konnte nicht erstellt werden")?;
-    let secret_key =
-        secret_entry.get_password().context("Secret Key konnte nicht geladen werden")?;
+    let secret_entry =
+        Entry::new(SERVICE_NAME, &secret_key_id).map_err(|err| RusticGuiError::KeychainError {
+            message: format!(
+                "Secret-Key-Eintrag konnte nicht erstellt werden ({} - {}): {}",
+                repo_id, provider, err
+            ),
+        })?;
+    let secret_key = secret_entry.get_password().map_err(|err| RusticGuiError::KeychainError {
+        message: format!(
+            "Secret Key konnte nicht geladen werden ({} - {}): {}",
+            repo_id, provider, err
+        ),
+    })?;
 
     tracing::debug!(
         "Cloud-Credentials für Repository '{}' ({}) erfolgreich geladen",
@@ -178,18 +236,28 @@ pub fn load_cloud_credentials(repo_id: &str, provider: &str) -> Result<(String, 
 ///
 /// # Returns
 /// * `Result<()>` - Erfolg oder Fehler
-pub fn delete_cloud_credentials(repo_id: &str, provider: &str) -> Result<()> {
+pub fn delete_cloud_credentials(repo_id: &str, provider: &str) -> RusticResult<()> {
     let access_key_id = format!("{}:{}:access_key", repo_id, provider);
     let secret_key_id = format!("{}:{}:secret_key", repo_id, provider);
 
     // Access Key löschen
-    let access_entry = Entry::new(SERVICE_NAME, &access_key_id)
-        .context("Access-Key-Eintrag konnte nicht erstellt werden")?;
+    let access_entry =
+        Entry::new(SERVICE_NAME, &access_key_id).map_err(|err| RusticGuiError::KeychainError {
+            message: format!(
+                "Access-Key-Eintrag konnte nicht erstellt werden ({} - {}): {}",
+                repo_id, provider, err
+            ),
+        })?;
     let _ = access_entry.set_password(""); // Ignoriere Fehler
 
     // Secret Key löschen
-    let secret_entry = Entry::new(SERVICE_NAME, &secret_key_id)
-        .context("Secret-Key-Eintrag konnte nicht erstellt werden")?;
+    let secret_entry =
+        Entry::new(SERVICE_NAME, &secret_key_id).map_err(|err| RusticGuiError::KeychainError {
+            message: format!(
+                "Secret-Key-Eintrag konnte nicht erstellt werden ({} - {}): {}",
+                repo_id, provider, err
+            ),
+        })?;
     let _ = secret_entry.set_password(""); // Ignoriere Fehler
 
     tracing::debug!("Cloud-Credentials für Repository '{}' ({}) gelöscht", repo_id, provider);
@@ -240,11 +308,7 @@ mod tests {
 
         // Teste ob delete_password bei nicht existierendem Passwort nicht fehlschlägt
         let result = delete_password("nonexistent-repo");
-        // Sollte entweder Ok(()) oder Err(NoEntry) zurückgeben, aber nicht panicen
-        // In der aktuellen Implementierung geben wir Ok(()) zurück wenn NoEntry
-        assert!(
-            result.is_ok() || matches!(result, Err(ref e) if e.to_string().contains("NoEntry"))
-        );
+        assert!(result.is_ok());
     }
 
     #[test]
