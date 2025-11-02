@@ -172,23 +172,49 @@
 
     isRestoring = true;
     restoreProgress = 0;
-    restoreMessage = 'Starting restore...';
+    restoreMessage = 'Restore wird gestartet...';
+
+    // Event listeners
+    let unlistenProgress: (() => void) | null = null;
+    let unlistenCompleted: (() => void) | null = null;
+    let unlistenFailed: (() => void) | null = null;
 
     try {
       // Listen for progress updates
       const { listen } = await import('@tauri-apps/api/event');
-      const unlistenProgress = await listen('restore-progress', (event: any) => {
+
+      unlistenProgress = await listen('restore-progress', (event: any) => {
         const progress = event.payload;
-        if (progress.base) {
+        if (progress?.base) {
           restoreProgress = progress.base.percentage || 0;
-          restoreMessage = progress.base.message || `Restoring ${progress.current_file || ''}`;
+          restoreMessage = progress.base.message || `Wiederherstellung läuft...`;
+          if (progress.current_file) {
+            restoreMessage = `Stelle wieder her: ${progress.current_file}`;
+          }
         }
       });
 
-      const unlistenCompleted = await listen('restore-completed', (event: any) => {
+      unlistenCompleted = await listen('restore-completed', (event: any) => {
         const payload = event.payload;
-        restoreMessage = `Restored ${payload.files_restored || 0} files successfully`;
+        const filesCount = payload.files_restored || selectedFiles.size;
+        restoreMessage = `${filesCount} Dateien erfolgreich wiederhergestellt`;
         restoreProgress = 100;
+
+        // Success
+        setTimeout(() => {
+          dispatch('restored', {
+            files: Array.from(selectedFiles),
+            targetPath,
+          });
+          handleClose();
+        }, 1500);
+      });
+
+      unlistenFailed = await listen('restore-failed', (event: any) => {
+        const payload = event.payload;
+        const errorMsg = payload.message || 'Restore fehlgeschlagen';
+        dispatch('error', errorMsg);
+        isRestoring = false;
       });
 
       // Start restore
@@ -205,24 +231,15 @@
           dry_run: false,
         }
       );
-
-      // Cleanup listeners
-      unlistenProgress();
-      unlistenCompleted();
-
-      // Success
-      dispatch('restored', {
-        files: Array.from(selectedFiles),
-        targetPath,
-      });
-
-      // Close dialog
-      handleClose();
     } catch (error) {
       console.error('Restore failed:', error);
-      dispatch('error', error instanceof Error ? error.message : 'Restore failed');
-    } finally {
+      dispatch('error', error instanceof Error ? error.message : 'Restore fehlgeschlagen');
       isRestoring = false;
+    } finally {
+      // Cleanup listeners
+      if (unlistenProgress) unlistenProgress();
+      if (unlistenCompleted) unlistenCompleted();
+      if (unlistenFailed) unlistenFailed();
     }
   }
 
@@ -306,12 +323,7 @@
               <Button variant="secondary" size="sm" onclick={goUp} disabled={currentPath === '/'}>
                 ↑ Up
               </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onclick={loadFileTree}
-                disabled={isLoadingTree}
-              >
+              <Button variant="secondary" size="sm" onclick={loadFileTree} disabled={isLoadingTree}>
                 ⟳ Refresh
               </Button>
             </div>

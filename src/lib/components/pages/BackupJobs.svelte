@@ -157,48 +157,48 @@
     backupProgress = { filesProcessed: 0, bytesUploaded: 0, percent: 0 };
     toastStore.info(`Starte Backup-Job "${job.name}"...`);
 
-    // Progress-Event-Listener
-    const { listen } = await import('@tauri-apps/api/event');
-    const unlisten = await listen('backup-progress', (event: any) => {
-      const payload = event.payload;
-      if (payload.jobId === job.id && payload.progress) {
-        backupProgress = {
-          filesProcessed: payload.progress.files_processed || 0,
-          bytesUploaded: payload.progress.bytes_uploaded || 0,
-          percent: payload.progress.percent || 0,
-        };
-      }
-    });
+    // Event-Listener-Variablen (für Cleanup)
+    let unlistenProgress: (() => void) | null = null;
+    let unlistenCompleted: (() => void) | null = null;
+    let unlistenFailed: (() => void) | null = null;
 
-    // Completion-Listener
-    const unlistenCompleted = await listen('backup-completed', (event: any) => {
-      const payload = event.payload;
-      if (payload.jobId === job.id) {
-        toastStore.success(`Backup-Job "${job.name}" erfolgreich abgeschlossen`);
-        runningJobId = null;
-        backupProgress = null;
-        unlisten();
-        unlistenCompleted();
-        unlistenFailed();
-        loadJobs(); // Reload to update last_run
-      }
-    });
-
-    // Error-Listener
-    const unlistenFailed = await listen('backup-failed', (event: any) => {
-      const payload = event.payload;
-      if (payload.jobId === job.id) {
-        toastStore.error(`Backup-Job fehlgeschlagen: ${payload.message || 'Unbekannter Fehler'}`);
-        runningJobId = null;
-        backupProgress = null;
-        unlisten();
-        unlistenCompleted();
-        unlistenFailed();
-      }
-    });
-
-    // Backup starten
     try {
+      // Progress-Event-Listener
+      const { listen } = await import('@tauri-apps/api/event');
+
+      unlistenProgress = await listen('backup-progress', (event: any) => {
+        const payload = event.payload;
+        if (payload.jobId === job.id && payload.progress) {
+          backupProgress = {
+            filesProcessed: payload.progress.files_processed || 0,
+            bytesUploaded: payload.progress.bytes_uploaded || 0,
+            percent: payload.progress.percent || 0,
+          };
+        }
+      });
+
+      // Completion-Listener
+      unlistenCompleted = await listen('backup-completed', (event: any) => {
+        const payload = event.payload;
+        if (payload.jobId === job.id) {
+          toastStore.success(`Backup-Job "${job.name}" erfolgreich abgeschlossen`);
+          runningJobId = null;
+          backupProgress = null;
+          loadJobs(); // Reload to update last_run
+        }
+      });
+
+      // Error-Listener
+      unlistenFailed = await listen('backup-failed', (event: any) => {
+        const payload = event.payload;
+        if (payload.jobId === job.id) {
+          toastStore.error(`Backup-Job fehlgeschlagen: ${payload.message || 'Unbekannter Fehler'}`);
+          runningJobId = null;
+          backupProgress = null;
+        }
+      });
+
+      // Backup starten
       const { runBackup } = await import('$lib/api/backup');
       await runBackup(job.id, password);
     } catch (error) {
@@ -206,9 +206,11 @@
       toastStore.error(`Fehler beim Starten des Backups: ${error}`);
       runningJobId = null;
       backupProgress = null;
-      unlisten();
-      unlistenCompleted();
-      unlistenFailed();
+    } finally {
+      // Cleanup: Event-Listener entfernen
+      if (unlistenProgress) unlistenProgress();
+      if (unlistenCompleted) unlistenCompleted();
+      if (unlistenFailed) unlistenFailed();
     }
   }
 
@@ -468,11 +470,6 @@
   .status-badge.paused {
     background: rgba(251, 191, 36, 0.15);
     color: #fbbf24;
-  }
-
-  .status-badge.manual {
-    background: rgba(156, 163, 175, 0.15);
-    color: #9ca3af;
   }
 
   .status-badge.idle {

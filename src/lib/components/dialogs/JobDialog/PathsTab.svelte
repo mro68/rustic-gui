@@ -14,6 +14,24 @@
     errors = {},
   }: PathsTabProps = $props();
 
+  async function browseDirectory(index: number) {
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: 'Quell-Verzeichnis auswählen',
+      });
+
+      if (selected && typeof selected === 'string') {
+        sourcePaths[index] = selected;
+        sourcePaths = [...sourcePaths]; // Trigger reactivity
+      }
+    } catch (error) {
+      console.error('Directory browser error:', error);
+    }
+  }
+
   function addPath() {
     sourcePaths = [...sourcePaths, ''];
   }
@@ -45,13 +63,14 @@
         bind:value={sourcePaths[index]}
         placeholder="/home/user/documents"
       />
+      <button class="btn-browse" onclick={() => browseDirectory(index)}>📁</button>
       {#if sourcePaths.length > 1}
         <button class="btn-browse" onclick={() => removePath(index)}>✕</button>
       {/if}
     </div>
   {/each}
   <div style="margin-top: 8px;">
-    <button class="btn-browse" onclick={addPath}>📁 Pfad hinzufügen</button>
+    <button class="btn-browse" onclick={addPath}>➕ Weiterer Pfad</button>
   </div>
   <div class="form-help">Einen Pfad pro Zeile. Absolute Pfade verwenden.</div>
   {#if errors.sourcePaths}<div class="error">{errors.sourcePaths}</div>{/if}

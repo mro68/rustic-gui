@@ -2,19 +2,31 @@
   import { onMount, tick } from 'svelte';
   import type { Snippet } from 'svelte';
 
-  export let open: boolean = false;
-  export let closeOnEsc: boolean = true;
-  export let closeOnBackdrop: boolean = true;
-  export let size: 'small' | 'medium' | 'large' = 'medium';
-  export let ariaLabel: string | undefined = undefined;
-  export let onclose: (() => void) | undefined = undefined;
-  export let header: Snippet | undefined = undefined;
-  export let children: Snippet | undefined = undefined;
-  export let footer: Snippet | undefined = undefined;
+  let {
+    open = $bindable(false),
+    closeOnEsc = true,
+    closeOnBackdrop = true,
+    size = 'medium',
+    ariaLabel = undefined,
+    onclose = undefined,
+    header = undefined,
+    children = undefined,
+    footer = undefined,
+  }: {
+    open?: boolean;
+    closeOnEsc?: boolean;
+    closeOnBackdrop?: boolean;
+    size?: 'small' | 'medium' | 'large';
+    ariaLabel?: string;
+    onclose?: () => void;
+    header?: Snippet;
+    children?: Snippet;
+    footer?: Snippet;
+  } = $props();
 
-  let modalRef: HTMLDivElement | null = null;
-  let modalDialogRef: HTMLDivElement | null = null;
-  let closing: boolean = false;
+  let modalRef: HTMLDivElement | null = $state(null);
+  let modalDialogRef: HTMLDivElement | null = $state(null);
+  let closing: boolean = $state(false);
   const dialogId = `modal-${Math.random().toString(36).slice(2, 9)}`;
 
   function close() {
@@ -22,6 +34,7 @@
     closing = true;
     setTimeout(() => {
       closing = false;
+      open = false;
       onclose?.();
     }, 180);
   }
@@ -121,9 +134,15 @@
     outline: none;
     animation: popIn 0.18s;
   }
-  .modal-small { max-width: 400px; }
-  .modal-medium { max-width: 600px; }
-  .modal-large { max-width: 900px; }
+  .modal-small {
+    max-width: 400px;
+  }
+  .modal-medium {
+    max-width: 600px;
+  }
+  .modal-large {
+    max-width: 900px;
+  }
   .modal-closing.modal-dialog,
   .modal-closing.modal-backdrop {
     animation: fadeOut 0.18s forwards;
@@ -171,15 +190,31 @@
     gap: 12px;
   }
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
   @keyframes popIn {
-    from { transform: scale(0.97); opacity: 0.7; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+      transform: scale(0.97);
+      opacity: 0.7;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
   @keyframes fadeOut {
-    from { opacity: 1; transform: none; }
-    to { opacity: 0; transform: scale(0.995); }
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.995);
+    }
   }
 </style>

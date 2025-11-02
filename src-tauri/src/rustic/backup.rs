@@ -1,8 +1,8 @@
 use crate::error::RusticGuiError;
 use rustic_backend::BackendOptions;
 use rustic_core::{
-    BackupOptions as RusticBackupOptions, NoProgressBars, PathList, Repository, RepositoryOptions,
-    SnapshotOptions,
+    BackupOptions as RusticBackupOptions, LocalSourceFilterOptions, NoProgressBars, PathList,
+    Repository, RepositoryOptions, SnapshotOptions,
 };
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
@@ -130,9 +130,24 @@ where
         }
     })?;
 
-    // Backup-Optionen erstellen
-    let backup_opts = RusticBackupOptions::default();
-    // TODO M1.2.1: Add exclude patterns to backup_opts when we figure out the API
+    // Backup-Optionen erstellen (mit Exclude-Patterns & .gitignore wie in rustic CLI)
+    let mut filter_opts = LocalSourceFilterOptions::default();
+
+    // .gitignore-Regeln automatisch anwenden (wie restic/rustic --git-ignore)
+    // Dies liest .gitignore-Dateien in den Source-Verzeichnissen und excluded Dateien automatisch
+    filter_opts.git_ignore = true;
+    filter_opts.no_require_git = true; // Auch ohne Git-Repository anwenden
+
+    // Zusätzliche Exclude-Patterns hinzufügen - glob patterns mit "!" prefix
+    if let Some(ref excludes) = options.exclude {
+        if !excludes.is_empty() {
+            let exclude_globs: Vec<String> =
+                excludes.iter().map(|pattern| format!("!{}", pattern)).collect();
+            filter_opts.globs = exclude_globs;
+        }
+    }
+
+    let backup_opts = RusticBackupOptions::default().ignore_filter_opts(filter_opts);
 
     // Progress-Tracking mit simuliertem Progress
     // TODO M1.2.1: Implement real progress tracking with rustic_core callbacks

@@ -110,7 +110,9 @@ pub fn init_repository(
 ///
 /// # Arguments
 /// * `path` - Pfad zum Repository
+/// * `path` - Repository-Pfad (lokal oder remote URL)
 /// * `password` - Repository-Passwort
+/// * `state` - AppState für Config-Zugriff
 ///
 /// # Returns
 /// `Result<RepositoryDto, ErrorDto>` - Repository-Metadata oder Fehler
@@ -123,14 +125,14 @@ pub fn init_repository(
 pub fn open_repository(
     path: String,
     password: String,
+    state: tauri::State<'_, AppState>,
 ) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
-    // Öffne das Repository intern
+    // 1. Öffne das Repository intern (validiert Passwort)
     let _repo = crate::rustic::repository::open_repository(&path, &password)
         .map_err(|e| crate::types::ErrorDto::from(&e))?;
 
-    // Gib ein DTO zurück (ohne das Repository zu speichern)
-    // Das eigentliche Speichern geschieht via switch_repository
-    Ok(RepositoryDto {
+    // 2. Repository-DTO erstellen
+    let dto = RepositoryDto {
         id: format!(
             "repo-{}",
             std::path::Path::new(&path).file_name().and_then(|n| n.to_str()).unwrap_or("unknown")
@@ -147,7 +149,49 @@ pub fn open_repository(
         total_size: 0,
         last_accessed: Some(chrono::Utc::now().to_rfc3339()),
         created_at: chrono::Utc::now().to_rfc3339(),
-    })
+    };
+
+    let repo_id = dto.id.clone();
+
+    // 3. Passwort in Keychain speichern
+    let password_stored = match crate::keychain::store_password(&repo_id, &password) {
+        Ok(_) => {
+            tracing::info!("Passwort für Repository '{}' in Keychain gespeichert", repo_id);
+            true
+        }
+        Err(e) => {
+            tracing::warn!(
+                "Passwort konnte nicht in Keychain gespeichert werden: {}. Repository kann trotzdem verwendet werden.",
+                e
+            );
+            false
+        }
+    };
+
+    // 4. Repository in Config speichern
+    {
+        let mut config = state.config.lock();
+        let repo_config = crate::config::RepositoryConfig {
+            id: repo_id.clone(),
+            name: dto.name.clone(),
+            path: dto.path.clone(),
+            backend_type: crate::config::BackendType::Local, // TODO: Detect from path
+            backend_options: None,
+            password_stored,
+        };
+        config.add_repository(repo_config);
+    }
+
+    // 5. Config speichern
+    state.save_config().map_err(|e| crate::types::ErrorDto {
+        code: "ConfigError".to_string(),
+        message: format!("Config-Speicherung fehlgeschlagen: {}", e),
+        details: None,
+    })?;
+
+    tracing::info!("Repository '{}' erfolgreich geöffnet und zu Config hinzugefügt", repo_id);
+
+    Ok(dto)
 }
 
 /// Holt detaillierte Repository-Informationen ohne das Repository zu öffnen.

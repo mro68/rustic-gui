@@ -20,8 +20,16 @@
 
   async function browseLocalDirectory() {
     try {
-      // TODO: Implement with Tauri v2 API or custom file picker
-      console.warn('File browser not yet implemented for Tauri v2');
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: 'Repository-Verzeichnis auswählen',
+      });
+
+      if (selected && typeof selected === 'string') {
+        selectedPath = selected;
+      }
     } catch (error) {
       console.error('File browser error:', error);
     }
@@ -29,8 +37,22 @@
 
   async function browseLocalFile() {
     try {
-      // TODO: Implement with Tauri v2 API or custom file picker
-      console.warn('File browser not yet implemented for Tauri v2');
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const selected = await open({
+        directory: false,
+        multiple: false,
+        title: 'Repository-Datei auswählen',
+        filters: [
+          {
+            name: 'Repository-Konfiguration',
+            extensions: ['json', 'toml'],
+          },
+        ],
+      });
+
+      if (selected && typeof selected === 'string') {
+        selectedPath = selected;
+      }
     } catch (error) {
       console.error('File browser error:', error);
     }

@@ -50,7 +50,10 @@
   const dispatch = createEventDispatcher();
 
   // Props
-  let { open = $bindable(true) } = $props();
+  let {
+    open = $bindable(true),
+    mode = 'init', // 'init' für neues Repository, 'open' für bestehendes
+  }: { open?: boolean; mode?: 'init' | 'open' } = $props();
 
   // Form state
   let repositoryName = $state<string>('');
@@ -86,13 +89,13 @@
   }
 
   // Repository types (now handled by LocationPicker)
-  const repositoryTypes = [
+  let repositoryTypes = [
     { value: 'local', label: 'Lokal', icon: '💻', description: 'Lokales Dateisystem' },
     { value: 'network', label: 'Netzwerk', icon: '🌐', description: 'SFTP, SMB, NFS, WebDAV' },
     { value: 'cloud', label: 'Cloud', icon: '☁️', description: 'S3, Azure, GCS, etc.' },
   ];
 
-  let selectedType = repositoryTypes[0];
+  let selectedType = $state(repositoryTypes[0]);
 
   function selectRepositoryType(typeValue: string) {
     selectedType = repositoryTypes.find((t) => t.value === typeValue) || repositoryTypes[0];
@@ -113,16 +116,18 @@
     isSubmitting = true;
 
     try {
-      const { initRepository } = await import('$lib/api/repositories');
+      let repo;
 
-      // Initialize repository
-      const backendOpts = backendOptions.trim() ? JSON.parse(backendOptions.trim()) : undefined;
-      const repo = await initRepository(
-        repositoryPath.trim(),
-        password,
-        repositoryType,
-        backendOpts
-      );
+      if (mode === 'init') {
+        // Neues Repository erstellen
+        const { initRepository } = await import('$lib/api/repositories');
+        const backendOpts = backendOptions.trim() ? JSON.parse(backendOptions.trim()) : undefined;
+        repo = await initRepository(repositoryPath.trim(), password, repositoryType, backendOpts);
+      } else {
+        // Bestehendes Repository öffnen
+        const { openRepository } = await import('$lib/api/repositories');
+        repo = await openRepository(repositoryPath.trim(), password);
+      }
 
       // Store password in keychain if requested
       if (storePassword && password) {
@@ -146,7 +151,9 @@
         backendOptions: backendOptions.trim(),
       });
 
-      showToastMessage('Repository erfolgreich hinzugefügt', 'success');
+      const successMsg =
+        mode === 'init' ? 'Repository erfolgreich erstellt' : 'Repository erfolgreich geöffnet';
+      showToastMessage(successMsg, 'success');
 
       // Reset form
       repositoryName = '';
@@ -156,7 +163,13 @@
       selectedType = repositoryTypes[0];
       repositoryType = 'local';
     } catch (error) {
-      showToastMessage(`Fehler beim Erstellen des Repositories: ${error}`, 'error');
+      console.error('Repository operation error:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorPrefix =
+        mode === 'init'
+          ? 'Fehler beim Erstellen des Repositories'
+          : 'Fehler beim Öffnen des Repositories';
+      showToastMessage(`${errorPrefix}: ${errorMessage}`, 'error');
     } finally {
       isSubmitting = false;
     }
@@ -177,7 +190,7 @@
 
 <Modal bind:open on:close={handleClose}>
   {#snippet header()}
-    <h2>Repository hinzufügen</h2>
+    <h2>{mode === 'init' ? 'Neues Repository erstellen' : 'Bestehendes Repository öffnen'}</h2>
   {/snippet}
   <div class="add-repo-dialog">
     <!-- Repository Type Selector -->
@@ -276,8 +289,13 @@
 
     <!-- Info Box -->
     <div class="info-box">
-      <strong>Hinweis:</strong> Nach dem Erstellen des Repositories können Sie es initialisieren und
-      Ihren ersten Backup-Job anlegen.
+      <strong>Hinweis:</strong>
+      {#if mode === 'init'}
+        Nach dem Erstellen des Repositories können Sie es initialisieren und Ihren ersten Backup-Job
+        anlegen.
+      {:else}
+        Nach dem Öffnen des Repositories können Sie Snapshots verwalten und Backups durchführen.
+      {/if}
     </div>
   </div>
 
@@ -285,9 +303,9 @@
     <Button variant="secondary" onclick={handleClose}>Abbrechen</Button>
     <Button variant="primary" onclick={handleSubmit} disabled={isSubmitting}>
       {#if isSubmitting}
-        Erstelle Repository...
+        {mode === 'init' ? 'Erstelle Repository...' : 'Öffne Repository...'}
       {:else}
-        Repository hinzufügen
+        {mode === 'init' ? 'Repository erstellen' : 'Repository öffnen'}
       {/if}
     </Button>
   {/snippet}
@@ -300,7 +318,7 @@
 <!-- Location Picker Dialog -->
 <LocationPickerDialog
   bind:isOpen={showLocationPicker}
-  mode="init"
+  {mode}
   title="Repository-Speicherort auswählen"
   on:select={handleLocationSelect}
   on:cancel={handleLocationCancel}

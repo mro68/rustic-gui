@@ -92,16 +92,16 @@
 <div class="toolbar dashboard-toolbar" role="region" aria-label="Repository Aktionen">
   <div class="section-title">Repositories</div>
   <div class="toolbar-actions">
-    <Tooltip text="Neues Repository öffnen">
+    <Tooltip text="Bestehendes Repository öffnen">
       <button
         class="btn btn-primary"
-        aria-label="Repository öffnen"
-        title="Neues Repository öffnen"
+        aria-label="Bestehendes Repository öffnen"
+        title="Bestehendes Repository öffnen"
         onclick={() => {
           showAddRepoDialog = true;
         }}
       >
-        <span class="btn-icon" aria-hidden="true">➥</span>
+        <span class="btn-icon" aria-hidden="true">📂</span>
         <span class="btn-text">Repository öffnen</span>
       </button>
     </Tooltip>
@@ -145,6 +145,7 @@
 
 <AddRepositoryDialog
   bind:open={showAddRepoDialog}
+  mode="open"
   on:created={async () => {
     showAddRepoDialog = false;
     await refreshRepos();
