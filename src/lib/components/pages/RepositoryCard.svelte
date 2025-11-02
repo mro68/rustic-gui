@@ -94,7 +94,6 @@
       console.error('Backup-Fehler:', error);
       showBackupDialog = false;
     });
-  } });
   }
 
   function handleCancelBackup() {

@@ -45,16 +45,54 @@
   let showEditDialog = false;
   let showDeleteDialog = false;
   let selectedJob: BackupJobDto | null = null;
+  let scheduledJobIds = $state<string[]>([]);
 
   async function loadJobs() {
     try {
-      const { listBackupJobs } = await import('$lib/api/backup-jobs');
+      const { listBackupJobs, listScheduledBackups } = await import('$lib/api/backup-jobs');
       const jobList = await listBackupJobs();
       jobs.set(jobList);
+      
+      // Lade geplante Jobs
+      try {
+        scheduledJobIds = await listScheduledBackups();
+        console.log('Scheduled jobs:', scheduledJobIds);
+      } catch (err) {
+        console.warn('Failed to load scheduled jobs:', err);
+      }
+      
       console.log('Backup jobs loaded:', jobList.length);
     } catch (error) {
       console.error('Failed to load jobs:', error);
       toastStore.error('Fehler beim Laden der Backup-Jobs');
+    }
+  }
+
+  function isScheduled(jobId: string): boolean {
+    return scheduledJobIds.includes(jobId);
+  }
+
+  async function toggleSchedule(job: BackupJobDto) {
+    try {
+      const { scheduleBackup, unscheduleBackup } = await import('$lib/api/backup-jobs');
+      
+      if (isScheduled(job.id)) {
+        await unscheduleBackup(job.id);
+        toastStore.success(`Job "${job.name}" entplant`);
+      } else {
+        if (!job.schedule) {
+          toastStore.error('Job hat keine Cron-Expression');
+          return;
+        }
+        await scheduleBackup(job.id, job.schedule);
+        toastStore.success(`Job "${job.name}" geplant`);
+      }
+      
+      // Reload scheduled jobs
+      await loadJobs();
+    } catch (error) {
+      console.error('Failed to toggle schedule:', error);
+      toastStore.error(`Fehler beim Planen/Entplanen: ${error}`);
     }
   }
 
@@ -128,8 +166,13 @@
             <div class="job-header">
               <h3 class="job-name">{job.name}</h3>
               <div class="job-status">
-                <!-- TODO: Status basierend auf Schedule und letzter Ausführung -->
-                <span class="status-badge idle">Idle</span>
+                {#if isScheduled(job.id)}
+                  <span class="status-badge scheduled">Geplant</span>
+                {:else if job.schedule}
+                  <span class="status-badge paused">Pausiert</span>
+                {:else}
+                  <span class="status-badge manual">Manuell</span>
+                {/if}
               </div>
             </div>
 
@@ -140,19 +183,30 @@
                   {$repositories.find((r) => r.id === job.repository_id)?.name || 'Unbekannt'}
                 </span>
               </div>
+              {#if job.schedule}
+                <div class="detail-item">
+                  <span class="label">Cron-Schedule:</span>
+                  <span class="value">{job.schedule}</span>
+                </div>
+              {/if}
               <div class="detail-item">
-                <span class="label">Nächste Ausführung:</span>
-                <span class="value">Heute 02:00</span>
-                <!-- TODO: Berechnen -->
-              </div>
-              <div class="detail-item">
-                <span class="label">Letzte Ausführung:</span>
-                <span class="value">Gestern 02:00</span>
-                <!-- TODO: Aus Job-Daten -->
+                <span class="label">Quell-Pfade:</span>
+                <span class="value">{job.source_paths.length} Pfad(e)</span>
               </div>
             </div>
 
             <div class="job-actions">
+              {#if job.schedule}
+                <Tooltip text={isScheduled(job.id) ? 'Job entplanen' : 'Job planen'}>
+                  <Button
+                    variant={isScheduled(job.id) ? 'warning' : 'success'}
+                    size="sm"
+                    onclick={() => toggleSchedule(job)}
+                  >
+                    {isScheduled(job.id) ? '⏸ Pausieren' : '▶ Aktivieren'}
+                  </Button>
+                </Tooltip>
+              {/if}
               <Tooltip text="Backup jetzt ausführen">
                 <Button variant="secondary" size="sm" onclick={() => handleRunJob(job)}>
                   Ausführen
@@ -293,6 +347,21 @@
     font-size: 0.75rem;
     font-weight: 500;
     text-transform: uppercase;
+  }
+
+  .status-badge.scheduled {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+
+  .status-badge.paused {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+  }
+
+  .status-badge.manual {
+    background: rgba(156, 163, 175, 0.15);
+    color: #9ca3af;
   }
 
   .status-badge.idle {

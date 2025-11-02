@@ -67,3 +67,36 @@ export async function updateBackupJob(job: BackupJobDto): Promise<void> {
 export async function deleteBackupJob(id: string): Promise<void> {
   await invoke('delete_backup_job', { id });
 }
+
+/**
+ * Plant einen Backup-Job mit Cron-Expression.
+ *
+ * @param jobId - Backup-Job-ID
+ * @param cronExpression - Cron-Expression (z.B. "0 2 * * *" für täglich 2 Uhr)
+ * @returns Promise (void)
+ * @throws Error wenn Job nicht existiert oder Cron-Expression ungültig ist
+ */
+export async function scheduleBackup(jobId: string, cronExpression: string): Promise<void> {
+  await invoke('schedule_backup', { jobId, cronExpression });
+}
+
+/**
+ * Entfernt die Planung eines Backup-Jobs.
+ *
+ * @param jobId - Backup-Job-ID
+ * @returns Promise (void)
+ * @throws Error wenn Job nicht geplant ist
+ */
+export async function unscheduleBackup(jobId: string): Promise<void> {
+  await invoke('unschedule_backup', { jobId });
+}
+
+/**
+ * Listet alle geplanten Backup-Jobs auf.
+ *
+ * @returns Promise mit Array von Job-IDs
+ * @throws Error wenn Abfrage fehlschlägt
+ */
+export async function listScheduledBackups(): Promise<string[]> {
+  return await invoke<string[]>('list_scheduled_backups');
+}

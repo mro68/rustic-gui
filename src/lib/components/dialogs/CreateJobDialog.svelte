@@ -227,6 +227,19 @@ Verwendung:
         password: savePassword ? jobPassword : undefined,
       });
 
+      // Plane Job automatisch wenn Schedule angegeben wurde
+      if (cronSchedule && scheduleType !== 'manual') {
+        const { scheduleBackup } = await import('$lib/api/backup-jobs');
+        try {
+          await scheduleBackup(jobId, cronSchedule);
+          console.log(`Job ${jobId} geplant mit Cron: ${cronSchedule}`);
+        } catch (scheduleError) {
+          console.error('Failed to schedule job:', scheduleError);
+          // Job wurde erstellt, aber Scheduling fehlgeschlagen
+          errors.general = `Job erstellt, aber Planung fehlgeschlagen: ${scheduleError}`;
+        }
+      }
+
       console.log('Job created with ID:', jobId);
       dispatch('created', jobData);
       close();
