@@ -213,16 +213,28 @@ Mockup-Datei                              → Svelte-Komponente
 ───────────────────────────────────────────────────────────────────────────────
 rustic_gui_mockup.html (Sidebar)         → src/lib/components/layout/Sidebar.svelte
 rustic_gui_mockup.html (Dashboard)       → src/lib/components/pages/Dashboard.svelte
-rustic_backup_dialogs.html (Create)      → src/lib/components/dialogs/CreateJobDialog.svelte
+rustic_backup_dialogs.html (Create)      → src/lib/components/dialogs/JobDialog.svelte (mode='create')
+rustic_backup_dialogs.html (Edit)        → src/lib/components/dialogs/JobDialog.svelte (mode='edit')
+                                         → dialogs/JobDialog/GeneralTab.svelte
+                                         → dialogs/JobDialog/PathsTab.svelte
+                                         → dialogs/JobDialog/ScheduleTab.svelte
+                                         → dialogs/JobDialog/RetentionTab.svelte
 rustic_repo_security_dialogs.html        → src/lib/components/dialogs/AddRepositoryDialog.svelte
 rustic_restore_dialogs.html              → src/lib/components/dialogs/RestoreDialog.svelte
 rustic_advanced_ui_mockup.html (Snapshots Advanced)
-                                         → src/lib/components/pages/Snapshots.svelte
+                                         → src/lib/components/pages/Snapshots/ (modularisiert)
+                                         → pages/Snapshots/SnapshotTable.svelte
+                                         → pages/Snapshots/SnapshotDetailsModal.svelte
+                                         → pages/Snapshots/SnapshotContextMenu.svelte
                                          → src/lib/components/dialogs/CompareSnapshotsDialog.svelte
-                                         → src/lib/components/shared/ContextMenu.svelte
                                          → src/lib/components/shared/Pagination.svelte
                                          → src/lib/components/shared/FilterBar.svelte
-rustic_location_picker.html              → src/lib/components/dialogs/LocationPickerDialog.svelte
+rustic_location_picker.html              → src/lib/components/dialogs/LocationPickerDialog.svelte (modularisiert)
+                                         → dialogs/LocationPicker/LocalTab.svelte
+                                         → dialogs/LocationPicker/NetworkTab.svelte
+                                         → dialogs/LocationPicker/CloudTab.svelte
+                                         → dialogs/LocationPicker/RecentTab.svelte
+                                         → dialogs/LocationPicker/CredentialPromptModal.svelte
 rustic_advanced_functions.html           → src/lib/components/dialogs/CheckRepoDialog.svelte
                                          → src/lib/components/dialogs/PruneRepoDialog.svelte
 ```
@@ -307,9 +319,13 @@ rustic-gui/
 │   ├── lib/
 │   │   ├── components/
 │   │   │   ├── shared/                  # Button, Modal, Toast, etc.
-│   │   │   ├── dialogs/                 # CreateJobDialog, RestoreDialog, etc.
+│   │   │   ├── dialogs/                 # JobDialog, RestoreDialog, LocationPicker (modularisiert)
+│   │   │   │   ├── JobDialog/          # Unified Create/Edit (4 Tabs: General, Paths, Schedule, Retention)
+│   │   │   │   ├── LocationPicker/     # 5 Sub-Komponenten (Local, Network, Cloud, Recent, Credentials)
+│   │   │   │   └── *.svelte            # Andere Dialoge (AddRepository, Restore, etc.)
 │   │   │   ├── layout/                  # Sidebar, Header, MainLayout
-│   │   │   └── pages/                   # Dashboard, Snapshots, etc.
+│   │   │   └── pages/                   # Dashboard, BackupJobs, Repositories (mit Sub-Komponenten)
+│   │   │       └── Snapshots/          # Modularisiert: Table, DetailsModal, ContextMenu
 │   │   ├── stores/                      # Svelte Stores (State)
 │   │   ├── api/                         # Backend-API-Wrapper
 │   │   ├── types/                       # TypeScript Types

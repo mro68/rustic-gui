@@ -50,7 +50,10 @@ src/
 │   │   │   └── ContextMenu.svelte
 │   │   ├── dialogs/               # Dialog-Komponenten
 │   │   │   ├── AddRepositoryDialog.svelte
-│   │   │   ├── CreateJobDialog.svelte
+│   │   │   ├── JobDialog.svelte       # Unified Create/Edit (mode-basiert)
+│   │   │   │   └── JobDialog/        # 4 Tab-Komponenten (General, Paths, Schedule, Retention)
+│   │   │   ├── LocationPickerDialog.svelte  # Modularisiert mit 5 Sub-Komponenten
+│   │   │   │   └── LocationPicker/  # LocalTab, NetworkTab, CloudTab, RecentTab, CredentialPromptModal
 │   │   │   ├── RestoreDialog.svelte
 │   │   │   └── ConfirmDialog.svelte
 │   │   ├── layout/                # Layout-Komponenten
@@ -61,7 +64,8 @@ src/
 │   │   └── pages/                 # Seiten-Komponenten
 │   │       ├── Dashboard.svelte
 │   │       ├── Repositories.svelte
-│   │       ├── Snapshots.svelte
+│   │       ├── Snapshots.svelte       # Modularisiert mit Sub-Komponenten
+│   │       │   └── Snapshots/        # SnapshotTable, SnapshotDetailsModal, SnapshotContextMenu
 │   │       ├── BackupJobs.svelte
 │   │       └── Settings.svelte
 │   ├── stores/                    # Svelte Stores (State Management)

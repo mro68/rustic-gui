@@ -526,9 +526,12 @@ rustic-gui/
 │   ├── lib/
 │   │   ├── components/     # Svelte-Komponenten
 │   │   │   ├── shared/     # Button, Modal, Toast, etc.
-│   │   │   ├── dialogs/    # CreateJobDialog, RestoreDialog, etc.
+│   │   │   ├── dialogs/    # JobDialog, RestoreDialog, LocationPicker (modularisiert)
+│   │   │   │   ├── JobDialog/          # Unified Create/Edit (4 Tabs)
+│   │   │   │   └── LocationPicker/     # 5 Sub-Komponenten (Local/Network/Cloud/Recent/Credentials)
 │   │   │   ├── layout/     # Sidebar, Header, MainLayout
-│   │   │   └── pages/      # Dashboard, Snapshots, etc.
+│   │   │   └── pages/      # Dashboard, BackupJobs, Snapshots (mit Sub-Komponenten)
+│   │   │       └── Snapshots/          # SnapshotTable, DetailsModal, ContextMenu
 │   │   ├── stores/         # Svelte Stores (State)
 │   │   ├── api/            # Backend-API-Wrapper
 │   │   ├── types/          # TypeScript Types

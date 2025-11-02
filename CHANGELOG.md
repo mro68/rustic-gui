@@ -7,6 +7,38 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Changed
+
+#### 2025-11-02 - Code-Modularisierung für bessere Wartbarkeit
+
+- **Snapshots.svelte Refactoring** (1011 → 461 Zeilen, -55%):
+  - `pages/Snapshots/SnapshotTable.svelte`: Snapshot-Liste mit Sorting und Selection (252 Zeilen)
+  - `pages/Snapshots/SnapshotDetailsModal.svelte`: Details-Ansicht mit Statistiken (239 Zeilen)
+  - `pages/Snapshots/SnapshotContextMenu.svelte`: Rechtsklick-Menü mit 6 Aktionen (96 Zeilen)
+
+- **LocationPickerDialog Refactoring** (1199 → 518 Zeilen, -57%):
+  - `dialogs/LocationPicker/LocalTab.svelte`: File/Directory Browser (131 Zeilen)
+  - `dialogs/LocationPicker/NetworkTab.svelte`: SFTP, SMB, NFS, WebDAV (278 Zeilen)
+  - `dialogs/LocationPicker/CloudTab.svelte`: 7 Cloud-Provider (S3, B2, Azure, etc.) (346 Zeilen)
+  - `dialogs/LocationPicker/RecentTab.svelte`: Recent locations (104 Zeilen)
+  - `dialogs/LocationPicker/CredentialPromptModal.svelte`: Save credentials prompt (114 Zeilen)
+
+- **JobDialog Konsolidierung** (1421 → 1033 Zeilen, -27%):
+  - **CreateJobDialog + EditJobDialog → JobDialog** (unified mit mode-Prop)
+  - `dialogs/JobDialog/GeneralTab.svelte`: Name, Repository, Tags, Password (145 Zeilen)
+  - `dialogs/JobDialog/PathsTab.svelte`: Source Paths & Exclusions (172 Zeilen)
+  - `dialogs/JobDialog/ScheduleTab.svelte`: Cron Schedule Builder (214 Zeilen)
+  - `dialogs/JobDialog/RetentionTab.svelte`: Retention Policy (143 Zeilen)
+  - BackupJobs.svelte migriert auf neues JobDialog (mode: 'create' | 'edit')
+  - Code-Duplikation eliminiert: -388 Zeilen
+
+- **Gesamt-Statistik**:
+  - Reduzierung: -587 Zeilen (-22% von 2620 Zeilen)
+  - 12 wiederverwendbare Sub-Komponenten erstellt
+  - Durchschnitt: ~190 Zeilen pro Komponente
+  - Klare Separation of Concerns
+  - TypeScript-Errors: 0
+
 ### Added
 
 #### 2025-11-02 - Retention-Policy UI & Integration

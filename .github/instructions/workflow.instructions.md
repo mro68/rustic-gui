@@ -99,28 +99,28 @@ chore/update-dependencies
 
 ### Typen
 
-| Typ | Beschreibung | Wann verwenden |
-|-----|--------------|----------------|
-| `feat` | Neues Feature | Neue Funktionalität für User |
-| `fix` | Bugfix | Fehler behoben |
-| `docs` | Dokumentation | README, Instructions, etc. |
-| `style` | Formatierung | Keine Code-Änderung (Prettier, etc.) |
-| `refactor` | Refactoring | Code-Umstrukturierung ohne Funktionsänderung |
-| `test` | Tests | Tests hinzugefügt/geändert |
-| `chore` | Build/Tools | Dependencies, CI, Build-Config |
-| `perf` | Performance | Performance-Optimierung |
+| Typ        | Beschreibung  | Wann verwenden                               |
+| ---------- | ------------- | -------------------------------------------- |
+| `feat`     | Neues Feature | Neue Funktionalität für User                 |
+| `fix`      | Bugfix        | Fehler behoben                               |
+| `docs`     | Dokumentation | README, Instructions, etc.                   |
+| `style`    | Formatierung  | Keine Code-Änderung (Prettier, etc.)         |
+| `refactor` | Refactoring   | Code-Umstrukturierung ohne Funktionsänderung |
+| `test`     | Tests         | Tests hinzugefügt/geändert                   |
+| `chore`    | Build/Tools   | Dependencies, CI, Build-Config               |
+| `perf`     | Performance   | Performance-Optimierung                      |
 
 ### Scopes (optional)
 
-| Scope | Bereich |
-|-------|---------|
-| `backup` | Backup-Funktionalität |
-| `restore` | Restore-Funktionalität |
-| `snapshots` | Snapshot-Management |
-| `scheduler` | Job-Scheduling |
-| `ui` | User Interface |
-| `config` | Konfiguration |
-| `repo` | Repository-Verwaltung |
+| Scope       | Bereich                |
+| ----------- | ---------------------- |
+| `backup`    | Backup-Funktionalität  |
+| `restore`   | Restore-Funktionalität |
+| `snapshots` | Snapshot-Management    |
+| `scheduler` | Job-Scheduling         |
+| `ui`        | User Interface         |
+| `config`    | Konfiguration          |
+| `repo`      | Repository-Verwaltung  |
 
 ### Beispiele
 
@@ -169,9 +169,9 @@ git commit -m "refactor(ui): Dialog-Components in separate Dateien ausgelagert
 Verbessert Wartbarkeit und Wiederverwendbarkeit.
 Keine funktionalen Änderungen.
 
-- CreateJobDialog.svelte
-- RestoreDialog.svelte
-- ConfirmDialog.svelte"
+- Snapshots.svelte modularisiert (SnapshotTable, SnapshotDetailsModal, SnapshotContextMenu)
+- JobDialog konsolidiert (CreateJobDialog + EditJobDialog → unified Dialog)
+- LocationPickerDialog modularisiert (5 Sub-Komponenten: Local, Network, Cloud, Recent, Credentials)"
 ```
 
 #### Chore-Commit
@@ -191,6 +191,7 @@ git commit -m "chore: Dependencies aktualisiert
 ### PR erstellen
 
 1. **Branch pushen**
+
    ```bash
    git push origin feature/snapshot-tags
    ```
@@ -198,24 +199,25 @@ git commit -m "chore: Dependencies aktualisiert
 2. **PR auf GitHub erstellen**
    - Titel: `feat(snapshots): Tag-Verwaltung` (wie Commit)
    - Beschreibung:
+
      ```markdown
      ## Änderungen
-     
+
      - Tag-Editor-Komponente (gemäß Mockup 08)
      - Backend-Command add_snapshot_tag
      - Tests für Tag-CRUD-Operationen
-     
+
      ## Screenshots
-     
+
      ![Tag-Editor](screenshots/tag-editor.png)
-     
+
      ## Checklist
-     
+
      - [x] Tests hinzugefügt und erfolgreich
      - [x] Dokumentation aktualisiert
      - [x] UI folgt Mockups
      - [x] Keine Linter-Warnungen
-     
+
      Closes #42
      ```
 
@@ -228,6 +230,7 @@ git commit -m "chore: Dependencies aktualisiert
 #### Als Reviewer prüfe:
 
 **Code-Qualität**
+
 - [ ] Folgt Code-Style (`code-style.instructions.md`)
 - [ ] Keine Warnungen (Clippy, ESLint)
 - [ ] Error-Handling vollständig
@@ -235,24 +238,28 @@ git commit -m "chore: Dependencies aktualisiert
 - [ ] Keine `any` (TypeScript)
 
 **Funktionalität**
+
 - [ ] Tests vorhanden und erfolgreich
 - [ ] Feature funktioniert wie beschrieben
 - [ ] Keine Regressionen
 - [ ] Performance akzeptabel
 
 **UI (falls relevant)**
+
 - [ ] Folgt Mockups
 - [ ] Responsive Design
 - [ ] Keyboard-Navigation
 - [ ] Loading-States vorhanden
 
 **Dokumentation**
+
 - [ ] ROADMAP.md aktualisiert
 - [ ] CHANGELOG.md aktualisiert (bei User-Änderungen)
 - [ ] Code-Kommentare vorhanden
 - [ ] README aktualisiert (bei neuen Features)
 
 **Git**
+
 - [ ] Commit-Messages folgen Konventionen
 - [ ] Branch ist aktuell mit main
 - [ ] Keine Merge-Konflikte
@@ -260,6 +267,7 @@ git commit -m "chore: Dependencies aktualisiert
 ### Nach Review
 
 **Bei Änderungswünschen:**
+
 ```bash
 # Änderungen implementieren
 git add .
@@ -273,6 +281,7 @@ git push origin feature/snapshot-tags
 ```
 
 **Nach Approval:**
+
 ```bash
 # Merge via GitHub UI (Squash & Merge bevorzugt)
 # Oder lokal:
@@ -299,6 +308,7 @@ git push origin --delete feature/snapshot-tags
    - `[x]` → ✅ Erledigt
 
 4. Füge Notizen hinzu:
+
    ```markdown
    - [x] Backup-Job-Erstellung (2025-10-26: Fertig)
      - [x] Job-Konfiguration-Dialog
@@ -329,6 +339,7 @@ git push origin --delete feature/snapshot-tags
 ### Wann aktualisieren?
 
 **JA, aktualisieren bei:**
+
 - ✅ Neues Feature für User
 - ✅ Bugfix der User betrifft
 - ✅ Breaking Changes
@@ -336,6 +347,7 @@ git push origin --delete feature/snapshot-tags
 - ✅ Performance-Verbesserungen
 
 **NEIN, nicht aktualisieren bei:**
+
 - ❌ Interne Refactorings
 - ❌ Test-Änderungen
 - ❌ Code-Style-Fixes
@@ -353,33 +365,40 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 ## [Unreleased]
 
 ### Added
+
 - Job-Scheduling mit Cron-Expressions (#42)
 - Tag-Verwaltung für Snapshots (#55)
 - Snapshot-Vergleich mit Diff-Anzeige (#67)
 
 ### Changed
+
 - Verbesserte Performance bei großen Repositories
 - UI-Verbesserungen im Restore-Dialog
 
 ### Fixed
+
 - Restore-Berechtigungen werden korrekt wiederhergestellt (#123)
 - Memory-Leak bei langen Backup-Sessions (#145)
 
 ### Security
+
 - Passwörter werden nicht mehr in Logs ausgegeben
 
 ## [0.2.0] - 2025-10-15
 
 ### Added
+
 - Multi-Repository-Support
 - Cloud-Storage via rclone
 
 ### Fixed
+
 - Windows-Pfade mit Backslashes funktionieren jetzt
 
 ## [0.1.0] - 2025-10-01
 
 ### Added
+
 - Initiales Release
 - Basis-Backup-Funktionalität
 - Snapshot-Verwaltung
@@ -511,14 +530,17 @@ git push origin main
 ## Aktuelle Prioritäten (Q4 2025)
 
 ### 🔥 Kritisch (diese Woche)
+
 - [ ] Bugfix: Backup bricht bei großen Dateien ab (#234)
 - [~] Feature: Retry-Logik für Netzwerk-Fehler (#245)
 
 ### ⚡ Wichtig (dieser Monat)
+
 - [ ] Feature: Differential Backup (#156)
 - [ ] UI: Dark Mode (#178)
 
 ### 💡 Nice-to-Have (nächstes Quartal)
+
 - [ ] Feature: Backup-Statistiken (#189)
 - [ ] Docs: Video-Tutorial erstellen
 ```
@@ -537,6 +559,7 @@ git push origin main
 ### GitHub Issues nutzen
 
 **Issue-Labels:**
+
 ```
 Typ:
 - bug
@@ -568,23 +591,29 @@ Bereich:
 
 ```markdown
 ## Beschreibung
+
 [Was soll implementiert/gefixt werden?]
 
 ## Kontext
+
 [Warum ist das wichtig?]
 
 ## Mockups
+
 [Falls UI-Änderung: Link zu Mockup]
 
 ## Akzeptanzkriterien
+
 - [ ] Feature X funktioniert
 - [ ] Tests vorhanden
 - [ ] Docs aktualisiert
 
 ## Technische Details
+
 [Implementierungs-Hinweise]
 
 ## Related Issues
+
 Closes #42
 Related to #55
 ```
@@ -638,30 +667,35 @@ alias rustic-fmt='npm run format && cd src-tauri && cargo fmt && cd ..'
 ## ✅ Workflow-Checkliste
 
 ### Vor Arbeitsbeginn
+
 - [ ] `git pull origin main` (aktueller Stand)
 - [ ] Instructions erneut gelesen
 - [ ] ROADMAP.md gecheckt
 - [ ] Issue verstanden
 
 ### Während Entwicklung
+
 - [ ] Tests laufen durch
 - [ ] Linter zeigt keine Fehler
 - [ ] Code folgt Style-Guide
 - [ ] UI folgt Mockups (falls relevant)
 
 ### Vor Commit
+
 - [ ] `npm run lint && npm run type-check`
 - [ ] `cargo fmt && cargo clippy`
 - [ ] Alle Tests erfolgreich
 - [ ] Dokumentation aktualisiert
 
 ### Vor Push
+
 - [ ] ROADMAP.md aktualisiert
 - [ ] CHANGELOG.md aktualisiert (bei User-Änderung)
 - [ ] Commit-Message folgt Konventionen
 - [ ] Branch ist aktuell mit main
 
 ### Nach Merge
+
 - [ ] Branch lokal gelöscht
 - [ ] Branch remote gelöscht
 - [ ] Nächster Task aus ROADMAP.md gewählt

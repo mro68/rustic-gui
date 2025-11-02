@@ -2,45 +2,27 @@
 <!--
   Mockup-Referenz: docs/mockups/rustic_location_picker.html
   
-  Features:
-  - 📁 Local File/Directory Browser mit Breadcrumb-Navigation
-  - 🌐 Network Tab (SFTP, SMB, NFS, WebDAV)
-  - ☁️ Cloud Provider Selection (S3, B2, Azure, GCS, Wasabi, MinIO, Rclone)
-  - 🕐 Recent Locations Tab
+  Modular refactored - Orchestrates 5 sub-components:
+  - LocalTab: Local file/directory selection
+  - NetworkTab: SFTP, SMB, NFS, WebDAV configuration
+  - CloudTab: Cloud provider selection (S3, B2, Azure, GCS, etc.)
+  - RecentTab: Recent locations list
+  - CredentialPromptModal: Credential save prompt after successful test
   
   Events:
   - select: { path: string, type: 'local' | 'network' | 'cloud', config?: any }
   - cancel: void
 -->
 <script lang="ts">
-  /**
-   * Unified Location Picker für Repository-Pfade.
-   *
-   * 4-Tab-Interface (gemäß rustic_location_picker.html):
-   * - Local: File/Directory Browser
-   * - Network: SFTP, SMB, NFS, WebDAV
-   * - Cloud: S3, B2, Azure, GCS, Wasabi, MinIO, Rclone
-   * - Recent: Zuletzt verwendete Locations
-   *
-   * @component
-   *
-   * @example
-   * ```svelte
-   * <LocationPickerDialog
-   *   bind:isOpen={showPicker}
-   *   mode="init"
-   *   title="Repository-Speicherort auswählen"
-   *   on:select={handleLocationSelect}
-   *   on:cancel={handleCancel}
-   * />
-   * ```
-   */
   import { invoke } from '@tauri-apps/api/core';
   import { createEventDispatcher, onMount } from 'svelte';
   import Button from '../shared/Button.svelte';
-  import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
-  import Select from '../shared/Select.svelte';
+  import CloudTab from './LocationPicker/CloudTab.svelte';
+  import CredentialPromptModal from './LocationPicker/CredentialPromptModal.svelte';
+  import LocalTab from './LocationPicker/LocalTab.svelte';
+  import NetworkTab from './LocationPicker/NetworkTab.svelte';
+  import RecentTab from './LocationPicker/RecentTab.svelte';
 
   const dispatch = createEventDispatcher<{
     select: { path: string; type: string; config?: any };
@@ -67,16 +49,7 @@
 
   // Local tab state
   let selectedPath = $state('');
-  // eslint-disable-next-line no-unused-vars
-  let currentPath = $state(''); // TODO: Implement file browser navigation
   let newFolderName = $state('');
-  // eslint-disable-next-line no-unused-vars
-  let fileItems = $state<Array<{
-    name: string;
-    path: string;
-    isDirectory: boolean;
-    size?: string;
-  }>>([]); // TODO: Populate with file browser results
 
   // Network tab state
   let networkProtocol: 'sftp' | 'smb' | 'nfs' | 'webdav' = $state('sftp');
@@ -95,16 +68,10 @@
   let cloudSecretKey = $state('');
   let cloudRegion = $state('');
 
-  // Connection test state (M2 Task 2.3.1)
-  let testing = $state(false);
-  let testResult: { success: boolean; message: string; latency_ms?: number } | null = $state(null);
-
   // Credential prompt state (M2 Task 2.3.3)
   let showCredentialPrompt = $state(false);
-  let saveCredentialsChecked = $state(true);
-  let saveFavoriteChecked = $state(true);
 
-  // Recent locations (M2 Task 2.3.2: Now loaded from backend)
+  // Recent locations (M2 Task 2.3.2: Loaded from backend)
   let recentLocations: Array<{
     id: string;
     name: string;
@@ -205,41 +172,8 @@
     });
   }
 
-  // Cloud providers from mockup
-  const cloudProviders = [
-    { id: 's3', name: 'Amazon S3', icon: '📦', description: 'AWS Object Storage' },
-    { id: 'b2', name: 'Backblaze B2', icon: '☁️', description: 'Affordable Cloud Storage' },
-    { id: 'azure', name: 'Azure Blob', icon: '🔷', description: 'Microsoft Cloud Storage' },
-    { id: 'gcs', name: 'Google Cloud', icon: '🌐', description: 'GCS Object Storage' },
-    { id: 'wasabi', name: 'Wasabi', icon: '💚', description: 'Hot Cloud Storage' },
-    { id: 'minio', name: 'MinIO', icon: '🪣', description: 'Self-hosted S3-compatible' },
-    { id: 'rclone', name: 'Rclone', icon: '🔗', description: '70+ Cloud Providers' },
-  ];
-
-  async function browseLocalDirectory() {
-    try {
-      // TODO: Implement with Tauri v2 API or custom file picker
-      console.warn('File browser not yet implemented for Tauri v2');
-    } catch (error) {
-      console.error('File browser error:', error);
-    }
-  }
-
-  async function browseLocalFile() {
-    try {
-      // TODO: Implement with Tauri v2 API or custom file picker
-      console.warn('File browser not yet implemented for Tauri v2');
-    } catch (error) {
-      console.error('File browser error:', error);
-    }
-  }
-
   function selectTab(tab: typeof activeTab) {
     activeTab = tab;
-  }
-
-  function selectCloudProvider(providerId: string) {
-    selectedCloudProvider = providerId;
   }
 
   function selectRecentLocation(location: (typeof recentLocations)[0]) {
@@ -297,7 +231,7 @@
         remotePath: networkPath,
       };
     } else if (activeTab === 'cloud') {
-      name = `${cloudProviders.find((p) => p.id === selectedCloudProvider)?.name}: ${cloudBucket}`;
+      name = `${selectedCloudProvider.toUpperCase()}: ${cloudBucket}`;
       path = `${selectedCloudProvider}:${cloudEndpoint}/${cloudBucket}`;
       locationType = selectedCloudProvider;
       config = {
@@ -379,115 +313,11 @@
   }
 
   /**
-   * Testet die Verbindung zum konfigurierten Backend.
-   * M2 Task 2.3.1: Connection-Test-Button implementiert
-   */
-  async function testConnection() {
-    testing = true;
-    testResult = null;
-
-    try {
-      let backendType: string;
-      let backendOptions: any;
-
-      if (activeTab === 'cloud') {
-        // Map cloud provider names to backend types
-        const providerMap: Record<string, string> = {
-          s3: 's3',
-          b2: 'b2',
-          azure: 'azblob',
-          gcs: 'gcs',
-          wasabi: 's3', // Wasabi uses S3 protocol
-          minio: 's3', // MinIO uses S3 protocol
-          rclone: 'rclone',
-        };
-
-        backendType = providerMap[selectedCloudProvider] || 's3';
-
-        if (selectedCloudProvider === 'rclone') {
-          backendOptions = {
-            remote_name: `rustic_${cloudBucket}`,
-            provider: 'custom',
-            path: '/',
-            options: {
-              endpoint: cloudEndpoint,
-            },
-          };
-        } else {
-          backendOptions = {
-            provider: backendType,
-            endpoint: cloudBucket || cloudEndpoint,
-            access_key: cloudAccessKey,
-            secret_key: cloudSecretKey,
-            region: cloudRegion || undefined,
-            endpoint_url:
-              selectedCloudProvider === 'wasabi' || selectedCloudProvider === 'minio'
-                ? cloudEndpoint
-                : undefined,
-          };
-        }
-      } else if (activeTab === 'network') {
-        backendType = 'rclone';
-        backendOptions = {
-          remote_name: `rustic_sftp_${networkHost.replace(/\./g, '_')}`,
-          provider: networkProtocol,
-          path: networkPath,
-          options: {
-            host: networkHost,
-            port: networkPort,
-            user: networkUsername,
-            pass: networkPassword,
-          },
-        };
-      } else if (activeTab === 'local') {
-        backendType = 'local';
-        backendOptions = {
-          path: selectedPath,
-        };
-      } else {
-        throw new Error('Ungültiger Tab für Connection-Test');
-      }
-
-      const result = await invoke<{
-        success: boolean;
-        message: string;
-        latency_ms?: number;
-      }>('test_repository_connection', {
-        backendType,
-        backendOptions,
-      });
-
-      testResult = result;
-
-      // M2 Task 2.3.3: Zeige Credential-Prompt bei erfolgreichem Test
-      if (result.success && (activeTab === 'cloud' || activeTab === 'network')) {
-        // Zeige Prompt nur wenn Credentials vorhanden sind
-        const hasCredentials =
-          (activeTab === 'cloud' && cloudAccessKey && cloudSecretKey) ||
-          (activeTab === 'network' && networkPassword);
-
-        if (hasCredentials) {
-          showCredentialPrompt = true;
-        }
-      }
-    } catch (error: any) {
-      testResult = {
-        success: false,
-        message: error?.message || String(error),
-      };
-    } finally {
-      testing = false;
-    }
-  }
-
-  /**
    * Speichert Credentials nach erfolgreichem Connection-Test.
    * M2 Task 2.3.3: Credential-Prompt-Integration
    */
-  async function handleCredentialPrompt(save: boolean) {
-    showCredentialPrompt = false;
-
-    if (!save) {
+  async function handleCredentialSave(saveCredentials: boolean, saveFavorite: boolean) {
+    if (!saveCredentials && !saveFavorite) {
       return;
     }
 
@@ -495,7 +325,7 @@
       // Generiere eine temporäre Repo-ID (wird später beim Init ersetzt)
       const tempRepoId = `temp_${Date.now()}`;
 
-      if (activeTab === 'cloud' && saveCredentialsChecked) {
+      if (activeTab === 'cloud' && saveCredentials) {
         // Speichere Cloud-Credentials in Keychain
         await invoke('save_cloud_credentials', {
           repoId: tempRepoId,
@@ -505,7 +335,7 @@
         });
 
         console.log('Cloud-Credentials gespeichert im Keychain');
-      } else if (activeTab === 'network' && saveCredentialsChecked) {
+      } else if (activeTab === 'network' && saveCredentials) {
         // Speichere Network-Credentials in Keychain
         await invoke('save_cloud_credentials', {
           repoId: tempRepoId,
@@ -518,7 +348,7 @@
       }
 
       // Optional: Als Favorit speichern
-      if (saveFavoriteChecked) {
+      if (saveFavorite) {
         await saveCurrentAsFavorite();
       }
 
@@ -529,17 +359,25 @@
     }
   }
 
-  // Update network port when protocol changes
-  $effect(() => {
-    if (networkProtocol === 'sftp') {
-      networkPort = '22';
-    } else if (networkProtocol === 'smb') {
-      networkPort = '445';
-    } else if (networkProtocol === 'nfs') {
-      networkPort = '2049';
-    } else if (networkProtocol === 'webdav') {
-      networkPort = '443';
+  function handleCredentialCancel() {
+    showCredentialPrompt = false;
+  }
+
+  // Derived state for footer preview text
+  const previewText = $derived.by(() => {
+    if (activeTab === 'local' && selectedPath) {
+      return `Ausgewählt: ${selectedPath}`;
+    } else if (activeTab === 'network' && networkHost) {
+      return `Ausgewählt: ${networkProtocol}://${networkHost}${networkPath}`;
+    } else if (activeTab === 'cloud' && cloudBucket) {
+      return `Ausgewählt: ${selectedCloudProvider}:${cloudBucket}`;
     }
+    return 'Bitte wählen Sie einen Speicherort';
+  });
+
+  // Derived state for Select button enabled
+  const canSelect = $derived.by(() => {
+    return Boolean(selectedPath || networkHost || cloudBucket);
   });
 </script>
 
@@ -547,7 +385,7 @@
   {#snippet header()}
     {title}
   {/snippet}
-  
+
   <div class="location-picker">
     <!-- Tabs -->
     <div class="location-tabs">
@@ -585,334 +423,58 @@
       </button>
     </div>
 
-    <!-- Local Tab -->
+    <!-- Tab Panels -->
     {#if activeTab === 'local'}
-      <div class="tab-panel">
-        <div class="info-box">💾 Wählen Sie ein lokales Verzeichnis für Ihr Repository</div>
-
-        <div class="browser-toolbar">
-          <Button variant="secondary" size="sm" onclick={browseLocalDirectory}>
-            📁 Verzeichnis wählen
-          </Button>
-          {#if mode === 'open'}
-            <Button variant="secondary" size="sm" onclick={browseLocalFile}>
-              📄 Datei wählen
-            </Button>
-          {/if}
-        </div>
-
-        {#if selectedPath}
-          <div class="form-group">
-            <span class="form-label">Ausgewählter Pfad</span>
-            <Input bind:value={selectedPath} placeholder="/pfad/zum/repository" />
-          </div>
-        {/if}
-
-        {#if mode === 'init'}
-          <div class="form-group">
-            <span class="form-label">Neuer Ordner-Name (optional)</span>
-            <Input bind:value={newFolderName} placeholder="z.B. mein-neues-repo" />
-            <div class="form-help">
-              Leer lassen um ausgewähltes Verzeichnis zu verwenden, oder Namen eingeben um neuen
-              Ordner zu erstellen
-            </div>
-          </div>
-        {/if}
-
-        {#if selectedPath}
-          <div class="info-box success">
-            ✅ Ausgewählt: <strong>{selectedPath}</strong>
-            {#if newFolderName.trim()}
-              / <strong>{newFolderName.trim()}</strong>
-            {/if}
-          </div>
-        {/if}
-      </div>
-    {/if}
-
-    <!-- Network Tab -->
-    {#if activeTab === 'network'}
-      <div class="tab-panel">
-        <div class="info-box">
-          🌐 Mit Remote-Repositories über SFTP, SMB, NFS oder WebDAV verbinden
-        </div>
-
-        <div class="form-group">
-          <span class="form-label">Protokoll</span>
-          <Select bind:value={networkProtocol}>
-            <option value="sftp">SFTP (SSH File Transfer)</option>
-            <option value="smb">SMB/CIFS (Windows Share)</option>
-            <option value="nfs">NFS (Network File System)</option>
-            <option value="webdav">WebDAV</option>
-          </Select>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <span class="form-label">Host</span>
-            <Input bind:value={networkHost} placeholder="backup.example.com" />
-          </div>
-          <div class="form-group" style="max-width: 120px;">
-            <label class="form-label">Port</label>
-            <Input type="number" bind:value={networkPort} />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Benutzername</label>
-            <Input bind:value={networkUsername} placeholder="backup-user" />
-          </div>
-          <div class="form-group">
-            <span class="form-label">Authentifizierung</span>
-            <Select bind:value={networkAuth}>
-              <option value="password">Passwort</option>
-              <option value="key">SSH Key</option>
-            </Select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <span class="form-label">Remote-Pfad</span>
-          <Input bind:value={networkPath} placeholder="/pfad/zum/repository" />
-          <div class="form-help">Pfad auf dem Remote-Server</div>
-        </div>
-
-        {#if networkHost}
-          <div class="info-box success">
-            ✅ Vorschau: <strong
-              >{networkProtocol}://{networkUsername}@{networkHost}:{networkPort}{networkPath}</strong
-            >
-          </div>
-        {/if}
-
-        <!-- M2 Task 2.3.1: Connection Test UI for Network -->
-        {#if networkHost && networkUsername && networkProtocol === 'sftp'}
-          <div class="connection-test-section">
-            <Button
-              variant="secondary"
-              size="sm"
-              onclick={testConnection}
-              disabled={testing}
-            >
-              {#if testing}
-                🔄 Teste Verbindung...
-              {:else}
-                🔌 Verbindung testen
-              {/if}
-            </Button>
-
-            {#if testResult}
-              <div class="test-result" class:success={testResult.success} class:error={!testResult.success}>
-                {#if testResult.success}
-                  <span class="result-icon">✅</span>
-                  <span class="result-message">{testResult.message}</span>
-                  {#if testResult.latency_ms}
-                    <span class="result-latency">({testResult.latency_ms}ms)</span>
-                  {/if}
-                {:else}
-                  <span class="result-icon">❌</span>
-                  <span class="result-message">{testResult.message}</span>
-                {/if}
-              </div>
-            {/if}
-          </div>
-        {/if}
-      </div>
-    {/if}
-
-    <!-- Cloud Tab -->
-    {#if activeTab === 'cloud'}
-      <div class="tab-panel">
-        <div class="info-box">
-          ☁️ Wählen Sie Ihren Cloud-Storage-Anbieter für Repository-Zugriff
-        </div>
-
-        <div class="cloud-grid">
-          {#each cloudProviders as provider}
-            <button
-              class="cloud-card"
-              class:selected={selectedCloudProvider === provider.id}
-              onclick={() => selectCloudProvider(provider.id)}
-            >
-              <div class="cloud-icon">{provider.icon}</div>
-              <div class="cloud-name">{provider.name}</div>
-              <div class="cloud-desc">{provider.description}</div>
-            </button>
-          {/each}
-        </div>
-
-        {#if selectedCloudProvider}
-          <div class="form-group" style="margin-top: 20px;">
-            <label class="form-label">Endpoint / Region</label>
-            <Input
-              bind:value={cloudEndpoint}
-              placeholder={selectedCloudProvider === 's3'
-                ? 's3.amazonaws.com oder s3.eu-central-1.amazonaws.com'
-                : 'Endpoint-URL'}
-            />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Bucket / Container</label>
-            <Input bind:value={cloudBucket} placeholder="my-backup-bucket" />
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Access Key / Client ID</label>
-              <Input bind:value={cloudAccessKey} placeholder="AKIAIOSFODNN7EXAMPLE" />
-            </div>
-            <div class="form-group">
-              <span class="form-label">Secret Key / Client Secret</span>
-              <Input
-                type="password"
-                bind:value={cloudSecretKey}
-                placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-              />
-            </div>
-          </div>
-
-          {#if cloudBucket}
-            <div class="info-box success">
-              ✅ Vorschau: <strong>{selectedCloudProvider}:{cloudEndpoint}/{cloudBucket}</strong>
-            </div>
-          {/if}
-
-          <!-- M2 Task 2.3.1: Connection Test UI -->
-          {#if cloudAccessKey && cloudSecretKey}
-            <div class="connection-test-section">
-              <Button
-                variant="secondary"
-                size="sm"
-                onclick={testConnection}
-                disabled={testing}
-              >
-                {#if testing}
-                  🔄 Teste Verbindung...
-                {:else}
-                  🔌 Verbindung testen
-                {/if}
-              </Button>
-
-              {#if testResult}
-                <div class="test-result" class:success={testResult.success} class:error={!testResult.success}>
-                  {#if testResult.success}
-                    <span class="result-icon">✅</span>
-                    <span class="result-message">{testResult.message}</span>
-                    {#if testResult.latency_ms}
-                      <span class="result-latency">({testResult.latency_ms}ms)</span>
-                    {/if}
-                  {:else}
-                    <span class="result-icon">❌</span>
-                    <span class="result-message">{testResult.message}</span>
-                  {/if}
-                </div>
-              {/if}
-            </div>
-          {/if}
-        {/if}
-      </div>
-    {/if}
-
-    <!-- Recent Tab -->
-    {#if activeTab === 'recent'}
-      <div class="tab-panel">
-        <div class="info-box">🕐 Zuletzt verwendete Repository-Speicherorte</div>
-
-        <div class="recent-list">
-          {#each recentLocations as location}
-            <button class="recent-item" onclick={() => selectRecentLocation(location)}>
-              <span class="recent-icon">{location.icon}</span>
-              <div class="recent-info">
-                <div class="recent-path">{location.path}</div>
-                <div class="recent-type">{location.type} • Zuletzt: {location.lastUsed}</div>
-              </div>
-            </button>
-          {/each}
-        </div>
-      </div>
+      <LocalTab {mode} bind:selectedPath bind:newFolderName />
+    {:else if activeTab === 'network'}
+      <NetworkTab
+        bind:networkProtocol
+        bind:networkHost
+        bind:networkPort
+        bind:networkUsername
+        bind:networkPassword
+        bind:networkAuth
+        bind:networkPath
+      />
+    {:else if activeTab === 'cloud'}
+      <CloudTab
+        bind:selectedCloudProvider
+        bind:cloudEndpoint
+        bind:cloudBucket
+        bind:cloudAccessKey
+        bind:cloudSecretKey
+        bind:cloudRegion
+      />
+    {:else if activeTab === 'recent'}
+      <RecentTab {recentLocations} onSelect={selectRecentLocation} />
     {/if}
   </div>
 
   {#snippet footer()}
     <div style="flex: 1; font-size: 13px; color: var(--text-secondary);">
-      {#if activeTab === 'local' && selectedPath}
-        Ausgewählt: <span style="color: var(--text-primary);">{selectedPath}</span>
-      {:else if activeTab === 'network' && networkHost}
-        Ausgewählt: <span style="color: var(--text-primary);"
-          >{networkProtocol}://{networkHost}{networkPath}</span
-        >
-      {:else if activeTab === 'cloud' && cloudBucket}
-        Ausgewählt: <span style="color: var(--text-primary);"
-          >{selectedCloudProvider}:{cloudBucket}</span
-        >
-      {:else}
-        Bitte wählen Sie einen Speicherort
-      {/if}
+      <span style="color: var(--text-primary);">{previewText}</span>
     </div>
 
     <!-- M2 Task 2.3.2: Save as Favorite Button -->
-    {#if activeTab !== 'recent' && (selectedPath || networkHost || cloudBucket)}
+    {#if activeTab !== 'recent' && canSelect}
       <Button variant="secondary" size="sm" onclick={saveCurrentAsFavorite}>
         ⭐ Als Favorit speichern
       </Button>
     {/if}
 
     <Button variant="secondary" onclick={handleCancel}>Abbrechen</Button>
-    <Button
-      variant="primary"
-      onclick={handleSelect}
-      disabled={!selectedPath && !networkHost && !cloudBucket}
-    >
+    <Button variant="primary" onclick={handleSelect} disabled={!canSelect}>
       Speicherort wählen
     </Button>
   {/snippet}
 </Modal>
 
 <!-- M2 Task 2.3.3: Credential-Prompt Dialog -->
-{#if showCredentialPrompt}
-  <Modal open={true}>
-    {#snippet header()}
-      <h2>Zugangsdaten speichern?</h2>
-    {/snippet}
-    
-    <div class="credential-prompt">
-      <p class="prompt-message">
-        Die Verbindung war erfolgreich! Möchten Sie die Zugangsdaten sicher im System-Keychain
-        speichern?
-      </p>
-
-      <div class="prompt-options">
-        <label class="checkbox-label">
-          <input type="checkbox" bind:checked={saveCredentialsChecked} />
-          <span>Zugangsdaten im Keychain speichern</span>
-        </label>
-
-        <label class="checkbox-label">
-          <input type="checkbox" bind:checked={saveFavoriteChecked} />
-          <span>Als Favorit speichern</span>
-        </label>
-      </div>
-
-      <div class="prompt-info">
-        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 16px;">
-          🔒 Zugangsdaten werden verschlüsselt im System-Keychain gespeichert. Sie werden nicht in
-          der Konfigurationsdatei abgelegt.
-        </p>
-      </div>
-    </div>
-
-    {#snippet footer()}
-      <Button variant="secondary" onclick={() => handleCredentialPrompt(false)}>
-        Nicht speichern
-      </Button>
-      <Button variant="primary" onclick={() => handleCredentialPrompt(true)}>
-        Speichern
-      </Button>
-    {/snippet}
-  </Modal>
-{/if}
+<CredentialPromptModal
+  bind:open={showCredentialPrompt}
+  onSave={handleCredentialSave}
+  onCancel={handleCredentialCancel}
+/>
 
 <style>
   .location-picker {
@@ -952,248 +514,5 @@
 
   .tab-icon {
     font-size: 18px;
-  }
-
-  .tab-panel {
-    animation: fadeIn 0.2s ease-in;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  /* Info Box */
-  .info-box {
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.3);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    font-size: 14px;
-  }
-
-  .info-box.success {
-    background: rgba(34, 197, 94, 0.1);
-    border-color: rgba(34, 197, 94, 0.3);
-    color: var(--color-success);
-  }
-
-  /* Form Elements */
-  .form-group {
-    margin-bottom: 16px;
-  }
-
-  .form-label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    font-size: 14px;
-  }
-
-  .form-help {
-    margin-top: 4px;
-    font-size: 12px;
-    color: var(--text-secondary);
-  }
-
-  .form-row {
-    display: flex;
-    gap: 12px;
-  }
-
-  .form-row .form-group {
-    flex: 1;
-  }
-
-  /* Browser Toolbar */
-  .browser-toolbar {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-
-  /* Cloud Provider Grid */
-  .cloud-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  .cloud-card {
-    background: var(--bg-secondary);
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
-  }
-
-  .cloud-card:hover {
-    border-color: var(--color-primary);
-    background: var(--bg-tertiary);
-  }
-
-  .cloud-card.selected {
-    border-color: var(--color-primary);
-    background: rgba(59, 130, 246, 0.1);
-  }
-
-  .cloud-icon {
-    font-size: 32px;
-    margin-bottom: 8px;
-  }
-
-  .cloud-name {
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 4px;
-  }
-
-  .cloud-desc {
-    font-size: 12px;
-    color: var(--text-secondary);
-  }
-
-  /* Recent List */
-  .recent-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .recent-item {
-    padding: 12px 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--bg-secondary);
-    transition: all 0.2s;
-    text-align: left;
-  }
-
-  .recent-item:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--color-primary);
-  }
-
-  .recent-icon {
-    font-size: 24px;
-  }
-
-  .recent-info {
-    flex: 1;
-  }
-
-  .recent-path {
-    font-size: 14px;
-    font-weight: 500;
-    font-family: 'Courier New', monospace;
-    margin-bottom: 4px;
-  }
-
-  .recent-type {
-    font-size: 12px;
-    color: var(--text-secondary);
-  }
-
-  /* Connection Test Section - M2 Task 2.3.1 */
-  .connection-test-section {
-    margin-top: 16px;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--bg-secondary);
-  }
-
-  .test-result {
-    margin-top: 12px;
-    padding: 10px 12px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-  }
-
-  .test-result.success {
-    background: rgba(34, 197, 94, 0.1);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    color: #22c55e;
-  }
-
-  .test-result.error {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #ef4444;
-  }
-
-  .result-icon {
-    font-size: 16px;
-  }
-
-  .result-message {
-    flex: 1;
-  }
-
-  .result-latency {
-    font-size: 12px;
-    opacity: 0.8;
-  }
-
-  /* Credential Prompt (M2 Task 2.3.3) */
-  .credential-prompt {
-    padding: 16px 0;
-  }
-
-  .prompt-message {
-    margin-bottom: 20px;
-    line-height: 1.5;
-  }
-
-  .prompt-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 4px;
-    transition: background 0.2s;
-  }
-
-  .checkbox-label:hover {
-    background: rgba(59, 130, 246, 0.05);
-  }
-
-  .checkbox-label input[type='checkbox'] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-
-  .checkbox-label span {
-    font-size: 14px;
-  }
-
-  .prompt-info {
-    margin-top: 16px;
-    padding: 12px;
-    background: rgba(59, 130, 246, 0.05);
-    border-radius: 6px;
   }
 </style>

@@ -19,53 +19,61 @@
 #### ✅ DEUTSCH verwenden für:
 
 - **Alle Kommentare** im Code
+
   ```typescript
   // Validiere Job-Konfiguration vor dem Speichern
   function validateJob(job: BackupJob) { ... }
   ```
 
 - **Docstrings** (TSDoc, Rustdoc)
+
   ```typescript
   /**
    * Startet einen Backup-Job und gibt das Ergebnis zurück.
-   * 
+   *
    * @param jobId - Eindeutige ID des Backup-Jobs
    */
   ```
 
 - **Error Messages für User** (UI)
+
   ```typescript
   throw new Error('Repository nicht gefunden');
   showToast('error', 'Backup fehlgeschlagen');
   ```
 
 - **UI-Texte** (Buttons, Labels, etc.)
+
   ```svelte
   <button>Backup starten</button>
   <label>Quellpfade auswählen</label>
   ```
 
 - **Log-Ausgaben** für User-facing Logs
+
   ```rust
   tracing::info!("Backup erfolgreich abgeschlossen");
   tracing::error!("Fehler beim Öffnen des Repositories");
   ```
 
 - **Git Commit Messages**
+
   ```bash
   git commit -m "feat(backup): Job-Scheduling implementiert"
   ```
 
 - **Dokumentation** (README, Instructions)
+
   ```markdown
   ## Installation
-  
+
   Lade die AppImage herunter und mache sie ausführbar:
   ```
 
 #### ✅ ENGLISCH verwenden für:
 
 - **Variablen**
+
   ```typescript
   const backupJobs = [];
   let currentSnapshot = null;
@@ -73,6 +81,7 @@
   ```
 
 - **Funktionen**
+
   ```typescript
   function runBackup() {}
   async function listSnapshots() {}
@@ -80,6 +89,7 @@
   ```
 
 - **Typen/Interfaces**
+
   ```typescript
   interface BackupJob {}
   type SnapshotId = string;
@@ -87,6 +97,7 @@
   ```
 
 - **Klassen/Structs**
+
   ```rust
   struct BackupJob {}
   struct SnapshotInfo {}
@@ -94,6 +105,7 @@
   ```
 
 - **Dateien**
+
   ```
   backup-service.ts
   snapshot-store.ts
@@ -101,6 +113,7 @@
   ```
 
 - **Branches**
+
   ```bash
   feature/snapshot-compare
   fix/restore-permissions
@@ -152,8 +165,9 @@ enum BackupStatus {
 }
 
 // Svelte Components: PascalCase
-// Datei: CreateJobDialog.svelte
+// Datei: JobDialog.svelte (unified Create/Edit)
 export let jobName: string;
+export let mode: 'create' | 'edit';
 
 // Svelte Stores: camelCase
 export const backupJobs = writable<BackupJob[]>([]);
@@ -168,8 +182,8 @@ const _privateData = {};
 
 ```
 Svelte Components: PascalCase.svelte
-  - CreateJobDialog.svelte
-  - SnapshotList.svelte
+  - JobDialog.svelte (unified Create/Edit)
+  - SnapshotTable.svelte
   - RestoreBrowser.svelte
 
 TypeScript Files: kebab-case.ts
@@ -211,15 +225,12 @@ function process(data: any) {
 
 // ✅ GUT: Generics
 function getById<T>(id: string, items: T[]): T | undefined {
-  return items.find(item => item.id === id);
+  return items.find((item) => item.id === id);
 }
 
 // ✅ GUT: Type Guards
 function isBackupJob(obj: unknown): obj is BackupJob {
-  return typeof obj === 'object' 
-    && obj !== null 
-    && 'id' in obj 
-    && 'name' in obj;
+  return typeof obj === 'object' && obj !== null && 'id' in obj && 'name' in obj;
 }
 ```
 
@@ -275,9 +286,7 @@ try {
 }
 
 // ✅ GUT: Result-Type-Pattern (alternativ)
-type Result<T, E = Error> = 
-  | { ok: true; value: T }
-  | { ok: false; error: E };
+type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E };
 
 async function runBackup(jobId: string): Promise<Result<BackupResult>> {
   try {
@@ -305,58 +314,56 @@ if (result.ok) {
 <script lang="ts">
   /**
    * Dialog zum Erstellen eines neuen Backup-Jobs.
-   * 
+   *
    * Zeigt ein mehrstufiges Formular mit Tabs für:
    * - Allgemeine Einstellungen
    * - Pfade und Exclusions
    * - Zeitplan-Konfiguration
    */
-  
+
   // 1. Imports
   import { createEventDispatcher } from 'svelte';
   import type { BackupJob } from '$lib/types';
   import Button from '$lib/components/shared/Button.svelte';
-  
+
   // 2. Props (mit $props() in Svelte 5)
-  let { 
+  let {
     isOpen = $bindable(false),
-    initialData = undefined 
+    initialData = undefined,
   }: {
     isOpen?: boolean;
     initialData?: Partial<BackupJob>;
   } = $props();
-  
+
   // 3. State
   let activeTab = $state(0);
   let jobName = $state(initialData?.name ?? '');
   let sourcePaths = $state<string[]>(initialData?.sourcePaths ?? []);
-  
+
   // 4. Derived State
-  let isValid = $derived(
-    jobName.trim().length > 0 && sourcePaths.length > 0
-  );
-  
+  let isValid = $derived(jobName.trim().length > 0 && sourcePaths.length > 0);
+
   // 5. Event Dispatcher
   const dispatch = createEventDispatcher<{
     save: BackupJob;
     cancel: void;
   }>();
-  
+
   // 6. Functions
   function handleSave() {
     if (!isValid) return;
-    
+
     const job: BackupJob = {
       id: crypto.randomUUID(),
       name: jobName,
       sourcePaths,
       // ... weitere Felder
     };
-    
+
     dispatch('save', job);
     isOpen = false;
   }
-  
+
   function handleCancel() {
     dispatch('cancel');
     isOpen = false;
@@ -367,25 +374,14 @@ if (result.ok) {
 {#if isOpen}
   <dialog open>
     <h2>Neuen Backup-Job erstellen</h2>
-    
+
     <form on:submit|preventDefault={handleSave}>
       <!-- Form-Inhalt -->
-      
+
       <div class="actions">
-        <Button 
-          variant="secondary" 
-          on:click={handleCancel}
-        >
-          Abbrechen
-        </Button>
-        
-        <Button 
-          variant="primary" 
-          type="submit"
-          disabled={!isValid}
-        >
-          Speichern
-        </Button>
+        <Button variant="secondary" on:click={handleCancel}>Abbrechen</Button>
+
+        <Button variant="primary" type="submit" disabled={!isValid}>Speichern</Button>
       </div>
     </form>
   </dialog>
@@ -398,7 +394,7 @@ if (result.ok) {
     border-radius: 0.5rem;
     border: 1px solid var(--border-color);
   }
-  
+
   .actions {
     display: flex;
     justify-content: flex-end;
@@ -415,30 +411,30 @@ if (result.ok) {
   // Svelte 5: $state() für reactive Variablen
   let count = $state(0);
   let name = $state('');
-  
+
   // Svelte 5: $derived() für berechnete Werte
   let doubled = $derived(count * 2);
   let greeting = $derived(`Hallo, ${name}!`);
-  
+
   // Svelte 5: $effect() für Side Effects
   $effect(() => {
     console.log('Count changed:', count);
-    
+
     // Cleanup (optional)
     return () => {
       console.log('Cleanup');
     };
   });
-  
+
   // Svelte 5: $props() für Component Props
-  let { 
+  let {
     initialCount = 0,
-    onUpdate 
+    onUpdate,
   }: {
     initialCount?: number;
     onUpdate?: (value: number) => void;
   } = $props();
-  
+
   // Initialisierung
   $effect(() => {
     count = initialCount;
@@ -528,19 +524,19 @@ use thiserror::Error;
 pub enum BackupError {
     #[error("Repository nicht gefunden: {0}")]
     RepositoryNotFound(String),
-    
+
     #[error("Authentifizierung fehlgeschlagen")]
     AuthenticationFailed,
-    
+
     #[error("Backup wurde abgebrochen")]
     Cancelled,
-    
+
     #[error("IO-Fehler: {0}")]
     IoError(#[from] std::io::Error),
-    
+
     #[error("JSON-Parse-Fehler: {0}")]
     JsonError(#[from] serde_json::Error),
-    
+
     #[error("Interner Fehler: {0}")]
     Internal(String),
 }
@@ -565,7 +561,7 @@ fn bad_example() {
 fn good_example() {
     // Sicher: UUID ist immer gültig
     let id = Uuid::parse_str("...").unwrap();
-    
+
     // Oder besser: expect() mit Nachricht
     let id = Uuid::parse_str("...")
         .expect("Hart-codierte UUID muss gültig sein");
@@ -597,7 +593,7 @@ fn update_job_status(job: &mut BackupJob, status: BackupStatus) {
 fn start_backup(job: &BackupJob) -> tokio::task::JoinHandle<Result<()>> {
     // Clone nötig da Job in separaten Thread verschoben wird
     let job = job.clone();
-    
+
     tokio::spawn(async move {
         execute_backup(&job).await
     })
@@ -613,7 +609,7 @@ async fn fetch_snapshots(repo_path: &str) -> Result<Vec<Snapshot>> {
         .args(&["snapshots", "-r", repo_path, "--json"])
         .output()
         .await?;
-    
+
     let snapshots = serde_json::from_slice(&output.stdout)?;
     Ok(snapshots)
 }
@@ -622,9 +618,9 @@ async fn fetch_snapshots(repo_path: &str) -> Result<Vec<Snapshot>> {
 async fn load_all_data(repo_path: &str) -> Result<(Vec<Snapshot>, RepoInfo)> {
     let snapshots_future = fetch_snapshots(repo_path);
     let info_future = fetch_repo_info(repo_path);
-    
+
     let (snapshots, info) = tokio::try_join!(snapshots_future, info_future)?;
-    
+
     Ok((snapshots, info))
 }
 
@@ -639,7 +635,7 @@ async fn process_snapshots_batch(snapshot_ids: Vec<String>) -> Result<()> {
         .buffer_unordered(3)  // Max 3 parallele Tasks
         .collect::<Vec<_>>()
         .await;
-    
+
     Ok(())
 }
 ```
@@ -655,7 +651,7 @@ async fn process_snapshots_batch(snapshot_ids: Vec<String>) -> Result<()> {
 ///
 /// - Passwort wird nicht geloggt
 /// - Repository-Pfad wird validiert
-/// 
+///
 /// # Errors
 ///
 /// Returns error string wenn:
@@ -672,31 +668,31 @@ pub async fn list_snapshots(
     if repo_path.is_empty() {
         return Err("Repository-Pfad darf nicht leer sein".into());
     }
-    
+
     // Passwort in Env (wird nach Aufruf gelöscht)
     std::env::set_var("RUSTIC_PASSWORD", &password);
-    
+
     // rustic aufrufen
     let output = tokio::process::Command::new("rustic")
         .args(&["snapshots", "-r", &repo_path, "--json"])
         .output()
         .await
         .map_err(|e| format!("Fehler beim Ausführen von rustic: {}", e))?;
-    
+
     // Passwort aus Env entfernen
     std::env::remove_var("RUSTIC_PASSWORD");
-    
+
     // Erfolg prüfen
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         return Err(format!("Rustic-Fehler: {}", stderr));
     }
-    
+
     // JSON parsen
     let stdout = String::from_utf8_lossy(&output.stdout);
     let snapshots = serde_json::from_str(&stdout)
         .map_err(|e| format!("JSON-Parse-Fehler: {}", e))?;
-    
+
     Ok(snapshots)
 }
 ```
@@ -707,13 +703,13 @@ pub async fn list_snapshots(
 
 ### TSDoc (TypeScript)
 
-```typescript
+````typescript
 /**
  * Startet einen Backup-Job und gibt das Ergebnis zurück.
- * 
+ *
  * Diese Funktion kommuniziert mit dem Backend via Tauri IPC
  * und zeigt Progress-Updates während der Ausführung an.
- * 
+ *
  * @param jobId - Eindeutige ID des auszuführenden Jobs
  * @param options - Optionale Konfigurations-Parameter
  * @param options.dryRun - Wenn true, wird nur simuliert
@@ -721,27 +717,24 @@ pub async fn list_snapshots(
  * @returns Promise mit dem Backup-Ergebnis
  * @throws {BackupError} Wenn Backup fehlschlägt
  * @throws {ValidationError} Wenn Job-Konfiguration ungültig
- * 
+ *
  * @example
  * ```typescript
  * const result = await runBackup('job-123', { dryRun: true });
  * console.log(`Backup abgeschlossen: ${result.snapshotId}`);
  * ```
- * 
+ *
  * @see {@link BackupJob} für Job-Konfiguration
  * @see {@link BackupResult} für Ergebnis-Format
  */
-export async function runBackup(
-  jobId: string,
-  options?: BackupOptions
-): Promise<BackupResult> {
+export async function runBackup(jobId: string, options?: BackupOptions): Promise<BackupResult> {
   // Implementation
 }
-```
+````
 
 ### Rustdoc
 
-```rust
+````rust
 /// Führt einen Backup-Job aus und gibt das Ergebnis zurück.
 ///
 /// Diese Funktion ruft rustic als Subprocess auf und parst die JSON-Ausgabe.
@@ -795,7 +788,7 @@ pub async fn run_backup(
 ) -> Result<BackupResult, BackupError> {
     // Implementation
 }
-```
+````
 
 ### Inline-Kommentare
 
@@ -811,7 +804,7 @@ const excludedPaths = new Set<string>();
 
 // ✅ GUT: Erklärt nicht-offensichtlichen Trick
 // Timeout nötig da rustic manchmal verzögert Ausgabe liefert
-await new Promise(resolve => setTimeout(resolve, 100));
+await new Promise((resolve) => setTimeout(resolve, 100));
 
 // ✅ GUT: Warnung vor Fallstrick
 // ACHTUNG: Darf nicht parallel ausgeführt werden, da Repository locked wird!
@@ -840,7 +833,7 @@ async function uploadToCloud() {}
   "useTabs": false,
   "arrowParens": "avoid",
   "endOfLine": "lf",
-  
+
   "plugins": ["prettier-plugin-svelte"],
   "overrides": [
     {
@@ -912,7 +905,7 @@ const result = await processSnapshots(snapshots);
 // ❌ SCHLECHT: Mutation von Props in Svelte
 export let items = [];
 function addItem() {
-  items.push(newItem);  // Mutiert Parent-State!
+  items.push(newItem); // Mutiert Parent-State!
 }
 
 // ✅ GUT: Event dispatch
@@ -1011,7 +1004,7 @@ async fn good_async() {
 - [ ] Docstrings für öffentliche API
 - [ ] Inline-Kommentare für komplexe Logik
 - [ ] Tests vorhanden (siehe testing.instructions.md)
-- [ ] UI folgt Mockups (siehe mockups/*)
+- [ ] UI folgt Mockups (siehe mockups/\*)
 
 ---
 

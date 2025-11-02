@@ -22,17 +22,15 @@
   Store: src/lib/stores/backup-jobs.ts
   
   Dialogs verwendet:
-  - CreateJobDialog.svelte ✅ (TODO.md Zeile 238)
-  - EditJobDialog.svelte ✅ (TODO.md Zeile 239)
+  - JobDialog.svelte (unified create/edit) ✅
   - DeleteJobDialog.svelte ✅ (TODO.md Zeile 240)
   
   TODO:
   - Zeile 101, 116, 121: Job-Status und Zeitrechnung (last_run, next_run)
 -->
 <script lang="ts">
-  import CreateJobDialog from '$lib/components/dialogs/CreateJobDialog.svelte';
   import DeleteJobDialog from '$lib/components/dialogs/DeleteJobDialog.svelte';
-  import EditJobDialog from '$lib/components/dialogs/EditJobDialog.svelte';
+  import JobDialog from '$lib/components/dialogs/JobDialog.svelte';
   import Button from '$lib/components/shared/Button.svelte';
   import Tooltip from '$lib/components/shared/Tooltip.svelte';
   import { jobs, loading } from '$lib/stores/backup-jobs';
@@ -41,8 +39,8 @@
   import type { BackupJobDto } from '$lib/types';
   import { onMount } from 'svelte';
 
-  let showCreateDialog = $state(false);
-  let showEditDialog = $state(false);
+  let showJobDialog = $state(false);
+  let jobDialogMode = $state<'create' | 'edit'>('create');
   let showDeleteDialog = $state(false);
   let selectedJob = $state<BackupJobDto | null>(null);
   let scheduledJobIds = $state<string[]>([]);
@@ -52,7 +50,7 @@
       const { listBackupJobs, listScheduledBackups } = await import('$lib/api/backup-jobs');
       const jobList = await listBackupJobs();
       jobs.set(jobList);
-      
+
       // Lade geplante Jobs
       try {
         scheduledJobIds = await listScheduledBackups();
@@ -60,7 +58,7 @@
       } catch (err) {
         console.warn('Failed to load scheduled jobs:', err);
       }
-      
+
       console.log('Backup jobs loaded:', jobList.length);
     } catch (error) {
       console.error('Failed to load jobs:', error);
@@ -75,7 +73,7 @@
   async function toggleSchedule(job: BackupJobDto) {
     try {
       const { scheduleBackup, unscheduleBackup } = await import('$lib/api/backup-jobs');
-      
+
       if (isScheduled(job.id)) {
         await unscheduleBackup(job.id);
         toastStore.success(`Job "${job.name}" entplant`);
@@ -87,7 +85,7 @@
         await scheduleBackup(job.id, job.schedule);
         toastStore.success(`Job "${job.name}" geplant`);
       }
-      
+
       // Reload scheduled jobs
       await loadJobs();
     } catch (error) {
@@ -102,9 +100,8 @@
     loadJobs(); // Reload jobs
   }
 
-  function handleJobUpdated(event: any) {
-    console.log('Job updated:', event.detail);
-    toastStore.success('Backup-Job wurde erfolgreich aktualisiert');
+  function handleJobSaved(event: any) {
+    console.log('Job saved:', event.detail);
     loadJobs(); // Reload jobs
   }
 
@@ -116,7 +113,8 @@
 
   function handleEditJob(job: BackupJobDto) {
     selectedJob = job;
-    showEditDialog = true;
+    jobDialogMode = 'edit';
+    showJobDialog = true;
   }
 
   function handleDeleteJob(job: BackupJobDto) {
@@ -133,7 +131,7 @@
 
   async function handleRunJob(job: BackupJobDto) {
     console.log('Running job:', job.id);
-    
+
     // Repository-Passwort prüfen
     const repo = $repositories.find((r) => r.id === job.repository_id);
     if (!repo) {
@@ -141,9 +139,20 @@
       return;
     }
 
-    // TODO: Passwort von Keychain holen (für jetzt hardcoded)
-    const password = 'test'; // FIXME: Aus Keychain laden
-    
+    // Passwort von Keychain holen (falls nicht im Job gespeichert)
+    let password = job.password; // Falls im Job gespeichert
+
+    if (!password) {
+      try {
+        const { getRepositoryPassword } = await import('$lib/api/keychain');
+        password = await getRepositoryPassword(job.repository_id);
+      } catch (error) {
+        toastStore.error('Repository-Passwort nicht verfügbar. Bitte Repository entsperren.');
+        console.error('Keychain error:', error);
+        return;
+      }
+    }
+
     runningJobId = job.id;
     backupProgress = { filesProcessed: 0, bytesUploaded: 0, percent: 0 };
     toastStore.info(`Starte Backup-Job "${job.name}"...`);
@@ -214,7 +223,15 @@
     <h1 class="page-title">Backup-Jobs</h1>
     <div class="toolbar-actions">
       <Tooltip text="Neuen Backup-Job erstellen">
-        <Button variant="primary" size="sm" onclick={() => (showCreateDialog = true)}>
+        <Button
+          variant="primary"
+          size="sm"
+          onclick={() => {
+            jobDialogMode = 'create';
+            selectedJob = null;
+            showJobDialog = true;
+          }}
+        >
           + Neuer Job
         </Button>
       </Tooltip>
@@ -229,7 +246,14 @@
       <div class="empty-state">
         <h3>Keine Backup-Jobs gefunden</h3>
         <p>Erstellen Sie Ihren ersten Backup-Job, um automatische Sicherungen zu planen.</p>
-        <Button variant="primary" onclick={() => (showCreateDialog = true)}>
+        <Button
+          variant="primary"
+          onclick={() => {
+            jobDialogMode = 'create';
+            selectedJob = null;
+            showJobDialog = true;
+          }}
+        >
           Ersten Job erstellen
         </Button>
       </div>
@@ -282,7 +306,7 @@
                   </div>
                 </div>
               {/if}
-              
+
               {#if job.schedule}
                 <Tooltip text={isScheduled(job.id) ? 'Job entplanen' : 'Job planen'}>
                   <Button
@@ -295,9 +319,9 @@
                 </Tooltip>
               {/if}
               <Tooltip text="Backup jetzt ausführen">
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onclick={() => handleRunJob(job)}
                   disabled={runningJobId === job.id}
                 >
@@ -322,19 +346,14 @@
   </div>
 </div>
 
-<!-- Create Job Dialog -->
-<CreateJobDialog
-  bind:open={showCreateDialog}
-  repositories={$repositories}
-  on:created={handleJobCreated}
-/>
-
-<!-- Edit Job Dialog -->
-<EditJobDialog
-  bind:open={showEditDialog}
+<!-- Job Dialog (Create/Edit) -->
+<JobDialog
+  bind:open={showJobDialog}
+  mode={jobDialogMode}
   job={selectedJob}
   repositories={$repositories}
-  on:updated={handleJobUpdated}
+  on:created={handleJobCreated}
+  on:saved={handleJobSaved}
 />
 
 <!-- Delete Job Dialog -->

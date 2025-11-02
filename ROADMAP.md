@@ -1,27 +1,29 @@
 # Rustic GUI Roadmap
 
-> Stand: 2025-11-01 &nbsp;·&nbsp; Verantwortlich: Rustic GUI Team
+> Stand: 2025-11-02 &nbsp;·&nbsp; Verantwortlich: Rustic GUI Team
 
 ---
 
 ## Aktueller Projektstatus
 
 - **Build & Laufzeit**
-  - `cargo build` und `npm run build` kompilieren ohne Blocker; Runtime-Features sind jedoch nur teilweise funktionsfähig, weil mehrere Tauri-Commands noch Platzhalter verwenden.
+  - ✅ `cargo build` und `npm run build` kompilieren **ohne Errors** (0 TypeScript-Fehler, alle Rust-Tests passing, Stand 2025-11-02).
   - Portable-Konfiguration wird beim Start über `AppState::new()` geladen; verschlüsselte Speicherung funktioniert, fällt bei schreibgeschützten Medien korrekt auf ein Fallback-Verzeichnis zurück.
 - **Backend (Tauri + Rust)**
   - Repository-, Backup-, Snapshot- und Restore-Commands sind strukturell vorhanden (`src-tauri/src/commands/*`).
-  - Wichtige Operationen wie `check_repository`, `prune_repository`, `change_password` und `delete_snapshot` liefern noch Platzhalter- oder Fehlermeldungen.
-  - `run_backup_command`/-Optionen öffnen Repositories und senden Events, aber Passwort-Weitergabe, echte Progress-Kopplung und Fehlerbehandlung sind nicht abgeschlossen.
+  - ✅ **Repository-Wartung vollständig implementiert:** `check_repository`, `prune_repository`, `change_password` nutzen rustic_core API (2025-11-02).
+  - ✅ `delete_snapshot` vollständig implementiert mit Backend-Integration.
+  - `run_backup_command` sendet Progress-Events, aber Passwort-Handling und vollständige Error-Propagierung noch ausstehend.
   - Scheduler (`BackupScheduler`) initialisiert und stellt Jobs wieder her, führt aber keine echten Backups aus (Simulation via `tokio::sleep`).
 - **Frontend (Svelte 5 + TypeScript)**
+  - ✅ **Vollständige Svelte 5 Migration:** Alle Komponenten nutzen `$state()`, `$bindable()` und `bind:open` Pattern (2025-11-02).
   - Layout, Navigation und Kernseiten existieren; Stores laden reale Daten über die Tauri-API.
-  - Zahlreiche Dialoge (Restore, Snapshot-Vergleich, Repository-Wartung) sind UI-seitig angelegt, aber ohne vollständige Backend-Verknüpfung.
+  - ✅ **Repository-Wartungs-Dialoge vollständig integriert:** Check, Prune, Change Password mit Backend-Anbindung (2025-11-02).
   - Snapshots-Seite: Liste/Filter funktionieren, ✅ Snapshot-Vergleich mit vollständigem Tree-Diff implementiert (2025-11-02), Restore-Dialoge warten auf Wiring.
-  - Backup-Jobs-Seite: CRUD läuft über API, „Job ausführen“ und Scheduler-Status sind Platzhalter.
+  - Backup-Jobs-Seite: CRUD läuft über API, ✅ Scheduler-Integration mit Schedule/Unschedule Buttons funktionsfähig (2025-11-02).
 - **Tests & Qualität**
-  - Vitest-Konfiguration aktiv (`npm test` → `vitest run`), aber nur wenige Komponenten-/Store-Tests vorhanden.
-  - Rust-Tests existieren (PortableStore, Scheduler), manche Commands enthalten deaktivierte Assertions.
+  - ✅ 16/16 Rust Integration-Tests passing (2025-11-02).
+  - Vitest-Konfiguration aktiv (`npm test` → `vitest run`), Store-Tests vorhanden und passing.
   - Keine automatisierten End-To-End-Tests.
 
 ---
@@ -32,7 +34,7 @@
 
 - [x] AppState mit Repository-Cache, Scheduler und PortableStore (AES-256-GCM) (`src-tauri/src/state.rs`, `storage/portable.rs`)
 - [x] Settings-Commands (`get_settings`, `save_settings`, `reset_settings`, `update_theme`)
-- [~] Repository-Commands (listen/switchen funktionieren, Health/Prune/Passwort sind Stubs)
+- [x] Repository-Commands (✅ check_repository, prune_repository, change_password vollständig implementiert 2025-11-02)
 - [~] Backup-Ausführung (Command-Struktur + Events vorhanden, Passwort-Handling/Progress ausständig)
 - [x] Snapshot-Management (Listen/Tagging fertig, ✅ Batch-Löschen ok, ✅ Tree-basierter Snapshot-Vergleich implementiert, ✅ Einzel-Löschen implementiert)
 - [~] Restore (`restore_files_v1` ruft rustic::restore, Fehler-/Progresswerte Platzhalter)
@@ -42,7 +44,7 @@
 
 - [x] MainLayout, Sidebar, Router-Store (`src/lib/components/layout`, `src/lib/stores/router.ts`)
 - [x] Settings-Seite inkl. Backend-Speicherung
-- [~] Repositories-Seite (Listen/Löschen funktionieren, Unlock/Check/Prune-Dialoge ohne Backend-Funktionen)
+- [x] Repositories-Seite (✅ Check/Prune/ChangePassword-Dialoge vollständig integriert 2025-11-02)
 - [~] Snapshots-Seite (Liste & Filter ok, ✅ Compare mit Tree-Diff implementiert, Restore/Advanced Filter fehlen)
 - [x] Backup-Jobs (CRUD und Dialoge vorhanden, ✅ Scheduler-Integration mit Schedule/Unschedule Buttons)
 - [ ] Restore-Dialog-Flow (FileTree lädt Daten, aber Restore-Button nicht verdrahtet)
@@ -68,22 +70,26 @@ Legende: `[x]` fertig · `[~]` teilweise · `[ ]` offen
 
 ## Kurzfristige Prioritäten (November 2025)
 
-1. **Repository-Wartung vervollständigen**
-   - `check_repository`, `prune_repository`, `change_password` mit echter rustic_core-Logik implementieren.
-   - Dialoge auf der Repositories-Seite aktivieren und mit vernünftigen Status-/Fehlermeldungen versehen.
-2. **Backup/Restore Ende-zu-Ende**
-   - Passwortdurchleitung & Progress-Callbacks in `run_backup_command` und `restore_files_v1` vervollständigen.
-   - Frontend-Buttons („Backup jetzt“, „Restore“) an die Commands anbinden; Events abonnieren.
-3. **Scheduler nutzbar machen**
-   - Geplante Jobs sollen reale Backups starten (`schedule_backup`, `restore_scheduled_jobs`).
-   - Job-Historie und Statusfelder (`last_run`, `next_run`) in UI/Config pflegen.
-4. **Snapshot-Lifecycle abrunden**
-   - ✅ Einzelnes Löschen (`delete_snapshot`) fertiggestellt (2025-11-02)
-   - ✅ Tag-Verwaltung vollständig implementiert (Backend + UI bereits vorhanden)
-   - ✅ Retention-Policy vollständig implementiert (Backend + Frontend + UI Dialog, 2025-11-02)
-   - Restore-Dialog wire-up ausstehend, Diff-UI verbessern.
-5. **Test- & Dokumentationslücken schließen**
-   - Vitest- und Rust-Tests für die oben genannten neuen Funktionen ergänzen.
+1. **✅ Repository-Wartung vervollständigen** (Abgeschlossen 2025-11-02)
+   - [x] `check_repository`, `prune_repository`, `change_password` mit echter rustic_core-Logik implementiert
+   - [x] Dialoge auf der Repositories-Seite aktiviert und mit Status-/Fehlermeldungen versehen
+   - [ ] Browser-Tests mit echtem Repository durchführen
+2. **🚧 Backup/Restore Ende-zu-Ende**
+   - [ ] Passwortdurchleitung & Progress-Callbacks in `run_backup_command` und `restore_files_v1` vervollständigen
+   - [ ] Frontend-Buttons („Backup jetzt", „Restore") an die Commands anbinden; Events abonnieren
+3. **🚧 Scheduler nutzbar machen**
+   - [ ] Geplante Jobs sollen reale Backups starten (`schedule_backup`, `restore_scheduled_jobs`)
+   - [ ] Job-Historie und Statusfelder (`last_run`, `next_run`) in UI/Config pflegen
+4. **✅ Snapshot-Lifecycle abrunden** (Kern-Funktionen abgeschlossen 2025-11-02)
+   - [x] Einzelnes Löschen (`delete_snapshot`) fertiggestellt
+   - [x] Tag-Verwaltung vollständig implementiert (Backend + UI)
+   - [x] Retention-Policy vollständig implementiert (Backend + Frontend + UI Dialog)
+   - [ ] Restore-Dialog wire-up ausstehend
+   - [ ] Diff-UI verbessern
+5. **🚧 Test- & Dokumentationslücken schließen**
+   - [x] 16/16 Rust Integration-Tests passing (2025-11-02)
+   - [ ] Vitest- und Rust-Tests für neue Funktionen ergänzen
+   - [ ] CHANGELOG und README aktualisieren, sobald Features greifen
    - CHANGELOG und README aktualisieren, sobald Features greifen.
 
 ---
@@ -115,13 +121,13 @@ Legende: `[x]` fertig · `[~]` teilweise · `[ ]` offen
 
 ## Referenzen & nächste Schritte
 
-| Thema                            | Relevante Dateien                                                                                                      |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Portable Store & Verschlüsselung | `src-tauri/src/state.rs`, `src-tauri/src/storage/portable.rs`                                                          |
-| Repository-Commands              | `src-tauri/src/commands/repository.rs`                                                                                 |
-| Backup & Scheduler               | `src-tauri/src/commands/backup.rs`, `src-tauri/src/rustic/backup.rs`, `src-tauri/src/scheduler/mod.rs`                 |
-| Snapshot/Restore                 | `src-tauri/src/commands/snapshot.rs`, `src-tauri/src/commands/restore.rs`, `src/lib/components/pages/Snapshots.svelte` |
-| Frontend Stores                  | `src/lib/stores/*.ts`                                                                                                  |
-| Test-Setup                       | `src/test-setup.ts`, `package.json (npm test)`, Rust Tests in `src-tauri/src/*`                                        |
+| Thema                            | Relevante Dateien                                                                                                                |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Portable Store & Verschlüsselung | `src-tauri/src/state.rs`, `src-tauri/src/storage/portable.rs`                                                                    |
+| Repository-Commands              | `src-tauri/src/commands/repository.rs`                                                                                           |
+| Backup & Scheduler               | `src-tauri/src/commands/backup.rs`, `src-tauri/src/rustic/backup.rs`, `src-tauri/src/scheduler/mod.rs`                           |
+| Snapshot/Restore                 | `src-tauri/src/commands/snapshot.rs`, `src-tauri/src/commands/restore.rs`, `src/lib/components/pages/Snapshots/` (modularisiert) |
+| Frontend Stores                  | `src/lib/stores/*.ts`                                                                                                            |
+| Test-Setup                       | `src/test-setup.ts`, `package.json (npm test)`, Rust Tests in `src-tauri/src/*`                                                  |
 
 Bitte ROADMAP nach Abschluss jedes Tasks aktualisieren und mit Commit `docs: roadmap aktualisiert (<kurzbeschreibung>)` einchecken.
