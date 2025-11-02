@@ -399,3 +399,22 @@ pub struct CheckResultDto {
     /// Ob das Repository OK ist (keine Fehler)
     pub is_ok: bool,
 }
+
+/// DTO für Prune-Ergebnisse
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PruneResultDto {
+    /// Anzahl entfernter Pack-Dateien
+    pub packs_removed: u64,
+    /// Anzahl behaltener Pack-Dateien (keep-marked)
+    pub packs_kept: u64,
+    /// Anzahl wiederhergestellter Pack-Dateien
+    pub packs_recovered: u64,
+    /// Größe entfernter Daten (Bytes)
+    pub size_removed: u64,
+    /// Größe behaltener Daten (Bytes)
+    pub size_kept: u64,
+    /// Größe wiederhergestellter Daten (Bytes)
+    pub size_recovered: u64,
+    /// Ob es ein Dry-Run war
+    pub dry_run: bool,
+}

@@ -260,7 +260,93 @@ pub async fn check_repository(
     }
 }
 
-/// Prune-Operation (Version aus lib.rs)
+/// Prune-Operation: Entfernt unnötige Pack-Dateien aus dem Repository.
+///
+/// Führt eine 2-stufige Prune-Operation durch:
+/// 1. Erstellt einen Prune-Plan mit Statistiken
+/// 2. Führt den Plan aus (nur wenn dry_run = false)
+///
+/// # Arguments
+/// * `repository_id` - ID des zu prunenenden Repositories
+/// * `dry_run` - Nur Plan erstellen, keine Änderungen (true = Simulation)
+/// * `state` - AppState mit Repository-Cache
+/// * `app_handle` - Tauri AppHandle für Progress-Events
+///
+/// # Returns
+/// `Result<PruneResultDto, String>` - Prune-Statistiken oder Fehler
+///
+/// # Referenz
+/// https://github.com/rustic-rs/rustic/blob/main/src/commands/prune.rs
+#[tauri::command]
+pub async fn prune_repository(
+    repository_id: String,
+    dry_run: bool,
+    state: tauri::State<'_, AppState>,
+    app_handle: tauri::AppHandle,
+) -> Result<crate::types::PruneResultDto, String> {
+    use rustic_core::PruneOptions;
+
+    // Repository holen
+    let repo = state
+        .get_repository(&repository_id)
+        .map_err(|e| format!("Repository nicht gefunden: {}", e))?;
+
+    // Progress-Event
+    app_handle
+        .emit(
+            "prune-started",
+            serde_json::json!({
+                "repository_id": repository_id,
+                "dry_run": dry_run,
+            }),
+        )
+        .ok();
+
+    // PruneOptions erstellen
+    let opts = PruneOptions::default();
+
+    // Schritt 1: Prune-Plan erstellen
+    let prune_plan =
+        repo.prune_plan(&opts).map_err(|e| format!("Prune-Plan fehlgeschlagen: {}", e))?;
+
+    // Statistiken extrahieren (BEVOR prune_plan moved wird)
+    let packs_removed = prune_plan.stats.packs_to_delete.remove;
+    let packs_kept = prune_plan.stats.packs_to_delete.keep;
+    let packs_recovered = prune_plan.stats.packs_to_delete.recover;
+    let size_removed = prune_plan.stats.size_to_delete.remove;
+    let size_kept = prune_plan.stats.size_to_delete.keep;
+    let size_recovered = prune_plan.stats.size_to_delete.recover;
+
+    // Schritt 2: Prune ausführen (falls nicht dry-run)
+    if !dry_run {
+        repo.prune(&opts, prune_plan).map_err(|e| format!("Prune fehlgeschlagen: {}", e))?;
+    }
+
+    // Completion-Event
+    app_handle
+        .emit(
+            "prune-completed",
+            serde_json::json!({
+                "repository_id": repository_id,
+                "dry_run": dry_run,
+                "packs_removed": packs_removed,
+                "size_removed": size_removed,
+            }),
+        )
+        .ok();
+
+    Ok(crate::types::PruneResultDto {
+        packs_removed,
+        packs_kept,
+        packs_recovered,
+        size_removed,
+        size_kept,
+        size_recovered,
+        dry_run,
+    })
+}
+
+/// Prune-Operation (ALT - Version aus lib.rs, deprecated)
 #[tauri::command]
 pub fn prune_repository_v1(
     path: String,
@@ -486,71 +572,6 @@ pub async fn delete_repository(
 
     tracing::info!("Repository '{}' gelöscht (delete_data: {})", id, delete_data);
     Ok(())
-}
-
-/// Prune-Operation für ein Repository
-/// M1: Repository-Wartung vervollständigen
-#[tauri::command]
-pub async fn prune_repository(
-    id: String,
-    password: String,
-    dry_run: bool,
-    state: tauri::State<'_, AppState>,
-    app_handle: tauri::AppHandle,
-) -> Result<String, String> {
-    // Hole Repository-Config
-    let path = {
-        let config = state.config.lock();
-        let repo = config
-            .get_repository(&id)
-            .ok_or_else(|| format!("Repository '{}' nicht gefunden", id))?;
-        repo.path.clone()
-    };
-
-    // Progress-Event: Start
-    app_handle
-        .emit("repo-prune-progress", serde_json::json!({
-            "repository_id": id,
-            "stage": "starting",
-            "dry_run": dry_run,
-            "message": if dry_run { "Starte Prune-Simulation..." } else { "Starte Prune-Operation..." }
-        }))
-        .ok();
-
-    // Führe Prune durch
-    let (packs_deleted, bytes_freed) =
-        crate::rustic::repository::prune_repository(&path, &password, dry_run)
-            .map_err(|e| format!("Prune-Operation fehlgeschlagen: {}", e))?;
-
-    // Progress-Event: Completed
-    app_handle
-        .emit("repo-prune-progress", serde_json::json!({
-            "repository_id": id,
-            "stage": "completed",
-            "packs_deleted": packs_deleted,
-            "bytes_freed": bytes_freed,
-            "message": format!("{} Pack-Dateien gelöscht, {} Bytes freigegeben", packs_deleted, bytes_freed)
-        }))
-        .ok();
-
-    tracing::info!(
-        "Prune für Repository '{}' abgeschlossen: {} Packs, {} Bytes",
-        id,
-        packs_deleted,
-        bytes_freed
-    );
-
-    if dry_run {
-        Ok(format!(
-            "Prune-Simulation: {} Pack-Dateien könnten gelöscht werden, {} Bytes freigegeben",
-            packs_deleted, bytes_freed
-        ))
-    } else {
-        Ok(format!(
-            "Prune erfolgreich: {} Pack-Dateien gelöscht, {} Bytes freigegeben",
-            packs_deleted, bytes_freed
-        ))
-    }
 }
 
 /// Passwort ändern für ein Repository
