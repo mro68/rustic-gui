@@ -45,13 +45,14 @@ export async function getSnapshotInfo(id: string): Promise<SnapshotDto> {
 
 /**
  * Löscht einen Snapshot.
+ * Task 4.1: Snapshot-Deletion
  *
- * @param id - Snapshot-ID
+ * @param snapshotId - Snapshot-ID
  * @returns Promise (void)
  * @throws Error wenn Snapshot nicht existiert oder Löschung fehlschlägt
  */
-export async function deleteSnapshot(id: string): Promise<void> {
-  await invoke('delete_snapshot_command', { id });
+export async function deleteSnapshot(snapshotId: string): Promise<void> {
+  await invoke('delete_snapshot_command', { snapshotId });
 }
 
 /**

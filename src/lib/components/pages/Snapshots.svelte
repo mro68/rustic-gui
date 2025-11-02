@@ -207,6 +207,10 @@
     }
   }
 
+  /**
+   * Task 4.1: Snapshot-Deletion
+   * Löscht einen Snapshot mit Confirmation
+   */
   async function handleDeleteSnapshot(snapshotId: string) {
     if (!confirm('Sind Sie sicher, dass Sie diesen Snapshot löschen möchten?')) {
       return;
@@ -216,6 +220,12 @@
     try {
       await deleteSnapshot(snapshotId);
       toastStore.success('Snapshot wurde erfolgreich gelöscht');
+      
+      // Snapshot-Liste neu laden nach Deletion
+      const repoId = $repositories.currentRepository;
+      if (repoId) {
+        await loadSnapshots(repoId);
+      }
     } catch (error) {
       console.error('Failed to delete snapshot:', error);
       toastStore.error('Fehler beim Löschen des Snapshots');

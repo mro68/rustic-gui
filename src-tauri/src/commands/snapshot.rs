@@ -213,14 +213,34 @@ pub async fn compare_snapshots(
 }
 
 /// Löscht einzelnen Snapshot
+/// Task 4.1: Snapshot-Deletion (einzeln)
 #[tauri::command]
 pub async fn delete_snapshot(
-    _id: String,
-    _state: tauri::State<'_, AppState>,
+    snapshot_id: String,
+    state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
-    // TODO: Implementieren mit rustic_core
-    // TODO.md: Phase 1 Zeile 185 (delete_snapshot implementiert, aber in lib.rs:73)
-    Err("delete_snapshot: Noch nicht implementiert".into())
+    use rustic_core::repofile::SnapshotId;
+
+    tracing::info!("Lösche Snapshot: {}", snapshot_id);
+
+    let repo_id = state.get_current_repository_id().ok_or("Kein Repository ausgewählt")?;
+
+    let repo = state
+        .get_repository(&repo_id)
+        .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
+
+    // Parse Snapshot ID
+    let id: rustic_core::Id =
+        snapshot_id.parse().map_err(|_| format!("Ungültige Snapshot-ID: {}", snapshot_id))?;
+    let snap_id = SnapshotId::from(id);
+
+    // Lösche Snapshot (rustic_core nutzt delete_snapshots auch für single Snapshot)
+    repo.delete_snapshots(&[snap_id])
+        .map_err(|e| format!("Snapshot löschen fehlgeschlagen: {}", e))?;
+
+    tracing::info!("Snapshot {} erfolgreich gelöscht", snapshot_id);
+
+    Ok(())
 }
 
 /// Löscht Snapshots gemäß Policy (Batch-Operation)

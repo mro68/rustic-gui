@@ -34,7 +34,7 @@
 - [x] Settings-Commands (`get_settings`, `save_settings`, `reset_settings`, `update_theme`)
 - [~] Repository-Commands (listen/switchen funktionieren, Health/Prune/Passwort sind Stubs)
 - [~] Backup-Ausführung (Command-Struktur + Events vorhanden, Passwort-Handling/Progress ausständig)
-- [x] Snapshot-Management (Listen/Tagging fertig, Batch-Löschen ok, ✅ Tree-basierter Snapshot-Vergleich implementiert, Einzel-Löschen TODO)
+- [x] Snapshot-Management (Listen/Tagging fertig, ✅ Batch-Löschen ok, ✅ Tree-basierter Snapshot-Vergleich implementiert, ✅ Einzel-Löschen implementiert)
 - [~] Restore (`restore_files_v1` ruft rustic::restore, Fehler-/Progresswerte Platzhalter)
 - [x] Scheduled Backups (✅ BackupScheduler mit tokio_cron_scheduler, schedule_backup/unschedule_backup Commands, Frontend-Integration in BackupJobs.svelte)
 
@@ -78,7 +78,7 @@ Legende: `[x]` fertig · `[~]` teilweise · `[ ]` offen
    - Geplante Jobs sollen reale Backups starten (`schedule_backup`, `restore_scheduled_jobs`).
    - Job-Historie und Statusfelder (`last_run`, `next_run`) in UI/Config pflegen.
 4. **Snapshot-Lifecycle abrunden**
-   - Einzelnes Löschen (`delete_snapshot`) fertigstellen, Restore-Dialog wire-up, Diff-UI verbessern.
+   - ✅ Einzelnes Löschen (`delete_snapshot`) fertiggestellt (2025-11-02), Restore-Dialog wire-up ausstehend, Diff-UI verbessern.
 5. **Test- & Dokumentationslücken schließen**
    - Vitest- und Rust-Tests für die oben genannten neuen Funktionen ergänzen.
    - CHANGELOG und README aktualisieren, sobald Features greifen.
