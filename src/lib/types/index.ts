@@ -290,3 +290,17 @@ export interface DiffStats {
   /** Größenänderung in Bytes (kann negativ sein) */
   total_size_change: number;
 }
+
+/**
+ * Check-Ergebnis für Repository-Integritätsprüfung.
+ *
+ * Enthält gefundene Fehler, Warnungen und Gesamt-Status.
+ */
+export interface CheckResultDto {
+  /** Gefundene Fehler (kritisch) */
+  errors: string[];
+  /** Gefundene Warnungen (nicht kritisch) */
+  warnings: string[];
+  /** Gesamt-Status: true = keine kritischen Fehler */
+  is_ok: boolean;
+}

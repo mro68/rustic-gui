@@ -120,20 +120,45 @@ export async function checkRepositoryV1(path: string, password: string): Promise
 }
 
 /**
- * Prüft Repository-Integrität (v2 - mit explizitem Passwort).
+ * Prüft Repository-Integrität (v2 - über Repository-ID im State).
  *
- * @param id - Repository-ID
- * @param password - Repository-Passwort
- * @param readData - Vollständige Datenprüfung (langsamer, aber gründlicher)
- * @returns Promise mit Check-Ergebnis
+ * Nutzt das bereits geöffnete Repository aus dem Backend-State.
+ * Führt Konsistenzprüfung aller Snapshots und Trees durch.
+ *
+ * @param repositoryId - Repository-ID aus Config
+ * @param trustCache - Cache vertrauen (schneller, weniger sicher)
+ * @param readData - Pack-Dateien lesen und verifizieren (gründlich, langsamer)
+ * @returns Promise mit Check-Ergebnis (errors/warnings/is_ok)
  * @throws Error wenn Check fehlschlägt
+ *
+ * @example
+ * ```typescript
+ * // Schneller Check (mit Cache)
+ * const result = await checkRepository('repo-123', true, false);
+ * if (!result.is_ok) {
+ *   console.error('Errors:', result.errors);
+ * }
+ *
+ * // Gründlicher Check (ohne Cache, mit Daten-Verifikation)
+ * const fullCheck = await checkRepository('repo-123', false, true);
+ * ```
  */
+export interface CheckResultDto {
+  errors: string[];
+  warnings: string[];
+  is_ok: boolean;
+}
+
 export async function checkRepository(
-  id: string,
-  password: string,
+  repositoryId: string,
+  trustCache: boolean = true,
   readData: boolean = false
-): Promise<string> {
-  return await invoke<string>('check_repository', { id, password, readData });
+): Promise<CheckResultDto> {
+  return await invoke<CheckResultDto>('check_repository', {
+    repositoryId,
+    trustCache,
+    readData,
+  });
 }
 
 /**
