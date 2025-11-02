@@ -23,6 +23,7 @@
   import { cancelBackup, runBackup } from '../../api/backup';
   import { jobs } from '../../stores/backup-jobs';
   import type { RepositoryDto } from '../../types';
+  import PasswordInputDialog from '../dialogs/PasswordInputDialog.svelte';
   import RunBackupDialog from '../dialogs/RunBackupDialog.svelte';
   import Tooltip from '../shared/Tooltip.svelte';
 
@@ -47,11 +48,13 @@
   // Status-Badge dynamisch (Platzhalter-Logik)
   let status: 'healthy' | 'warning' | 'error' = 'healthy';
   let statusText = status === 'healthy' ? 'Healthy' : status === 'warning' ? 'Warning' : 'Error';
-
   // Backup-Dialog State
   let showBackupDialog = $state(false);
+  let showPasswordDialog = $state(false);
   let currentJobId = $state('');
   let currentJobName = $state('');
+  let currentPassword = $state('');
+  let pendingJobPassword = $state<string | null>(null);
 
   function handleBackup() {
     // Finde einen Backup-Job für dieses Repository
@@ -64,16 +67,34 @@
       return;
     }
 
-    // Job gefunden - Backup starten
     currentJobId = repoJob.id;
     currentJobName = repoJob.name;
+
+    // Prüfe ob Job ein gespeichertes Passwort hat
+    if (repoJob.password) {
+      // Passwort vorhanden - Backup direkt starten
+      currentPassword = repoJob.password;
+      startBackup(repoJob.password);
+    } else {
+      // Kein Passwort gespeichert - Passwort-Dialog öffnen
+      showPasswordDialog = true;
+    }
+  }
+
+  function handlePasswordConfirm(password: string) {
+    currentPassword = password;
+    startBackup(password);
+  }
+
+  function startBackup(password: string) {
     showBackupDialog = true;
 
     // Backup starten
-    runBackup(repoJob.id).catch((error) => {
+    runBackup(currentJobId, password).catch((error) => {
       console.error('Backup-Fehler:', error);
       showBackupDialog = false;
     });
+  } });
   }
 
   function handleCancelBackup() {
@@ -217,14 +238,23 @@
       >
         <span class="btn-icon" aria-hidden="true">📂</span>
         <span class="btn-text">Browse</span>
-      </button>
-    </Tooltip>
+<!-- Passwort-Input-Dialog (falls Passwort nicht in Job-Config) -->
+<PasswordInputDialog
+  bind:open={showPasswordDialog}
+  bind:password={currentPassword}
+  title="Passwort für Backup eingeben"
+  description="Dieses Backup-Job hat kein gespeichertes Passwort. Bitte geben Sie das Repository-Passwort ein."
+  onConfirm={handlePasswordConfirm}
+/>
 
-    <Tooltip text="Repository konfigurieren">
-      <button
-        class="btn btn-secondary"
-        aria-label="Repository konfigurieren"
-        title="Configure Repository"
+<!-- Backup-Dialog -->
+<RunBackupDialog
+  bind:open={showBackupDialog}
+  jobName={currentJobName}
+  jobId={currentJobId}
+  password={currentPassword}
+  onCancel={handleCancelBackup}
+/>      title="Configure Repository"
         disabled
       >
         <span class="btn-icon" aria-hidden="true">⚙️</span>
@@ -239,6 +269,7 @@
   bind:open={showBackupDialog}
   jobName={currentJobName}
   jobId={currentJobId}
+  password=""
   onCancel={handleCancelBackup}
 />
 

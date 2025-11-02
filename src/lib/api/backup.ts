@@ -19,6 +19,7 @@ import { invoke } from '@tauri-apps/api/core';
  * Startet einen Backup-Job.
  *
  * @param jobId - Backup-Job-ID
+ * @param password - Repository-Passwort
  * @returns Promise (void)
  * @throws Error wenn Job nicht existiert oder Start fehlschlägt
  *
@@ -27,8 +28,8 @@ import { invoke } from '@tauri-apps/api/core';
  * - `backup-completed`
  * - `backup-failed`
  */
-export async function runBackup(jobId: string): Promise<void> {
-  await invoke('run_backup', { jobId });
+export async function runBackup(jobId: string, password: string): Promise<void> {
+  await invoke('run_backup', { jobId, password });
 }
 
 /**

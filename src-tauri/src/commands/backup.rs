@@ -260,6 +260,7 @@ pub async fn create_backup_job(
             })
             .unwrap_or_default(),
         enabled: true,
+        password: None, // Wird später in CreateJobDialog gesetzt
     };
 
     // Speichere in Config
@@ -445,6 +446,7 @@ pub async fn get_backup_job(
         last_run: None, // TODO: Implementieren wenn Job-History verfügbar
         next_run: None, // TODO: Implementieren wenn Scheduler verfügbar
         retention: Some(job.retention.clone().into()),
+        password: job.password.clone(), // Passwort mit-übertragen (bereits verschlüsselt in Config)
     };
 
     Ok(dto)
@@ -489,6 +491,7 @@ pub async fn list_backup_jobs(
             last_run: None, // TODO: Implementieren wenn Job-History verfügbar
             next_run: None, // TODO: Implementieren wenn Scheduler verfügbar
             retention: Some(job.retention.clone().into()),
+            password: job.password.clone(),
         })
         .collect();
 
@@ -523,6 +526,100 @@ mod tests {
         assert!(result.unwrap_err().contains("nicht gefunden"));
         */
     }
+}
+
+// ===== M2: Backup-Ausführung =====
+
+/// Interne Backup-Logik (für scheduled Backups und Tauri Command)
+async fn run_backup_internal(
+    job_id: String,
+    password: Option<String>,
+    state: &AppState,
+    app_handle: tauri::AppHandle,
+) -> Result<String, String> {
+    tracing::info!(job_id = %job_id, "Backup wird ausgeführt");
+
+    // 1. Job-Config laden
+    let job = {
+        let config = state.config.lock();
+        config
+            .backup_jobs
+            .iter()
+            .find(|j| j.id == job_id)
+            .ok_or_else(|| format!("Backup-Job '{}' nicht gefunden", job_id))?
+            .clone()
+    };
+
+    // 2. Repository laden
+    let repo = {
+        let config = state.config.lock();
+        config
+            .repositories
+            .iter()
+            .find(|r| r.id == job.repository_id)
+            .ok_or_else(|| format!("Repository '{}' nicht gefunden", job.repository_id))?
+            .clone()
+    };
+
+    // 3. Passwort bestimmen: Job-Config > Parameter > Fehler
+    let effective_password = job.password.or(password).ok_or_else(|| {
+        "Passwort erforderlich: Weder im Job gespeichert noch übergeben".to_string()
+    })?;
+
+    // 4. Backup-Optionen erstellen
+    let backup_opts = crate::rustic::backup::BackupOptions {
+        repository: repo.path.clone(),
+        source_paths: job.source_paths.iter().map(|p| p.to_string_lossy().to_string()).collect(),
+        password: Some(effective_password),
+        tags: Some(job.tags.clone()),
+        exclude: Some(job.exclude_patterns.clone()),
+        compression: None,
+        job_id: Some(job_id.clone()),
+    };
+
+    // 5. Backup ausführen mit Progress-Callback
+    let progress_callback = |_progress: crate::rustic::backup::BackupProgress| {
+        // Progress-Events werden bereits von rustic::backup::run_backup emitted
+    };
+
+    let snapshot_id =
+        crate::rustic::backup::run_backup(app_handle.clone(), backup_opts, progress_callback)
+            .await
+            .map_err(|e| format!("Backup fehlgeschlagen: {:?}", e))?;
+
+    tracing::info!(job_id = %job_id, snapshot_id = %snapshot_id, "Backup erfolgreich abgeschlossen");
+
+    Ok(snapshot_id)
+}
+
+/// Führt einen Backup-Job aus
+///
+/// # Arguments
+/// * `job_id` - ID des auszuführenden Backup-Jobs
+/// * `password` - Optionales Passwort (falls nicht im Job gespeichert)
+///
+/// # Returns
+/// Snapshot-ID bei Erfolg
+///
+/// # Errors
+/// Gibt einen Fehler zurück wenn:
+/// - Job nicht gefunden
+/// - Repository nicht gefunden
+/// - Passwort fehlt (nicht in Job und nicht übergeben)
+/// - Backup fehlschlägt
+///
+/// # Example
+/// ```ignore
+/// run_backup("job-123".to_string(), None, state, app_handle).await
+/// ```
+#[tauri::command]
+pub async fn run_backup(
+    job_id: String,
+    password: Option<String>,
+    state: tauri::State<'_, AppState>,
+    app_handle: tauri::AppHandle,
+) -> Result<String, String> {
+    run_backup_internal(job_id, password, &state, app_handle).await
 }
 
 // ===== M3: Job-Scheduler Commands =====
@@ -607,7 +704,7 @@ pub async fn schedule_backup(
         .schedule_job(job_id.clone(), &cron_expression, move || {
             let job_id = job_id_clone.clone();
             let app_handle = app_handle_clone.clone();
-            let _state = state_clone.clone();
+            let state = state_clone.clone();
 
             Box::pin(async move {
                 tracing::info!("Scheduled backup gestartet: {}", job_id);
@@ -621,21 +718,32 @@ pub async fn schedule_backup(
                     }),
                 );
 
-                // Backup ausführen
-                // TODO M3.2: Integriere run_backup hier
-                // Vorläufig: Simuliere Backup-Ausführung
-                tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-
-                // Event: Backup abgeschlossen
-                let _ = app_handle.emit(
-                    "scheduled-backup-completed",
-                    serde_json::json!({
-                        "job_id": job_id,
-                        "time": chrono::Utc::now().to_rfc3339(),
-                    }),
-                );
-
-                tracing::info!("Scheduled backup abgeschlossen: {}", job_id);
+                // Backup ausführen mit run_backup_internal
+                // Passwort wird aus Job-Config geladen (muss dort gespeichert sein für Scheduled Backups)
+                match run_backup_internal(job_id.clone(), None, &state, app_handle.clone()).await {
+                    Ok(snapshot_id) => {
+                        let _ = app_handle.emit(
+                            "scheduled-backup-completed",
+                            serde_json::json!({
+                                "job_id": job_id,
+                                "snapshot_id": snapshot_id,
+                                "time": chrono::Utc::now().to_rfc3339(),
+                            }),
+                        );
+                        tracing::info!(job_id = %job_id, snapshot_id = %snapshot_id, "Scheduled backup erfolgreich");
+                    }
+                    Err(e) => {
+                        let _ = app_handle.emit(
+                            "scheduled-backup-failed",
+                            serde_json::json!({
+                                "job_id": job_id,
+                                "error": e.to_string(),
+                                "time": chrono::Utc::now().to_rfc3339(),
+                            }),
+                        );
+                        tracing::error!(job_id = %job_id, error = %e, "Scheduled backup fehlgeschlagen");
+                    }
+                }
             })
         })
         .await

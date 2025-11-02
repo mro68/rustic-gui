@@ -1,8 +1,12 @@
 use crate::error::RusticGuiError;
-use crate::types::{FileTreeNode, RestoreOptionsDto};
+use crate::types::{FileTreeNode, RestoreOptionsDto, RestoreProgress};
 use rustic_backend::BackendOptions;
-use rustic_core::{Repository, RepositoryOptions, repofile::SnapshotFile};
+use rustic_core::{
+    LocalDestination, LsOptions, NoProgressBars, Repository, RepositoryOptions, RestoreOptions,
+    repofile::SnapshotFile,
+};
 use std::collections::HashMap;
+use tauri::{AppHandle, Emitter};
 use tracing::{error, info};
 
 /// Lädt die Dateistruktur eines Snapshots.
@@ -146,9 +150,10 @@ pub async fn get_file_tree(
 /// * `repository_path` - Pfad zum Repository
 /// * `password` - Repository-Passwort
 /// * `snapshot_id` - ID des Snapshots
-/// * `files` - Liste der wiederherzustellenden Dateien/Pfade
+/// * `files` - Liste der wiederherzustellenden Dateien/Pfade (leer = alle)
 /// * `target_path` - Zielverzeichnis für die Wiederherstellung
 /// * `options` - Restore-Optionen (Overwrite, Permissions, etc.)
+/// * `app_handle` - Optional: Tauri AppHandle für Progress-Events
 ///
 /// # Returns
 /// Erfolg bei vollständiger Wiederherstellung
@@ -159,6 +164,7 @@ pub async fn restore_files(
     files: Vec<String>,
     target_path: &str,
     options: &RestoreOptionsDto,
+    app_handle: Option<AppHandle>,
 ) -> Result<(), RusticGuiError> {
     info!(
         repo = repository_path,
@@ -175,7 +181,7 @@ pub async fn restore_files(
     let backends = backend_opts.to_backends().map_err(|e| {
         RusticGuiError::Internal(format!("Backend konnte nicht initialisiert werden: {e}"))
     })?;
-    let repo = Repository::new(&repo_opts, &backends)
+    let repo = Repository::<NoProgressBars, _>::new(&repo_opts, &backends)
         .map_err(|e| {
             error!(?e, "Fehler beim Initialisieren des Repositories");
             RusticGuiError::RepositoryNotFound { path: repository_path.to_string() }
@@ -184,10 +190,16 @@ pub async fn restore_files(
         .map_err(|e| {
             error!(?e, "Fehler beim Öffnen des Repositories");
             RusticGuiError::RepositoryNotFound { path: repository_path.to_string() }
+        })?
+        .to_indexed()
+        .map_err(|e| {
+            error!(?e, "Repository-Indexierung fehlgeschlagen");
+            RusticGuiError::Internal(format!("Repository-Indexierung fehlgeschlagen: {e}"))
         })?;
 
     // Snapshot laden
     let snaps = repo.get_snapshots(&[snapshot_id]).map_err(|e| {
+        error!(?e, "Snapshot laden fehlgeschlagen");
         RusticGuiError::Internal(format!("Snapshot konnte nicht geladen werden: {e}"))
     })?;
     let snapshot = snaps
@@ -195,43 +207,94 @@ pub async fn restore_files(
         .next()
         .ok_or_else(|| RusticGuiError::SnapshotNotFound { id: snapshot_id.to_string() })?;
 
-    // TODO: Implementiere Restore-Logik
-    // rustic_core hat wahrscheinlich eine restore() Methode
-    // mit RestoreOptions für Overwrite-Policy, Permissions, etc.
-
-    // Placeholder-Implementierung: Simuliere Restore-Prozess
-    // In einer echten Implementierung würde hier die Dateien aus dem Backend gelesen
-    // und ins Zielverzeichnis geschrieben werden
-
-    for file_path in &files {
-        info!("Restore Datei: {} -> {}/{}", file_path, target_path, file_path);
-
-        // Prüfe Overwrite-Policy
-        let target_file_path = std::path::Path::new(target_path).join(&file_path[1..]); // Entferne führenden /
-
-        if target_file_path.exists() && !options.overwrite {
-            return Err(RusticGuiError::Internal(format!(
-                "Datei {} existiert bereits und Overwrite ist deaktiviert",
-                target_file_path.display()
-            )));
-        }
-
-        // Simuliere Datei-Restore (in echter Implementierung: Backend.read() -> File.write())
-        // Für Demo-Zwecke erstelle leere Dateien
-        if let Some(parent) = target_file_path.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| {
-                RusticGuiError::Internal(format!("Verzeichnis konnte nicht erstellt werden: {e}"))
-            })?;
-        }
-
-        // Erstelle Platzhalter-Datei (in echter Implementierung: echte Daten schreiben)
-        std::fs::write(&target_file_path, b"Restored file content placeholder\n").map_err(|e| {
-            RusticGuiError::Internal(format!("Datei konnte nicht geschrieben werden: {e}"))
+    // Zielverzeichnis erstellen falls nicht vorhanden
+    let target = std::path::PathBuf::from(target_path);
+    if !target.exists() {
+        std::fs::create_dir_all(&target).map_err(|e| {
+            error!(?e, "Zielverzeichnis erstellen fehlgeschlagen");
+            RusticGuiError::Internal(format!("Zielverzeichnis erstellen fehlgeschlagen: {e}"))
         })?;
-
-        info!("Datei wiederhergestellt: {}", target_file_path.display());
     }
 
-    info!("Restore abgeschlossen (simuliert)");
+    // Tree des Snapshots laden (früh, um is_dir() zu prüfen)
+    let tree = repo
+        .node_from_snapshot_path("", |sn: &SnapshotFile| sn.id == snapshot.id)
+        .map_err(|e| RusticGuiError::RestoreFailed { reason: e.to_string() })?;
+
+    // Destination erstellen. create=true, flatten=!node.is_dir() (wie in rustic CLI)
+    let dest =
+        LocalDestination::new(target.to_str().unwrap(), true, !tree.is_dir()).map_err(|e| {
+            error!(?e, "LocalDestination erstellen fehlgeschlagen");
+            RusticGuiError::Internal(format!("Destination ungültig: {e}"))
+        })?;
+
+    // Restore-Optionen konfigurieren
+    let restore_opts = RestoreOptions::default()
+        .delete(options.overwrite)
+        .no_ownership(!options.restore_permissions);
+
+    if let Some(app) = app_handle.clone() {
+        let job_id = format!("restore-{}", snapshot_id);
+        let event_name = format!("restore-progress-{}", job_id);
+        let _ = app.emit(
+            &event_name,
+            &RestoreProgress {
+                base: crate::types::ProgressInfo {
+                    current: 0,
+                    total: 1,
+                    message: Some("Restore wird vorbereitet...".to_string()),
+                    percentage: Some(0.0),
+                },
+                files_restored: 0,
+                bytes_restored: 0,
+                current_file: None,
+            },
+        );
+    }
+
+    // Iterator für node_streamer erstellen
+    // Wichtig: recursive muss true sein für vollständigen Restore
+    let mut ls_opts = LsOptions::default();
+    ls_opts.recursive = true;
+    let node_streamer = repo
+        .ls(&tree, &ls_opts)
+        .map_err(|e| RusticGuiError::RestoreFailed { reason: e.to_string() })?;
+
+    // Restore-Plan erstellen
+    info!("Erstelle Restore-Plan...");
+    let plan = repo
+        .prepare_restore(&restore_opts, node_streamer, &dest, false)
+        .map_err(|e| RusticGuiError::RestoreFailed { reason: e.to_string() })?;
+
+    if let Some(app) = app_handle.clone() {
+        let job_id = format!("restore-{}", snapshot_id);
+        let event_name = format!("restore-progress-{}", job_id);
+        let _ = app.emit(
+            &event_name,
+            &RestoreProgress {
+                base: crate::types::ProgressInfo {
+                    current: 0,
+                    total: 100, // Placeholder
+                    message: Some("Restore wird ausgeführt...".to_string()),
+                    percentage: Some(50.0),
+                },
+                files_restored: 0,
+                bytes_restored: 0,
+                current_file: None,
+            },
+        );
+    }
+
+    // Node-Iterator für restore erstellen (erneuter ls-Aufruf)
+    let node_streamer_restore = repo
+        .ls(&tree, &ls_opts)
+        .map_err(|e| RusticGuiError::RestoreFailed { reason: e.to_string() })?;
+
+    // Restore ausführen
+    info!("Führe Restore aus...");
+    repo.restore(plan, &restore_opts, node_streamer_restore, &dest)
+        .map_err(|e| RusticGuiError::RestoreFailed { reason: e.to_string() })?;
+
+    info!("Restore erfolgreich abgeschlossen");
     Ok(())
 }

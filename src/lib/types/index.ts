@@ -127,6 +127,8 @@ export interface BackupJobDto {
   next_run?: string;
   /** Retention-Policy für alte Snapshots */
   retention?: RetentionPolicy;
+  /** Repository-Passwort (optional, verschlüsselt gespeichert in Config) */
+  password?: string;
 }
 
 /**

@@ -57,16 +57,18 @@ export async function deleteSnapshot(id: string): Promise<void> {
 /**
  * Vergleicht zwei Snapshots und gibt die Unterschiede zurück.
  *
- * @param idA - ID des ersten Snapshots
- * @param idB - ID des zweiten Snapshots
+ * @param snapshotIdA - ID des ersten Snapshots
+ * @param snapshotIdB - ID des zweiten Snapshots
+ * @param password - Repository-Passwort (benötigt für Indexierung)
  * @returns Promise mit Diff-Ergebnis (hinzugefügt/entfernt/geändert)
  * @throws Error wenn Snapshots nicht gefunden oder Vergleich fehlschlägt
- *
- * ⏳ TODO: Backend-Command noch nicht registriert (lib.rs:422 auskommentiert)
- * Frontend: CompareSnapshotsDialog.svelte wartet auf diese Implementation
  */
-export async function compareSnapshots(idA: string, idB: string): Promise<DiffResultDto> {
-  return await invoke<DiffResultDto>('compare_snapshots', { idA, idB });
+export async function compareSnapshots(
+  snapshotIdA: string,
+  snapshotIdB: string,
+  password: string
+): Promise<DiffResultDto> {
+  return await invoke<DiffResultDto>('compare_snapshots', { snapshotIdA, snapshotIdB, password });
 }
 
 /**

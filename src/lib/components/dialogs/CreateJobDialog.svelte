@@ -60,6 +60,8 @@ Verwendung:
   let jobName = $state('');
   let selectedRepository = $state('');
   let jobTags = $state('');
+  let savePassword = $state(false);
+  let jobPassword = $state('');
   let sourcePaths = $state<string[]>(['']);
   let excludePatterns = $state<string[]>(['']);
   let oneFileSystem = $state(true);
@@ -140,6 +142,8 @@ Verwendung:
     jobName = '';
     selectedRepository = '';
     jobTags = '';
+    savePassword = false;
+    jobPassword = '';
     sourcePaths = [''];
     excludePatterns = [''];
     oneFileSystem = true;
@@ -220,6 +224,7 @@ Verwendung:
           keep_monthly: keepMonthly,
           keep_yearly: keepYearly,
         },
+        password: savePassword ? jobPassword : undefined,
       });
 
       console.log('Job created with ID:', jobId);
@@ -306,6 +311,29 @@ Verwendung:
           placeholder="daily, documents, important"
         />
         <div class="form-help">Komma-getrennte Tags zur Organisation der Snapshots</div>
+      </div>
+
+      <div class="form-group">
+        <div class="checkbox-group">
+          <input type="checkbox" id="save-password" bind:checked={savePassword} />
+          <label for="save-password">Passwort im Job speichern (verschlüsselt in Config)</label>
+        </div>
+        {#if savePassword}
+          <div style="margin-top: 12px;">
+            <label class="form-label" for="job-password">Repository-Passwort</label>
+            <input
+              id="job-password"
+              class="form-input"
+              type="password"
+              bind:value={jobPassword}
+              placeholder="Passwort eingeben..."
+            />
+            <div class="form-help">
+              Wird verschlüsselt mit AES-256-GCM in der Config gespeichert. 
+              Andernfalls wird beim Backup-Start nach dem Passwort gefragt.
+            </div>
+          </div>
+        {/if}
       </div>
     {/if}
 

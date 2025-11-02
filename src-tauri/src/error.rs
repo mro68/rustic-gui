@@ -125,6 +125,12 @@ impl From<rustic_core::RusticError> for RusticGuiError {
     }
 }
 
+impl From<Box<rustic_core::RusticError>> for RusticGuiError {
+    fn from(error: Box<rustic_core::RusticError>) -> Self {
+        RusticGuiError::RusticError { message: error.to_string() }
+    }
+}
+
 /// Konvertierung für Tauri (braucht String)
 impl From<RusticGuiError> for String {
     fn from(error: RusticGuiError) -> String {

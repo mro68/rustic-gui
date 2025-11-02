@@ -15,9 +15,9 @@
 // ✅ Backup-Job-Management (TODO.md Zeile 175-181): VOLLSTÄNDIG IMPLEMENTIERT
 //    - Alle 5 Commands (list, create, update, delete, get) in commands/backup.rs
 //
-// ✅ Snapshot-Management (TODO.md Zeile 182-187): REGISTRIERT (teilweise Stubs)
-//    - list_snapshots, get_snapshot, delete_snapshot, forget_snapshots: IMPLEMENTIERT in lib.rs
-//    - compare_snapshots: STUB (auskommentiert in Zeile 422)
+// ✅ Snapshot-Management (TODO.md Zeile 182-187): VOLLSTÄNDIG IMPLEMENTIERT
+//    - list_snapshots, get_snapshot, delete_snapshot, forget_snapshots: IMPLEMENTIERT
+//    - compare_snapshots: ✅ IMPLEMENTIERT (Tree-basierter Diff mit rustic CLI Pattern)
 //
 // ✅ Prozess-Steuerung (TODO.md Zeile 189-198): SIMULIERT mit Events
 //    - run_backup (Zeile 121): Simuliert mit BackupEvent
@@ -193,6 +193,7 @@ pub fn run() {
             commands::repository::delete_favorite_location,
             commands::repository::get_repository_stats,
             // --- Backup-Jobs ---
+            commands::backup::run_backup,
             commands::backup::run_backup_command,
             commands::backup::cancel_backup,
             commands::backup::create_backup_job,

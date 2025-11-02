@@ -82,6 +82,7 @@ pub async fn restore_files_v1(
         files.clone(),
         &target_path,
         &options,
+        Some(app.clone()),
     )
     .await
     {

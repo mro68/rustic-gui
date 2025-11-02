@@ -120,15 +120,20 @@ export async function checkRepositoryV1(path: string, password: string): Promise
 }
 
 /**
- * Prüft Repository-Integrität (v2 - verwendet gespeicherte Credentials).
+ * Prüft Repository-Integrität (v2 - mit explizitem Passwort).
  *
  * @param id - Repository-ID
+ * @param password - Repository-Passwort
  * @param readData - Vollständige Datenprüfung (langsamer, aber gründlicher)
  * @returns Promise mit Check-Ergebnis
  * @throws Error wenn Check fehlschlägt
  */
-export async function checkRepository(id: string, readData: boolean = false): Promise<string> {
-  return await invoke<string>('check_repository', { id, readData });
+export async function checkRepository(
+  id: string,
+  password: string,
+  readData: boolean = false
+): Promise<string> {
+  return await invoke<string>('check_repository', { id, password, readData });
 }
 
 /**
@@ -157,11 +162,17 @@ export async function deleteRepository(id: string, deleteData: boolean): Promise
  * Führt Prune-Operation aus (entfernt unnötige Pack-Dateien).
  *
  * @param id - Repository-ID
+ * @param password - Repository-Passwort
+ * @param dryRun - Simulation ohne tatsächliches Löschen
  * @returns Promise mit Prune-Ergebnis
  * @throws Error wenn Prune fehlschlägt
  */
-export async function pruneRepository(id: string): Promise<string> {
-  return await invoke<string>('prune_repository', { id });
+export async function pruneRepository(
+  id: string,
+  password: string,
+  dryRun: boolean = false
+): Promise<string> {
+  return await invoke<string>('prune_repository', { id, password, dryRun });
 }
 
 /**

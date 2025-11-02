@@ -17,7 +17,7 @@
 - **Frontend (Svelte 5 + TypeScript)**
   - Layout, Navigation und Kernseiten existieren; Stores laden reale Daten über die Tauri-API.
   - Zahlreiche Dialoge (Restore, Snapshot-Vergleich, Repository-Wartung) sind UI-seitig angelegt, aber ohne vollständige Backend-Verknüpfung.
-  - Snapshots-Seite: Liste/Filter funktionieren, der Vergleich liefert einfache Pfad-Diffs, Restore/Compare-Dialoge warten auf Wiring.
+  - Snapshots-Seite: Liste/Filter funktionieren, ✅ Snapshot-Vergleich mit vollständigem Tree-Diff implementiert (2025-11-02), Restore-Dialoge warten auf Wiring.
   - Backup-Jobs-Seite: CRUD läuft über API, „Job ausführen“ und Scheduler-Status sind Platzhalter.
 - **Tests & Qualität**
   - Vitest-Konfiguration aktiv (`npm test` → `vitest run`), aber nur wenige Komponenten-/Store-Tests vorhanden.
@@ -34,7 +34,7 @@
 - [x] Settings-Commands (`get_settings`, `save_settings`, `reset_settings`, `update_theme`)
 - [~] Repository-Commands (listen/switchen funktionieren, Health/Prune/Passwort sind Stubs)
 - [~] Backup-Ausführung (Command-Struktur + Events vorhanden, Passwort-Handling/Progress ausständig)
-- [~] Snapshot-Management (Listen/Tagging fertig, Batch-Löschen ok, Einzel-Löschen TODO)
+- [x] Snapshot-Management (Listen/Tagging fertig, Batch-Löschen ok, ✅ Tree-basierter Snapshot-Vergleich implementiert, Einzel-Löschen TODO)
 - [~] Restore (`restore_files_v1` ruft rustic::restore, Fehler-/Progresswerte Platzhalter)
 - [ ] Scheduled Backups (Callbacks simulieren nur Erfolg; echte Job-Ausführung muss integriert werden)
 
@@ -43,7 +43,7 @@
 - [x] MainLayout, Sidebar, Router-Store (`src/lib/components/layout`, `src/lib/stores/router.ts`)
 - [x] Settings-Seite inkl. Backend-Speicherung
 - [~] Repositories-Seite (Listen/Löschen funktionieren, Unlock/Check/Prune-Dialoge ohne Backend-Funktionen)
-- [~] Snapshots-Seite (Liste & Filter ok, Restore/Compare/Advanced Filter fehlen)
+- [~] Snapshots-Seite (Liste & Filter ok, ✅ Compare mit Tree-Diff implementiert, Restore/Advanced Filter fehlen)
 - [~] Backup-Jobs (CRUD und Dialoge vorhanden, Run/Scheduler-Infos fehlen)
 - [ ] Restore-Dialog-Flow (FileTree lädt Daten, aber Restore-Button nicht verdrahtet)
 - [ ] Dashboard-Widgets (Platzhalterdaten, keine echten Statistiken)

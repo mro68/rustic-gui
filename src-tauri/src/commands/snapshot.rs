@@ -52,68 +52,156 @@ pub async fn delete_snapshot_command(
         .map_err(|e| e.to_string())
 }
 
-/// Vergleicht zwei Snapshots
-/// Nutzt paths-basierten Vergleich (rustic_core 0.8.0)
+/// Vergleicht zwei Snapshots mittels Tree-basiertem Diff
+///
+/// Basierend auf rustic CLI: https://github.com/rustic-rs/rustic/blob/main/src/commands/diff.rs
+/// Verwendet Repository::ls() für vollständigen File-Tree-Vergleich
 #[tauri::command]
 pub async fn compare_snapshots(
     snapshot_id_a: String,
     snapshot_id_b: String,
+    password: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<DiffResultDto, String> {
-    use std::collections::HashSet;
-    tracing::debug!("compare_snapshots called: id_a={}, id_b={}", snapshot_id_a, snapshot_id_b);
+    use rustic_backend::BackendOptions;
+    use rustic_core::{LsOptions, NoProgressBars, Repository, RepositoryOptions};
+    use std::collections::HashMap;
+    use tracing::{error, info};
 
-    // Get current repository
+    info!("compare_snapshots: {} vs {}", snapshot_id_a, snapshot_id_b);
+
+    // Repository-Pfad holen (parking_lot::Mutex hat kein map_err)
     let repo_id = state.get_current_repository_id().ok_or("Kein Repository ausgewählt")?;
+    let repository_path = {
+        let config = state.config.lock();
+        config
+            .repositories
+            .iter()
+            .find(|r| r.id == repo_id)
+            .ok_or_else(|| format!("Repository nicht gefunden: {}", repo_id))?
+            .path
+            .clone()
+    };
 
-    let repo = state
-        .get_repository(&repo_id)
-        .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
+    // Repository NEU öffnen und indexieren (wie restore.rs)
+    // Grund: Arc<Repository> kann nicht mit to_indexed() konsumiert werden
+    let mut repo_opts = RepositoryOptions::default();
+    repo_opts.password = Some(password.to_string());
 
-    // Load both snapshots using get_snapshots API
-    let snaps_a = repo
-        .get_snapshots(&[&snapshot_id_a])
-        .map_err(|e| format!("Snapshot A nicht gefunden: {}", e))?;
-    let snapshot_a = snaps_a.into_iter().next().ok_or("Snapshot A ist leer")?;
+    let mut backend_opts = BackendOptions::default();
+    backend_opts.repository = Some(repository_path.clone());
 
-    let snaps_b = repo
-        .get_snapshots(&[&snapshot_id_b])
-        .map_err(|e| format!("Snapshot B nicht gefunden: {}", e))?;
-    let snapshot_b = snaps_b.into_iter().next().ok_or("Snapshot B ist leer")?;
+    let backends = backend_opts.to_backends().map_err(|e| {
+        error!(?e, "Backend erstellen fehlgeschlagen");
+        format!("Backend erstellen fehlgeschlagen: {}", e)
+    })?;
 
-    // Compare using paths (simplified approach for rustic_core 0.8.0)
-    // Convert paths to sets for efficient comparison
-    let paths_a: HashSet<String> = snapshot_a.paths.iter().map(|p| p.to_string()).collect();
+    let repo = Repository::<NoProgressBars, _>::new(&repo_opts, &backends)
+        .map_err(|e| {
+            error!(?e, "Repository initialisieren fehlgeschlagen");
+            format!("Repository initialisieren fehlgeschlagen: {}", e)
+        })?
+        .open()
+        .map_err(|e| {
+            error!(?e, "Repository öffnen fehlgeschlagen");
+            format!("Repository öffnen fehlgeschlagen: {}", e)
+        })?
+        .to_indexed()
+        .map_err(|e| {
+            error!(?e, "Repository indexieren fehlgeschlagen");
+            format!("Repository indexieren fehlgeschlagen: {}", e)
+        })?;
 
-    let paths_b: HashSet<String> = snapshot_b.paths.iter().map(|p| p.to_string()).collect();
+    // Beide Snapshots laden
+    let snaps =
+        repo.get_snapshots(&[snapshot_id_a.as_str(), snapshot_id_b.as_str()]).map_err(|e| {
+            error!(?e, "Snapshots laden fehlgeschlagen");
+            format!("Snapshots laden fehlgeschlagen: {}", e)
+        })?;
 
-    // Calculate differences
-    let added: Vec<String> = paths_b.difference(&paths_a).map(|s| s.clone()).collect();
+    if snaps.len() != 2 {
+        return Err("Nicht alle Snapshots gefunden".into());
+    }
 
-    let removed: Vec<String> = paths_a.difference(&paths_b).map(|s| s.clone()).collect();
+    let snapshot_a = &snaps[0];
+    let snapshot_b = &snaps[1];
 
-    // Files that exist in both (could be modified)
-    let common: Vec<String> = paths_a.intersection(&paths_b).map(|s| s.clone()).collect();
+    // Root-Nodes in Snapshots laden (siehe rustic CLI diff.rs#L110-112)
+    let node_a = repo
+        .node_from_snapshot_and_path(snapshot_a, "")
+        .map_err(|e| format!("Node A laden fehlgeschlagen: {}", e))?;
 
-    // For now, treat common files as potentially modified
-    // (exact modification detection would require blob comparison)
-    let modified = common;
+    let node_b = repo
+        .node_from_snapshot_and_path(snapshot_b, "")
+        .map_err(|e| format!("Node B laden fehlgeschlagen: {}", e))?;
 
-    // Calculate statistics
+    // File-Trees mit ls() laden (siehe rustic CLI diff.rs#L113-115)
+    let ls_opts = LsOptions::default();
+    let tree_a =
+        repo.ls(&node_a, &ls_opts).map_err(|e| format!("Tree A listen fehlgeschlagen: {}", e))?;
+
+    let tree_b =
+        repo.ls(&node_b, &ls_opts).map_err(|e| format!("Tree B listen fehlgeschlagen: {}", e))?;
+
+    // Dateien aus beiden Trees in HashMaps sammeln
+    let mut files_a: HashMap<String, rustic_core::repofile::Node> = HashMap::new();
+    let mut files_b: HashMap<String, rustic_core::repofile::Node> = HashMap::new();
+
+    for item in tree_a {
+        let (path, node) = item.map_err(|e| format!("Tree A Item fehlgeschlagen: {}", e))?;
+        files_a.insert(path.to_string_lossy().to_string(), node);
+    }
+
+    for item in tree_b {
+        let (path, node) = item.map_err(|e| format!("Tree B Item fehlgeschlagen: {}", e))?;
+        files_b.insert(path.to_string_lossy().to_string(), node);
+    }
+
+    // Unterschiede berechnen (siehe rustic CLI diff.rs#L477-505)
+    let mut added = Vec::new();
+    let mut removed = Vec::new();
+    let mut modified = Vec::new();
+    let mut total_size_change: i64 = 0;
+
+    // In B, aber nicht in A → hinzugefügt
+    for (path, node_b) in &files_b {
+        if !files_a.contains_key(path) {
+            added.push(path.clone());
+            total_size_change += node_b.meta.size as i64;
+        }
+    }
+
+    // In A, aber nicht in B → entfernt
+    for (path, node_a) in &files_a {
+        if !files_b.contains_key(path) {
+            removed.push(path.clone());
+            total_size_change -= node_a.meta.size as i64;
+        }
+    }
+
+    // In beiden, aber unterschiedlich → geändert (siehe rustic CLI diff.rs#L294-321)
+    for (path, node_a) in &files_a {
+        if let Some(node_b) = files_b.get(path) {
+            let content_changed = node_a.content != node_b.content;
+            let size_changed = node_a.meta.size != node_b.meta.size;
+
+            if content_changed || size_changed {
+                modified.push(path.clone());
+                total_size_change += (node_b.meta.size as i64) - (node_a.meta.size as i64);
+            }
+        }
+    }
+
     let added_count = added.len() as u64;
     let removed_count = removed.len() as u64;
     let modified_count = modified.len() as u64;
 
-    // Calculate size changes from summary
-    let size_a = snapshot_a.summary.as_ref().map(|s| s.total_bytes_processed).unwrap_or(0);
-    let size_b = snapshot_b.summary.as_ref().map(|s| s.total_bytes_processed).unwrap_or(0);
-    let total_size_change = (size_b as i64) - (size_a as i64);
-
     tracing::info!(
-        "Snapshot-Vergleich abgeschlossen: +{} -{} ~{}",
+        "Diff: +{} -{} ~{} (size_change: {})",
         added_count,
         removed_count,
-        modified_count
+        modified_count,
+        total_size_change
     );
 
     Ok(DiffResultDto {

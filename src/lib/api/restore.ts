@@ -77,7 +77,7 @@ export async function restoreFiles(
     ...options,
   };
 
-  return await invoke('restore_files_command', {
+  return await invoke('restore_files_v1', {
     repositoryPath,
     password,
     snapshotId,

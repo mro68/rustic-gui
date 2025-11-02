@@ -26,6 +26,7 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
+  import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
 
   const dispatch = createEventDispatcher();
@@ -43,10 +44,17 @@
   let logEntries: string[] = $state([]);
   let readData = $state(true);
   let checkUnused = $state(false);
+  let password = $state('');
 
   let progressInterval: number | null = null;
 
   async function startCheck() {
+    // Passwort-Validierung
+    if (!password || password.trim() === '') {
+      toastStore.error('Bitte Passwort eingeben');
+      return;
+    }
+
     isRunning = true;
     progress = 0;
     currentStep = 'Repository-Überprüfung wird gestartet...';
@@ -85,8 +93,8 @@
         }
       }, 500);
 
-      // ✅ Tatsächliche API-Integration (TODO.md Phase 2 Zeile 249)
-      const result = await checkRepository(repositoryId, readData);
+      // ✅ Tatsächliche API-Integration mit Passwort (M1: Repository-Wartung)
+      const result = await checkRepository(repositoryId, password, readData);
 
       // Abschluss
       if (progressInterval) clearInterval(progressInterval);
@@ -156,6 +164,18 @@
   {/snippet}
   <div class="check-repo-dialog">
     {#if !isRunning}
+      <!-- Password Input Section -->
+      <div class="password-section">
+        <label for="check-password" class="form-label">Repository-Passwort</label>
+        <Input
+          id="check-password"
+          type="password"
+          bind:value={password}
+          placeholder="Passwort eingeben..."
+          required
+        />
+      </div>
+
       <!-- Configuration Section -->
       <div class="config-section">
         <h3>Überprüfungsoptionen</h3>
@@ -232,6 +252,22 @@
 <style>
   .check-repo-dialog {
     max-width: 700px;
+  }
+
+  .password-section {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #22273a;
+    border-radius: 8px;
+    border: 1px solid #2d3348;
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #e4e4e7;
   }
 
   .config-section {

@@ -4,6 +4,7 @@
 
 use crate::state::AppState;
 use crate::types::RepositoryDto;
+use tauri::Emitter;
 
 /// Initialisiert ein neues Repository und speichert es in der Konfiguration.
 ///
@@ -411,85 +412,120 @@ pub async fn delete_repository(
 }
 
 /// Prüft ein Repository (Health-Check)
-/// TODO.md: Phase 1 Zeile 169 ⏳ STUB - benötigt rustic_core Integration
+/// M1: Repository-Wartung vervollständigen
 #[tauri::command]
 pub async fn check_repository(
     id: String,
+    password: String,
     _read_data: bool,
     state: tauri::State<'_, AppState>,
+    app_handle: tauri::AppHandle,
 ) -> Result<String, String> {
     // Hole Repository-Config
-    let (path, password_stored) = {
+    let path = {
         let config = state.config.lock();
         let repo = config
             .get_repository(&id)
             .ok_or_else(|| format!("Repository '{}' nicht gefunden", id))?;
-        (repo.path.clone(), repo.password_stored)
+        repo.path.clone()
     };
 
-    // Versuche Passwort zu laden
-    let password = if password_stored {
-        match crate::keychain::load_password(&id) {
-            Ok(pwd) => pwd,
-            Err(crate::error::RusticGuiError::PasswordMissing { .. }) => {
-                return Err("Passwort nicht gespeichert - Repository muss entsperrt werden".into());
-            }
-            Err(err) => {
-                return Err(format!("Passwort konnte nicht geladen werden: {}", err));
-            }
-        }
-    } else {
-        return Err("Passwort nicht gespeichert - Repository muss entsperrt werden".into());
-    };
+    // Progress-Event: Start
+    app_handle
+        .emit(
+            "repo-check-progress",
+            serde_json::json!({
+                "repository_id": id,
+                "stage": "starting",
+                "message": "Starte Repository-Check..."
+            }),
+        )
+        .ok();
 
     // Führe Check durch
-    crate::rustic::repository::check_repository(&path, &password)
+    let result = crate::rustic::repository::check_repository(&path, &password)
         .map_err(|e| format!("Repository-Check fehlgeschlagen: {}", e))?;
 
-    tracing::info!("Repository '{}' erfolgreich geprüft", id);
-    Ok("Repository ist OK".to_string())
+    // Progress-Event: Completed
+    app_handle
+        .emit("repo-check-progress", serde_json::json!({
+            "repository_id": id,
+            "stage": "completed",
+            "message": format!("Check abgeschlossen: {} Snapshots gefunden", result.snapshot_count)
+        }))
+        .ok();
+
+    tracing::info!("Repository '{}' erfolgreich geprüft: Status {:?}", id, result.status);
+    Ok(format!("Repository ist {:?} - {} Snapshots gefunden", result.status, result.snapshot_count))
 }
 
 /// Prune-Operation für ein Repository
-/// TODO.md: Phase 1 Zeile 170 ⏳ STUB - benötigt rustic_core Integration
+/// M1: Repository-Wartung vervollständigen
 #[tauri::command]
 pub async fn prune_repository(
     id: String,
+    password: String,
+    dry_run: bool,
     state: tauri::State<'_, AppState>,
+    app_handle: tauri::AppHandle,
 ) -> Result<String, String> {
     // Hole Repository-Config
-    let (_path, password_stored) = {
+    let path = {
         let config = state.config.lock();
         let repo = config
             .get_repository(&id)
             .ok_or_else(|| format!("Repository '{}' nicht gefunden", id))?;
-        (repo.path.clone(), repo.password_stored)
+        repo.path.clone()
     };
 
-    // Versuche Passwort zu laden
-    let _password = if password_stored {
-        match crate::keychain::load_password(&id) {
-            Ok(pwd) => pwd,
-            Err(crate::error::RusticGuiError::PasswordMissing { .. }) => {
-                return Err("Passwort nicht gespeichert - Repository muss entsperrt werden".into());
-            }
-            Err(err) => {
-                return Err(format!("Passwort konnte nicht geladen werden: {}", err));
-            }
-        }
+    // Progress-Event: Start
+    app_handle
+        .emit("repo-prune-progress", serde_json::json!({
+            "repository_id": id,
+            "stage": "starting",
+            "dry_run": dry_run,
+            "message": if dry_run { "Starte Prune-Simulation..." } else { "Starte Prune-Operation..." }
+        }))
+        .ok();
+
+    // Führe Prune durch
+    let (packs_deleted, bytes_freed) =
+        crate::rustic::repository::prune_repository(&path, &password, dry_run)
+            .map_err(|e| format!("Prune-Operation fehlgeschlagen: {}", e))?;
+
+    // Progress-Event: Completed
+    app_handle
+        .emit("repo-prune-progress", serde_json::json!({
+            "repository_id": id,
+            "stage": "completed",
+            "packs_deleted": packs_deleted,
+            "bytes_freed": bytes_freed,
+            "message": format!("{} Pack-Dateien gelöscht, {} Bytes freigegeben", packs_deleted, bytes_freed)
+        }))
+        .ok();
+
+    tracing::info!(
+        "Prune für Repository '{}' abgeschlossen: {} Packs, {} Bytes",
+        id,
+        packs_deleted,
+        bytes_freed
+    );
+
+    if dry_run {
+        Ok(format!(
+            "Prune-Simulation: {} Pack-Dateien könnten gelöscht werden, {} Bytes freigegeben",
+            packs_deleted, bytes_freed
+        ))
     } else {
-        return Err("Passwort nicht gespeichert - Repository muss entsperrt werden".into());
-    };
-
-    // TODO: Implementiere richtige Prune-Operation mit rustic_core
-    // Für jetzt nur Platzhalter
-    tracing::info!("Prune-Operation für Repository '{}' gestartet", id);
-
-    Ok("Prune-Operation erfolgreich abgeschlossen".to_string())
+        Ok(format!(
+            "Prune erfolgreich: {} Pack-Dateien gelöscht, {} Bytes freigegeben",
+            packs_deleted, bytes_freed
+        ))
+    }
 }
 
 /// Passwort ändern für ein Repository
-/// TODO.md: Phase 1 Zeile 171 ⏳ STUB - benötigt rustic_core Integration
+/// M1: Repository-Wartung vervollständigen
 #[tauri::command]
 pub async fn change_password(
     id: String,
@@ -506,14 +542,11 @@ pub async fn change_password(
         repo.path.clone()
     };
 
-    // Validiere altes Passwort durch Versuch das Repository zu öffnen
-    crate::rustic::repository::open_repository(&path, &old_pass)
-        .map_err(|_| "Altes Passwort ist falsch".to_string())?;
+    // Ändere Passwort mit rustic_core
+    crate::rustic::repository::change_password(&path, &old_pass, &new_pass)
+        .map_err(|e| format!("Passwort-Änderung fehlgeschlagen: {}", e))?;
 
-    // TODO: Implementiere richtige Passwort-Änderung mit rustic_core
-    // Für jetzt nur Passwort im Keychain aktualisieren
-
-    // Speichere neues Passwort
+    // Speichere neues Passwort im Keychain
     crate::keychain::store_password(&id, &new_pass)
         .map_err(|e| format!("Neues Passwort konnte nicht gespeichert werden: {}", e))?;
 
@@ -529,7 +562,7 @@ pub async fn change_password(
             .map_err(|e| format!("Konfiguration konnte nicht aktualisiert werden: {}", e))?;
     }
 
-    tracing::info!("Passwort für Repository '{}' geändert", id);
+    tracing::info!("Passwort für Repository '{}' erfolgreich geändert", id);
     Ok(())
 }
 

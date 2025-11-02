@@ -27,6 +27,7 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
+  import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
 
   const dispatch = createEventDispatcher();
@@ -43,6 +44,8 @@
   let currentStep = $state('');
   let logEntries: string[] = $state([]);
   let maxUnused = $state(false);
+  let dryRun = $state(false);
+  let password = $state('');
 
   let progressInterval: number | null = null;
 
@@ -50,9 +53,15 @@
   let pruneResult: any = $state(null);
 
   async function startPruning() {
+    // Passwort-Validierung
+    if (!password || password.trim() === '') {
+      toastStore.error('Bitte Passwort eingeben');
+      return;
+    }
+
     isRunning = true;
     progress = 0;
-    currentStep = 'Bereinigung wird gestartet...';
+    currentStep = dryRun ? 'Prune-Simulation wird gestartet...' : 'Bereinigung wird gestartet...';
     logEntries = [];
     pruneResult = null;
 
@@ -89,9 +98,8 @@
         }
       }, 500);
 
-      // ✅ Tatsächliche API-Integration (TODO.md Phase 2 Zeile 250)
-      // Note: maxUnused option currently not supported by backend
-      const result = await pruneRepository(repositoryId);
+      // ✅ Tatsächliche API-Integration mit Passwort (M1: Repository-Wartung)
+      const result = await pruneRepository(repositoryId, password, dryRun);
 
       // Abschluss
       if (progressInterval) clearInterval(progressInterval);
@@ -159,9 +167,31 @@
   {/snippet}
   <div class="prune-repo-dialog">
     {#if !isRunning && !pruneResult}
+      <!-- Password Input Section -->
+      <div class="password-section">
+        <label for="prune-password" class="form-label">Repository-Passwort</label>
+        <Input
+          id="prune-password"
+          type="password"
+          bind:value={password}
+          placeholder="Passwort eingeben..."
+          required
+        />
+      </div>
+
       <!-- Configuration Section -->
       <div class="config-section">
         <h3>Bereinigungsoptionen</h3>
+
+        <div class="option-group">
+          <Checkbox
+            label="Dry-Run (Simulation ohne tatsächliches Löschen)"
+            bind:checked={dryRun}
+          />
+          <p class="option-description">
+            Simuliert die Bereinigung ohne Daten zu löschen. Zeigt, wie viel Speicherplatz freigegeben werden würde.
+          </p>
+        </div>
 
         <div class="option-group">
           <Checkbox
@@ -263,6 +293,22 @@
 <style>
   .prune-repo-dialog {
     max-width: 700px;
+  }
+
+  .password-section {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #22273a;
+    border-radius: 8px;
+    border: 1px solid #2d3348;
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #e4e4e7;
   }
 
   .config-section {

@@ -58,6 +58,8 @@ pub struct BackupJobConfig {
     pub retention: RetentionPolicy,
     /// Ob Job aktiviert ist
     pub enabled: bool,
+    /// Gespeichertes Passwort für geplante Jobs (wird mit Config verschlüsselt)
+    pub password: Option<String>,
 }
 
 /// Anwendungseinstellungen

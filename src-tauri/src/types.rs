@@ -115,6 +115,8 @@ pub struct BackupJobDto {
     pub next_run: Option<String>, // ISO 8601
     /// Retention-Policy
     pub retention: Option<RetentionPolicy>,
+    /// Gespeichertes Passwort für geplante Jobs (wird mit Config verschlüsselt)
+    pub password: Option<String>,
 }
 
 /// Retention-Policy für Snapshots

@@ -413,18 +413,43 @@ pub fn change_password(path: &str, old_password: &str, new_password: &str) -> Re
             message: format!("Backend-Erstellung fehlgeschlagen: {}", e),
         })?;
 
-    let _repo = Repository::<NoProgressBars, ()>::new(&repo_opts, &backends)
+    let repo = Repository::<NoProgressBars, ()>::new(&repo_opts, &backends)
         .map_err(|e| crate::error::RusticGuiError::RusticError {
             message: format!("Repository öffnen fehlgeschlagen: {}", e),
         })?
         .open()
         .map_err(|_e| crate::error::RusticGuiError::AuthenticationFailed)?;
 
-    // TODO M1.5: Implementiere echten Passwort-Wechsel mit rustic_core
-    // rustic_core hat wahrscheinlich eine change_password() oder set_password() Methode
-    // Für jetzt als Placeholder - würde die Keys mit neuem Passwort neu verschlüsseln
+    // Passwort-Wechsel-Logik (basierend auf rustic CLI key password command)
+    // Siehe: https://github.com/rustic-rs/rustic/blob/main/src/commands/key.rs#L240-L264
 
-    tracing::info!("Passwort-Änderung erfolgreich (Placeholder-Implementierung)");
+    // 1. Alten Key laden (um Metadata zu kopieren)
+    let old_key_id = *repo.key_id();
+    let old_key: rustic_core::repofile::KeyFile = repo.get_file(&old_key_id)?;
+
+    // 2. Neuen Key mit gleichem Hostname/Username erstellen
+    let key_opts = rustic_core::KeyOptions::default()
+        .hostname(old_key.hostname.clone())
+        .username(old_key.username.clone())
+        .with_created(old_key.created.is_some());
+
+    let new_key_id = repo.add_key(new_password, &key_opts)?;
+    tracing::info!("Neuer Key {} erstellt", new_key_id);
+
+    // 3. Repository mit neuem Passwort neu öffnen
+    let mut repo_opts_new = repo_opts.clone();
+    repo_opts_new.password = Some(new_password.to_string());
+    let repo_new = Repository::<NoProgressBars, ()>::new(&repo_opts_new, &backends)
+        .map_err(|e| crate::error::RusticGuiError::RusticError {
+            message: format!("Repository mit neuem Passwort öffnen fehlgeschlagen: {}", e),
+        })?
+        .open_with_password(new_password)
+        .map_err(|_e| crate::error::RusticGuiError::AuthenticationFailed)?;
+
+    // 4. Alten Key löschen
+    repo_new.delete_key(&old_key_id)?;
+    tracing::info!("Alter Key {} gelöscht, Passwort erfolgreich geändert", old_key_id);
+
     Ok(())
 }
 

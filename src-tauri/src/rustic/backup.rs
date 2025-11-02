@@ -27,6 +27,8 @@ pub struct BackupOptions {
     pub repository: String,
     /// Quellpfade
     pub source_paths: Vec<String>,
+    /// Repository-Passwort (optional, wird benötigt zum Öffnen des Repos)
+    pub password: Option<String>,
     /// Snapshot-Tags
     pub tags: Option<Vec<String>>,
     /// Exclude-Patterns
@@ -58,12 +60,12 @@ where
     let repo_path = options.repository.clone();
     info!(repo = %repo_path, "Backup gestartet");
 
-    // TODO M1: Passwort-Handling noch nicht implementiert
-    // Für jetzt verwenden wir die Option, dass Passwort via ENV gesetzt wird
-    // oder nutzen password-less Repositories für Tests
-
-    // Repository-Optionen
-    let repo_opts = RepositoryOptions::default();
+    // Repository-Optionen (mit Passwort falls vorhanden)
+    let repo_opts = if let Some(ref password) = options.password {
+        RepositoryOptions::default().password(password.clone())
+    } else {
+        RepositoryOptions::default()
+    };
 
     // Backend-Optionen
     let backend_opts = BackendOptions::default().repository(&repo_path);
@@ -220,6 +222,7 @@ mod tests {
         let options = BackupOptions {
             repository: repo_path.to_string(),
             source_paths: vec![source_path.to_string()],
+            password: Some("test-password".to_string()),
             tags: Some(vec!["daily".to_string()]),
             exclude: None,
             compression: None,
@@ -254,6 +257,7 @@ mod tests {
         let options = BackupOptions {
             repository: "".to_string(),
             source_paths: vec!["/tmp/source1".to_string()],
+            password: None,
             tags: None,
             exclude: None,
             compression: None,
@@ -271,6 +275,7 @@ mod tests {
         let options = BackupOptions {
             repository: "/tmp/testrepo".to_string(),
             source_paths: vec![],
+            password: None,
             tags: None,
             exclude: None,
             compression: None,
@@ -309,6 +314,7 @@ mod tests {
         let options = BackupOptions {
             repository: repo_path.to_string(),
             source_paths: vec![source_path.to_string()],
+            password: Some("test-password".to_string()),
             tags: None,
             exclude: None,
             compression: None,

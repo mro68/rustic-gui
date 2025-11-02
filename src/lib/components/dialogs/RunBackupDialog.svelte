@@ -52,6 +52,8 @@
     jobName?: string;
     /** Job-ID für Backend-Commands */
     jobId?: string;
+    /** Repository-Passwort */
+    password?: string;
     /** Callback bei Cancel */
     onCancel?: (() => void) | undefined;
   }
@@ -60,18 +62,23 @@
     open = $bindable(false),
     jobName = '',
     jobId = '',
+    password = '',
     onCancel = undefined,
   }: RunBackupDialogProps = $props();
 
   // Retry-Handler
   async function handleRetry() {
+    if (!password) {
+      toastStore.error('Passwort erforderlich');
+      return;
+    }
     error = null;
     completed = false;
     progress = null;
     logLines = [];
     await setupListeners();
     try {
-      await runBackup(jobId);
+      await runBackup(jobId, password);
       // Wenn kein Fehler geworfen wurde und completed true ist, Toast anzeigen
       if (completed) {
         toastStore.success(`Backup für "${jobName}" erfolgreich wiederholt!`);
