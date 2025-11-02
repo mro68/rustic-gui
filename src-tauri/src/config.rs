@@ -360,6 +360,7 @@ mod tests {
                 keep_yearly: Some(2),
             },
             enabled: true,
+            password: None,
         });
 
         // Speichern
@@ -441,6 +442,7 @@ mod tests {
             schedule: Some("0 2 * * *".to_string()),
             retention: RetentionPolicy::default(),
             enabled: true,
+            password: None,
         };
 
         // Hinzufügen

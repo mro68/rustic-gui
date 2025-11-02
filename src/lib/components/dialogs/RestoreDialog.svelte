@@ -176,9 +176,19 @@
 
     try {
       // Listen for progress updates
-      const unlisten = await onRestoreProgress(null, (progress) => {
-        restoreProgress = progress.percentage;
-        restoreMessage = progress.message || `Restoring ${progress.current_file || ''}`;
+      const { listen } = await import('@tauri-apps/api/event');
+      const unlistenProgress = await listen('restore-progress', (event: any) => {
+        const progress = event.payload;
+        if (progress.base) {
+          restoreProgress = progress.base.percentage || 0;
+          restoreMessage = progress.base.message || `Restoring ${progress.current_file || ''}`;
+        }
+      });
+
+      const unlistenCompleted = await listen('restore-completed', (event: any) => {
+        const payload = event.payload;
+        restoreMessage = `Restored ${payload.files_restored || 0} files successfully`;
+        restoreProgress = 100;
       });
 
       // Start restore
@@ -196,8 +206,9 @@
         }
       );
 
-      // Cleanup
-      unlisten();
+      // Cleanup listeners
+      unlistenProgress();
+      unlistenCompleted();
 
       // Success
       dispatch('restored', {

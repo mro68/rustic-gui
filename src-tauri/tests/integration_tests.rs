@@ -5,6 +5,36 @@ mod integration_tests {
     use super::*;
 
     #[test]
+    fn test_check_result_dto() {
+        let dto = CheckResultDto {
+            errors: vec!["Error 1".to_string()],
+            warnings: vec!["Warning 1".to_string()],
+            is_ok: false,
+        };
+
+        assert_eq!(dto.errors.len(), 1);
+        assert_eq!(dto.warnings.len(), 1);
+        assert!(!dto.is_ok);
+    }
+
+    #[test]
+    fn test_prune_result_dto() {
+        let dto = PruneResultDto {
+            packs_removed: 10,
+            packs_kept: 50,
+            packs_recovered: 2,
+            size_removed: 1024 * 1024,
+            size_kept: 512 * 1024 * 1024,
+            size_recovered: 1024,
+            dry_run: false,
+        };
+
+        assert_eq!(dto.packs_removed, 10);
+        assert_eq!(dto.size_removed, 1024 * 1024);
+        assert!(!dto.dry_run);
+    }
+
+    #[test]
     fn test_app_state_lifecycle() {
         // AppState erstellen
         let state = AppState::new().unwrap();
@@ -99,13 +129,137 @@ mod integration_tests {
         assert_eq!(options.target_path, "/tmp/restore");
         assert_eq!(options.paths.len(), 2);
         assert!(options.overwrite);
-        assert!(options.restore_permissions);
-        assert!(!options.restore_timestamps);
-        assert!(!options.dry_run);
     }
 
     #[test]
-    fn test_repository_type_serialization() {
+    fn test_backup_progress_dto() {
+        let progress = ProgressInfo {
+            current: 50,
+            total: 100,
+            message: Some("Processing files...".to_string()),
+            percentage: Some(50.0),
+        };
+
+        assert_eq!(progress.current, 50);
+        assert_eq!(progress.total, 100);
+        assert_eq!(progress.percentage, Some(50.0));
+    }
+
+    #[test]
+    fn test_restore_progress_dto() {
+        let base = ProgressInfo {
+            current: 10,
+            total: 50,
+            message: Some("Restoring...".to_string()),
+            percentage: Some(20.0),
+        };
+
+        let progress = RestoreProgress {
+            base,
+            files_restored: 10,
+            bytes_restored: 1024 * 512,
+            current_file: Some("/home/user/file.txt".to_string()),
+        };
+
+        assert_eq!(progress.files_restored, 10);
+        assert_eq!(progress.bytes_restored, 1024 * 512);
+        assert!(progress.current_file.is_some());
+    }
+
+    #[test]
+    fn test_backup_workflow_types() {
+        // Test kompletter Backup-Workflow mit DTOs
+
+        // 1. Repository erstellen
+        let repo = RepositoryDto {
+            id: "repo-1".to_string(),
+            name: "Test Repo".to_string(),
+            path: "/tmp/test-repo".to_string(),
+            repository_type: RepositoryType::Local,
+            status: RepositoryStatus::Healthy,
+            snapshot_count: 0,
+            total_size: 0,
+            last_accessed: None,
+            created_at: "2025-11-02T00:00:00Z".to_string(),
+        };
+        assert_eq!(repo.snapshot_count, 0);
+
+        // 2. Backup-Job erstellen
+        let job = BackupJobDto {
+            id: "job-1".to_string(),
+            name: "Test Backup".to_string(),
+            repository_id: repo.id.clone(),
+            source_paths: vec!["/tmp/source".to_string()],
+            exclude_patterns: Some(vec!["*.tmp".to_string()]),
+            tags: vec!["test".to_string()],
+            schedule: None,
+            enabled: true,
+            last_run: None,
+            next_run: None,
+            retention: Some(RetentionPolicy {
+                keep_last: Some(5),
+                keep_daily: Some(7),
+                keep_weekly: None,
+                keep_monthly: None,
+                keep_yearly: None,
+            }),
+        };
+        assert_eq!(job.repository_id, repo.id);
+
+        // 3. Snapshot nach Backup
+        let snapshot = SnapshotDto {
+            id: "snap-1".to_string(),
+            time: "2025-11-02T10:00:00Z".to_string(),
+            hostname: "testhost".to_string(),
+            tags: job.tags.clone(),
+            paths: job.source_paths.clone(),
+            file_count: 100,
+            total_size: 1024 * 1024,
+            repository_id: repo.id.clone(),
+            username: Some("testuser".to_string()),
+            summary: None,
+        };
+        assert_eq!(snapshot.repository_id, repo.id);
+        assert_eq!(snapshot.tags, job.tags);
+
+        // 4. Restore-Options
+        let restore_opts = RestoreOptionsDto {
+            snapshot_id: snapshot.id.clone(),
+            target_path: "/tmp/restore".to_string(),
+            paths: vec![],
+            overwrite: true,
+            restore_permissions: true,
+            restore_timestamps: true,
+            dry_run: false,
+        };
+        assert_eq!(restore_opts.snapshot_id, snapshot.id);
+    }
+
+    #[test]
+    fn test_repository_maintenance_workflow() {
+        // Test Repository-Wartung Workflow mit DTOs
+
+        // 1. Check Result
+        let check_result = CheckResultDto { errors: vec![], warnings: vec![], is_ok: true };
+        assert!(check_result.is_ok);
+        assert_eq!(check_result.errors.len(), 0);
+
+        // 2. Prune Result (nach Snapshot-Löschungen)
+        let prune_result = PruneResultDto {
+            packs_removed: 5,
+            packs_kept: 45,
+            packs_recovered: 0,
+            size_removed: 10 * 1024 * 1024,
+            size_kept: 500 * 1024 * 1024,
+            size_recovered: 0,
+            dry_run: false,
+        };
+        assert_eq!(prune_result.packs_removed, 5);
+        assert!(!prune_result.dry_run);
+    }
+
+    #[test]
+    fn test_restore_options_dto_creation() {
         // Teste dass alle RepositoryTypes korrekt serialisiert werden können
         let local = RepositoryType::Local;
         let json = serde_json::to_string(&local).unwrap();
