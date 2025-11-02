@@ -80,6 +80,8 @@ Legende: `[x]` fertig · `[~]` teilweise · `[ ]` offen
 4. **Snapshot-Lifecycle abrunden**
    - ✅ Einzelnes Löschen (`delete_snapshot`) fertiggestellt (2025-11-02)
    - ✅ Tag-Verwaltung vollständig implementiert (Backend + UI bereits vorhanden)
+   - ✅ Retention-Policy Backend implementiert (preview & apply Commands, 2025-11-02)
+   - Retention-Policy UI fehlt noch (Dialog für Policy-Konfiguration)
    - Restore-Dialog wire-up ausstehend, Diff-UI verbessern.
 5. **Test- & Dokumentationslücken schließen**
    - Vitest- und Rust-Tests für die oben genannten neuen Funktionen ergänzen.

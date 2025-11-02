@@ -214,6 +214,9 @@ pub fn run() {
             commands::snapshot::compare_snapshots,
             commands::snapshot::add_snapshot_tags,
             commands::snapshot::remove_snapshot_tags,
+            // --- Retention Policy ---
+            commands::retention::preview_retention_policy,
+            commands::retention::apply_retention_policy,
             // --- Restore ---
             commands::restore::get_file_tree_command,
             commands::restore::restore_files_v1,
