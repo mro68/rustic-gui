@@ -16,6 +16,9 @@ export interface RetentionPolicyPreview {
   snapshots_to_delete: string[];
 }
 
+// Re-export RetentionPolicy für Convenience
+export type { RetentionPolicy } from '$lib/types';
+
 /**
  * Simuliert eine Retention-Policy (Dry-Run).
  *

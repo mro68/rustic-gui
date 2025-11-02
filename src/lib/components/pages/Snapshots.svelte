@@ -47,6 +47,7 @@
 
   import { deleteSnapshot, getSnapshotInfo } from '$lib/api/snapshots';
   import CompareSnapshotsDialog from '$lib/components/dialogs/CompareSnapshotsDialog.svelte';
+  import RetentionPolicyDialog from '$lib/components/dialogs/RetentionPolicyDialog.svelte';
   import TagEditorDialog from '$lib/components/dialogs/TagEditorDialog.svelte';
   import ContextMenu from '$lib/components/shared/ContextMenu.svelte';
   import FilterBar from '$lib/components/shared/FilterBar.svelte';
@@ -98,6 +99,9 @@
   let compareSnapshotA = $state<SnapshotDto | null>(null);
   let compareSnapshotB = $state<SnapshotDto | null>(null);
   let compareDiff = $state<any>(null);
+
+  // Retention Policy Dialog State
+  let retentionDialogOpen = $state(false);
   let compareStatsA = $state<any>(null);
   let compareStatsB = $state<any>(null);
 
@@ -284,6 +288,15 @@
     refreshSnapshots();
   }
 
+  function openRetentionDialog() {
+    retentionDialogOpen = true;
+  }
+
+  function handleRetentionPolicyApplied() {
+    // Refresh snapshots nach Policy-Anwendung
+    refreshSnapshots();
+  }
+
   function openCompareDialog(snapshot: SnapshotDto) {
     if (!compareSnapshotA) {
       compareSnapshotA = snapshot;
@@ -369,6 +382,11 @@
   <div class="toolbar">
     <h1 class="page-title">Alle Snapshots</h1>
     <div class="toolbar-actions">
+      <Tooltip text="Retention-Policy anwenden">
+        <Button variant="secondary" size="sm" onclick={openRetentionDialog}>
+          🗓️ Retention Policy
+        </Button>
+      </Tooltip>
       <Tooltip text="Snapshots aktualisieren">
         <Button variant="secondary" size="sm" disabled={isLoading} onclick={refreshSnapshots}>
           {isLoading ? '↻' : '↻'} Aktualisieren
@@ -939,3 +957,12 @@
     }
   }
 </style>
+
+<!-- Retention Policy Dialog -->
+<RetentionPolicyDialog
+  bind:open={retentionDialogOpen}
+  on:applied={handleRetentionPolicyApplied}
+  on:cancel={() => {
+    retentionDialogOpen = false;
+  }}
+/>

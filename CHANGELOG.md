@@ -9,6 +9,24 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+#### 2025-11-02 - Retention-Policy UI & Integration
+
+- **RetentionPolicyDialog.svelte**: Kompletter Dialog für Retention-Policy-Konfiguration
+  - 5 Policy-Felder: keep_last, keep_daily, keep_weekly, keep_monthly, keep_yearly
+  - Preview-Funktion (Dry-Run) zeigt Anzahl der zu behaltenden/löschenden Snapshots
+  - Visual Stats mit farbcodierten Keep/Delete-Zählern
+  - Snapshot-ID-Liste (erste 10 + weitere Anzahl)
+  - Bestätigungsdialog vor tatsächlicher Löschung
+  - Validierung: mindestens ein Keep-Wert erforderlich
+- **Snapshots.svelte Integration**:
+  - "Retention Policy" Button in Toolbar
+  - Automatisches Snapshot-Reload nach Policy-Anwendung
+  - Event-Handler für Dialog-Interaktionen
+- **API Layer** (`src/lib/api/retention.ts`):
+  - `previewRetentionPolicy()`: Dry-Run Vorschau
+  - `applyRetentionPolicy()`: Tatsächliche Anwendung
+  - RetentionPolicy Type-Export für einfachere Imports
+
 #### 2025-11-01 - Keychain Passwortfluss Dokumentation
 
 - Neue Dokumentation `docs/features/keychain-password-flow.md` beschreibt Speicherung, Laden und Fehlerpfade (PasswordMissing, KeychainError) samt Auswirkungen auf Scheduler und Portable-Mode.
