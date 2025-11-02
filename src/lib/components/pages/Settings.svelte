@@ -49,7 +49,7 @@
 
   // App info (would come from backend in real implementation)
   const appVersion = '1.0.0';
-  const rusticVersion = '0.7.0';
+  const rusticVersion = 'rustic_core 0.8.0';
   const configPath = '~/.config/rustic-gui/';
 
   async function handleThemeChange(value: string) {
@@ -123,18 +123,18 @@
 
 <div class="settings-page">
   <div class="settings-header">
-    <h1 class="page-title">Settings</h1>
+    <h1 class="page-title">Einstellungen</h1>
   </div>
 
   <div class="settings-content">
     <!-- General Settings -->
     <div class="settings-card">
-      <h2 class="card-title">General Settings</h2>
+      <h2 class="card-title">Allgemeine Einstellungen</h2>
 
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-label">Application Theme</div>
-          <p class="setting-description">Choose the visual theme for the application</p>
+          <div class="setting-label">Theme</div>
+          <p class="setting-description">Wählen Sie das visuelle Theme für die Anwendung</p>
         </div>
         <div class="setting-control">
           <select
@@ -142,8 +142,8 @@
             bind:value={settings.theme}
             onchange={(e) => handleThemeChange(e.currentTarget.value)}
           >
-            <option value="dark">Dark</option>
-            <option value="light">Light</option>
+            <option value="dark">Dunkel</option>
+            <option value="light">Hell</option>
             <option value="system">System</option>
           </select>
         </div>
@@ -151,8 +151,8 @@
 
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-label">Language</div>
-          <p class="setting-description">Select the application language</p>
+          <div class="setting-label">Sprache</div>
+          <p class="setting-description">Wählen Sie die Sprache der Anwendung</p>
         </div>
         <div class="setting-control">
           <select
@@ -168,8 +168,8 @@
 
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-label">Notifications</div>
-          <p class="setting-description">Enable desktop notifications for backup events</p>
+          <div class="setting-label">Benachrichtigungen</div>
+          <p class="setting-description">Desktop-Benachrichtigungen für Backup-Events aktivieren</p>
         </div>
         <div class="setting-control">
           <Checkbox
@@ -183,12 +183,12 @@
 
     <!-- Security Settings -->
     <div class="settings-card">
-      <h2 class="card-title">Security</h2>
+      <h2 class="card-title">Sicherheit</h2>
 
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-label">Password Storage</div>
-          <p class="setting-description">Where to store repository passwords securely</p>
+          <div class="setting-label">Passwort-Speicherung</div>
+          <p class="setting-description">Wo Repository-Passwörter sicher gespeichert werden</p>
         </div>
         <div class="setting-control">
           <select
@@ -196,16 +196,16 @@
             bind:value={settings.password_storage}
             onchange={(e) => handlePasswordStorageChange(e.currentTarget.value)}
           >
-            <option value="system_keychain">System Keychain (recommended)</option>
-            <option value="in_memory">In-Memory Only</option>
+            <option value="system_keychain">System-Keychain (empfohlen)</option>
+            <option value="in_memory">Nur im Arbeitsspeicher</option>
           </select>
         </div>
       </div>
 
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-label">Lock Timeout</div>
-          <p class="setting-description">Automatically lock repositories after inactivity</p>
+          <div class="setting-label">Automatische Sperre</div>
+          <p class="setting-description">Repositories automatisch sperren nach Inaktivität</p>
         </div>
         <div class="setting-control">
           <select
@@ -213,10 +213,10 @@
             bind:value={settings.lock_timeout}
             onchange={(e) => handleLockTimeoutChange(Number(e.currentTarget.value))}
           >
-            <option value="15">15 minutes</option>
-            <option value="30">30 minutes</option>
-            <option value="60">1 hour</option>
-            <option value="0">Never</option>
+            <option value="15">15 Minuten</option>
+            <option value="30">30 Minuten</option>
+            <option value="60">1 Stunde</option>
+            <option value="0">Nie</option>
           </select>
         </div>
       </div>
@@ -224,12 +224,12 @@
 
     <!-- About Section -->
     <div class="settings-card">
-      <h2 class="card-title">About</h2>
+      <h2 class="card-title">Über</h2>
 
       <div class="setting-row">
         <div class="setting-info">
           <div class="setting-label">Version</div>
-          <p class="setting-description">Current application version</p>
+          <p class="setting-description">Aktuelle Anwendungsversion</p>
         </div>
         <div class="setting-control">
           <span class="version-text">{appVersion}</span>
@@ -239,7 +239,7 @@
       <div class="setting-row">
         <div class="setting-info">
           <div class="setting-label">Rustic Version</div>
-          <p class="setting-description">Version of the underlying rustic backup tool</p>
+          <p class="setting-description">Version des zugrundeliegenden rustic Backup-Tools</p>
         </div>
         <div class="setting-control">
           <span class="version-text">{rusticVersion}</span>
@@ -248,8 +248,8 @@
 
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-label">Config Path</div>
-          <p class="setting-description">Location of application configuration files</p>
+          <div class="setting-label">Konfigurations-Pfad</div>
+          <p class="setting-description">Speicherort der Anwendungskonfiguration</p>
         </div>
         <div class="setting-control">
           <span class="version-text">{configPath}</span>
@@ -260,10 +260,10 @@
     <!-- Action Buttons -->
     <div class="settings-actions">
       <Tooltip text="Einstellungen zurücksetzen">
-        <button class="btn btn-secondary" onclick={handleResetSettings}> Reset to Defaults </button>
+        <button class="btn btn-secondary" onclick={handleResetSettings}> Auf Standard zurücksetzen </button>
       </Tooltip>
       <Tooltip text="Einstellungen speichern">
-        <button class="btn btn-primary" onclick={handleSaveSettings}> Save Settings </button>
+        <button class="btn btn-primary" onclick={handleSaveSettings}> Einstellungen speichern </button>
       </Tooltip>
     </div>
   </div>

@@ -293,7 +293,7 @@
                     {isScheduled(job.id) ? '⏸ Pausieren' : '▶ Aktivieren'}
                   </Button>
                 </Tooltip>
-              </Tooltip>
+              {/if}
               <Tooltip text="Backup jetzt ausführen">
                 <Button 
                   variant="secondary" 
