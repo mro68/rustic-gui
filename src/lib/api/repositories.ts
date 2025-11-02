@@ -186,31 +186,77 @@ export async function deleteRepository(id: string, deleteData: boolean): Promise
 /**
  * Führt Prune-Operation aus (entfernt unnötige Pack-Dateien).
  *
- * @param id - Repository-ID
- * @param password - Repository-Passwort
+ * Nutzt das geöffnete Repository aus dem Backend-State.
+ * Erstellt Prune-Plan und führt ihn aus (2-stufig).
+ *
+ * @param repositoryId - Repository-ID aus Config
  * @param dryRun - Simulation ohne tatsächliches Löschen
- * @returns Promise mit Prune-Ergebnis
+ * @returns Promise mit Prune-Statistiken
  * @throws Error wenn Prune fehlschlägt
+ *
+ * @example
+ * ```typescript
+ * // Dry-Run (Simulation)
+ * const stats = await pruneRepository('repo-123', true);
+ * console.log(`Würde ${stats.packs_removed} Packs entfernen`);
+ *
+ * // Echtes Prune
+ * const result = await pruneRepository('repo-123', false);
+ * console.log(`${result.packs_removed} Packs entfernt, ${result.size_removed} Bytes freigegeben`);
+ * ```
  */
+export interface PruneResultDto {
+  packs_removed: number;
+  packs_kept: number;
+  packs_recovered: number;
+  size_removed: number;
+  size_kept: number;
+  size_recovered: number;
+  dry_run: boolean;
+}
+
 export async function pruneRepository(
-  id: string,
-  password: string,
+  repositoryId: string,
   dryRun: boolean = false
-): Promise<string> {
-  return await invoke<string>('prune_repository', { id, password, dryRun });
+): Promise<PruneResultDto> {
+  return await invoke<PruneResultDto>('prune_repository', {
+    repositoryId,
+    dryRun,
+  });
 }
 
 /**
  * Ändert das Repository-Passwort.
  *
- * @param id - Repository-ID
- * @param oldPass - Aktuelles Passwort
- * @param newPass - Neues Passwort
+ * Erstellt einen neuen Key und aktualisiert den Keychain.
+ * Der alte Key bleibt erhalten (rustic erlaubt mehrere Keys).
+ *
+ * @param repositoryId - Repository-ID aus Config
+ * @param oldPassword - Aktuelles Passwort
+ * @param newPassword - Neues Passwort
  * @returns Promise (void)
  * @throws Error wenn Passwortänderung fehlschlägt
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   await changePassword('repo-123', 'old-secret', 'new-secret');
+ *   console.log('Passwort erfolgreich geändert');
+ * } catch (err) {
+ *   console.error('Passwortänderung fehlgeschlagen:', err);
+ * }
+ * ```
  */
-export async function changePassword(id: string, oldPass: string, newPass: string): Promise<void> {
-  await invoke('change_password', { id, oldPass, newPass });
+export async function changePassword(
+  repositoryId: string,
+  oldPassword: string,
+  newPassword: string
+): Promise<void> {
+  await invoke('change_password', {
+    repositoryId,
+    oldPassword,
+    newPassword,
+  });
 }
 
 /**

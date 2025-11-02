@@ -124,9 +124,83 @@
     showDeleteDialog = true;
   }
 
-  function handleRunJob(job: BackupJobDto) {
+  let runningJobId = $state<string | null>(null);
+  let backupProgress = $state<{
+    filesProcessed: number;
+    bytesUploaded: number;
+    percent: number;
+  } | null>(null);
+
+  async function handleRunJob(job: BackupJobDto) {
     console.log('Running job:', job.id);
+    
+    // Repository-Passwort prüfen
+    const repo = $repositories.find((r) => r.id === job.repository_id);
+    if (!repo) {
+      toastStore.error('Repository nicht gefunden');
+      return;
+    }
+
+    // TODO: Passwort von Keychain holen (für jetzt hardcoded)
+    const password = 'test'; // FIXME: Aus Keychain laden
+    
+    runningJobId = job.id;
+    backupProgress = { filesProcessed: 0, bytesUploaded: 0, percent: 0 };
     toastStore.info(`Starte Backup-Job "${job.name}"...`);
+
+    // Progress-Event-Listener
+    const { listen } = await import('@tauri-apps/api/event');
+    const unlisten = await listen('backup-progress', (event: any) => {
+      const payload = event.payload;
+      if (payload.jobId === job.id && payload.progress) {
+        backupProgress = {
+          filesProcessed: payload.progress.files_processed || 0,
+          bytesUploaded: payload.progress.bytes_uploaded || 0,
+          percent: payload.progress.percent || 0,
+        };
+      }
+    });
+
+    // Completion-Listener
+    const unlistenCompleted = await listen('backup-completed', (event: any) => {
+      const payload = event.payload;
+      if (payload.jobId === job.id) {
+        toastStore.success(`Backup-Job "${job.name}" erfolgreich abgeschlossen`);
+        runningJobId = null;
+        backupProgress = null;
+        unlisten();
+        unlistenCompleted();
+        unlistenFailed();
+        loadJobs(); // Reload to update last_run
+      }
+    });
+
+    // Error-Listener
+    const unlistenFailed = await listen('backup-failed', (event: any) => {
+      const payload = event.payload;
+      if (payload.jobId === job.id) {
+        toastStore.error(`Backup-Job fehlgeschlagen: ${payload.message || 'Unbekannter Fehler'}`);
+        runningJobId = null;
+        backupProgress = null;
+        unlisten();
+        unlistenCompleted();
+        unlistenFailed();
+      }
+    });
+
+    // Backup starten
+    try {
+      const { runBackup } = await import('$lib/api/backup');
+      await runBackup(job.id, password);
+    } catch (error) {
+      console.error('Failed to start backup:', error);
+      toastStore.error(`Fehler beim Starten des Backups: ${error}`);
+      runningJobId = null;
+      backupProgress = null;
+      unlisten();
+      unlistenCompleted();
+      unlistenFailed();
+    }
   }
 
   onMount(() => {
@@ -196,6 +270,19 @@
             </div>
 
             <div class="job-actions">
+              {#if runningJobId === job.id && backupProgress}
+                <div class="progress-section">
+                  <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: {backupProgress.percent}%"></div>
+                  </div>
+                  <div class="progress-stats">
+                    <span>{Math.round(backupProgress.percent)}%</span>
+                    <span>{backupProgress.filesProcessed} Dateien</span>
+                    <span>{(backupProgress.bytesUploaded / 1024 / 1024).toFixed(1)} MB</span>
+                  </div>
+                </div>
+              {/if}
+              
               {#if job.schedule}
                 <Tooltip text={isScheduled(job.id) ? 'Job entplanen' : 'Job planen'}>
                   <Button
@@ -206,10 +293,15 @@
                     {isScheduled(job.id) ? '⏸ Pausieren' : '▶ Aktivieren'}
                   </Button>
                 </Tooltip>
-              {/if}
+              </Tooltip>
               <Tooltip text="Backup jetzt ausführen">
-                <Button variant="secondary" size="sm" onclick={() => handleRunJob(job)}>
-                  Ausführen
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  onclick={() => handleRunJob(job)}
+                  disabled={runningJobId === job.id}
+                >
+                  {runningJobId === job.id ? '⏳ Läuft...' : 'Ausführen'}
                 </Button>
               </Tooltip>
               <Tooltip text="Job bearbeiten">
@@ -396,6 +488,34 @@
     display: flex;
     gap: 0.5rem;
     justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .progress-section {
+    width: 100%;
+    padding: 0.75rem 0;
+  }
+
+  .progress-bar-container {
+    background: var(--bg-tertiary);
+    border-radius: 9999px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--border-color);
+  }
+
+  .progress-bar {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+    height: 100%;
+    transition: width 0.3s ease;
+  }
+
+  .progress-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
   }
 
   @media (max-width: 768px) {

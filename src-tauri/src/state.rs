@@ -287,6 +287,18 @@ impl AppState {
         store.save_config(&config)
     }
 
+    /// Invalidiert den Repository-Cache für eine bestimmte ID.
+    ///
+    /// Nützlich z.B. nach Passwort-Änderung, um ein Re-Open zu erzwingen.
+    ///
+    /// # Arguments
+    /// * `repository_id` - ID des zu invalidierenden Repositories
+    pub fn invalidate_repository_cache(&self, repository_id: &str) {
+        let mut cache = self.repository_cache.lock();
+        cache.remove(repository_id);
+        tracing::debug!("Repository-Cache für {} invalidiert", repository_id);
+    }
+
     /// Liefert Statusinformationen zum portablen Speicher.
     pub fn portable_status(&self) -> PortableStoreStatus {
         self.portable_store.lock().status()

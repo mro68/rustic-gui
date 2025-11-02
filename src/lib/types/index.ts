@@ -304,3 +304,25 @@ export interface CheckResultDto {
   /** Gesamt-Status: true = keine kritischen Fehler */
   is_ok: boolean;
 }
+
+/**
+ * Prune-Ergebnis für Repository-Wartung.
+ *
+ * Statistiken über entfernte, behaltene und wiederhergestellte Pack-Dateien.
+ */
+export interface PruneResultDto {
+  /** Anzahl entfernter Pack-Dateien */
+  packs_removed: number;
+  /** Anzahl behaltener Pack-Dateien (keep-marked) */
+  packs_kept: number;
+  /** Anzahl wiederhergestellter Pack-Dateien */
+  packs_recovered: number;
+  /** Größe entfernter Daten (Bytes) */
+  size_removed: number;
+  /** Größe behaltener Daten (Bytes) */
+  size_kept: number;
+  /** Größe wiederhergestellter Daten (Bytes) */
+  size_recovered: number;
+  /** Ob es ein Dry-Run war */
+  dry_run: boolean;
+}

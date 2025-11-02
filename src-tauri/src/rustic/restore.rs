@@ -146,6 +146,14 @@ pub async fn get_file_tree(
 
 /// Stellt Dateien aus einem Snapshot wieder her.
 ///
+/// **WICHTIG:** Implementiert gemäß rustic CLI restore.rs:
+/// - 2-step: prepare_restore() → restore()
+/// - LocalDestination mit create=true, flatten=!node.is_dir()
+/// - RestoreOptions für Konfiguration
+/// - Progress-Events während Restore
+///
+/// Referenz: https://github.com/rustic-rs/rustic/blob/main/src/commands/restore.rs
+///
 /// # Arguments
 /// * `repository_path` - Pfad zum Repository
 /// * `password` - Repository-Passwort
@@ -173,6 +181,17 @@ pub async fn restore_files(
         target = target_path,
         "Starte Restore"
     );
+
+    // Progress-Event: Started
+    if let Some(app) = app_handle.as_ref() {
+        let _ = app.emit(
+            "restore-started",
+            serde_json::json!({
+                "snapshot_id": snapshot_id,
+                "target_path": target_path,
+            }),
+        );
+    }
 
     let mut repo_opts = RepositoryOptions::default();
     repo_opts.password = Some(password.to_string());
@@ -233,11 +252,10 @@ pub async fn restore_files(
         .delete(options.overwrite)
         .no_ownership(!options.restore_permissions);
 
-    if let Some(app) = app_handle.clone() {
-        let job_id = format!("restore-{}", snapshot_id);
-        let event_name = format!("restore-progress-{}", job_id);
+    // Progress-Event: Vorbereitung
+    if let Some(app) = app_handle.as_ref() {
         let _ = app.emit(
-            &event_name,
+            "restore-progress",
             &RestoreProgress {
                 base: crate::types::ProgressInfo {
                     current: 0,
@@ -260,23 +278,26 @@ pub async fn restore_files(
         .ls(&tree, &ls_opts)
         .map_err(|e| RusticGuiError::RestoreFailed { reason: e.to_string() })?;
 
-    // Restore-Plan erstellen
+    // Restore-Plan erstellen (Schritt 1)
     info!("Erstelle Restore-Plan...");
     let plan = repo
         .prepare_restore(&restore_opts, node_streamer, &dest, false)
         .map_err(|e| RusticGuiError::RestoreFailed { reason: e.to_string() })?;
 
-    if let Some(app) = app_handle.clone() {
-        let job_id = format!("restore-{}", snapshot_id);
-        let event_name = format!("restore-progress-{}", job_id);
+    // Total-Files aus Plan extrahieren (vor move)
+    let stats = plan.stats.clone();
+    let total_files = stats.files.restore + stats.files.unchanged + stats.files.verified;
+
+    // Progress-Event: Plan erstellt
+    if let Some(app) = app_handle.as_ref() {
         let _ = app.emit(
-            &event_name,
+            "restore-progress",
             &RestoreProgress {
                 base: crate::types::ProgressInfo {
                     current: 0,
-                    total: 100, // Placeholder
-                    message: Some("Restore wird ausgeführt...".to_string()),
-                    percentage: Some(50.0),
+                    total: total_files,
+                    message: Some(format!("Restore von {} Dateien...", total_files)),
+                    percentage: Some(10.0),
                 },
                 files_restored: 0,
                 bytes_restored: 0,
@@ -290,11 +311,48 @@ pub async fn restore_files(
         .ls(&tree, &ls_opts)
         .map_err(|e| RusticGuiError::RestoreFailed { reason: e.to_string() })?;
 
-    // Restore ausführen
-    info!("Führe Restore aus...");
+    // Restore ausführen (Schritt 2)
+    info!("Führe Restore aus ({} Dateien)...", total_files);
+
+    // Simulated Progress während Restore
+    // FIXME: rustic_core bietet keinen Progress-Callback für restore() - muss simuliert werden
+    if let Some(app) = app_handle.as_ref() {
+        let app_clone = app.clone();
+        tokio::spawn(async move {
+            for i in 1..=10 {
+                tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+                let _ = app_clone.emit(
+                    "restore-progress",
+                    &RestoreProgress {
+                        base: crate::types::ProgressInfo {
+                            current: (total_files * i / 10).min(total_files),
+                            total: total_files,
+                            message: Some(format!("Restore läuft ({}/10)...", i)),
+                            percentage: Some((i * 10) as f32),
+                        },
+                        files_restored: (total_files * i / 10).min(total_files),
+                        bytes_restored: 0,
+                        current_file: None,
+                    },
+                );
+            }
+        });
+    }
+
     repo.restore(plan, &restore_opts, node_streamer_restore, &dest)
         .map_err(|e| RusticGuiError::RestoreFailed { reason: e.to_string() })?;
 
-    info!("Restore erfolgreich abgeschlossen");
+    // Progress-Event: Completed
+    if let Some(app) = app_handle.as_ref() {
+        let _ = app.emit(
+            "restore-completed",
+            serde_json::json!({
+                "snapshot_id": snapshot_id,
+                "files_restored": total_files,
+            }),
+        );
+    }
+
+    info!("Restore erfolgreich abgeschlossen ({} Dateien)", total_files);
     Ok(())
 }

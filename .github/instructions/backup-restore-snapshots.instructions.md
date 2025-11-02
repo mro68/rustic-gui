@@ -93,6 +93,123 @@ pub async fn check_repository(
 
 ---
 
+### Prune Repository
+
+**2-stufiger Prozess:** `prune_plan()` → `prune()`
+
+```rust
+#[tauri::command]
+pub async fn prune_repository(
+    repository_id: String,
+    dry_run: bool,
+    state: tauri::State<'_, AppState>,
+    app_handle: tauri::AppHandle,
+) -> Result<PruneResultDto, String> {
+    use rustic_core::PruneOptions;
+
+    let repo = state.get_repository(&repository_id)?;
+
+    // Progress-Event
+    app_handle.emit("prune-started", json!({
+        "repository_id": repository_id,
+        "dry_run": dry_run,
+    })).ok();
+
+    // PruneOptions erstellen
+    let opts = PruneOptions::default();
+
+    // Schritt 1: Prune-Plan erstellen
+    let prune_plan = repo.prune_plan(&opts)
+        .map_err(|e| format!("Prune-Plan fehlgeschlagen: {}", e))?;
+
+    // Statistiken extrahieren (BEVOR prune_plan moved wird)
+    let packs_removed = prune_plan.stats.packs_to_delete.remove;
+    let packs_kept = prune_plan.stats.packs_to_delete.keep;
+    let packs_recovered = prune_plan.stats.packs_to_delete.recover;
+    let size_removed = prune_plan.stats.size_to_delete.remove;
+    let size_kept = prune_plan.stats.size_to_delete.keep;
+    let size_recovered = prune_plan.stats.size_to_delete.recover;
+
+    // Schritt 2: Prune ausführen (falls nicht dry-run)
+    if !dry_run {
+        repo.prune(&opts, prune_plan)
+            .map_err(|e| format!("Prune fehlgeschlagen: {}", e))?;
+    }
+
+    // Completion-Event
+    app_handle.emit("prune-completed", json!({
+        "repository_id": repository_id,
+        "packs_removed": packs_removed,
+        "size_removed": size_removed,
+    })).ok();
+
+    Ok(PruneResultDto {
+        packs_removed,
+        packs_kept,
+        packs_recovered,
+        size_removed,
+        size_kept,
+        size_recovered,
+        dry_run,
+    })
+}
+```
+
+**Referenz:** [rustic CLI prune.rs](https://github.com/rustic-rs/rustic/blob/main/src/commands/prune.rs)
+
+---
+
+### Change Password
+
+**Erstellt neuen Key, aktualisiert Keychain:**
+
+```rust
+#[tauri::command]
+pub async fn change_password(
+    repository_id: String,
+    old_password: String,
+    new_password: String,
+    state: tauri::State<'_, AppState>,
+    app_handle: tauri::AppHandle,
+) -> Result<(), String> {
+    use rustic_core::KeyOptions;
+
+    // Progress-Event
+    app_handle.emit("password-change-started", json!({
+        "repository_id": repository_id,
+    })).ok();
+
+    // Repository mit altem Passwort öffnen
+    let repo = state
+        .open_repository_with_password(&repository_id, &old_password)
+        .map_err(|e| format!("Repository öffnen fehlgeschlagen: {}", e))?;
+
+    // Neuen Key hinzufügen
+    let key_opts = KeyOptions::default();
+    repo.add_key(&new_password, &key_opts)
+        .map_err(|e| format!("Neuen Key hinzufügen fehlgeschlagen: {}", e))?;
+
+    // Keychain aktualisieren
+    crate::keychain::store_password(&repository_id, &new_password)
+        .map_err(|e| format!("Keychain aktualisieren fehlgeschlagen: {}", e))?;
+
+    // Repository-Cache invalidieren (erzwingt Re-Open)
+    state.invalidate_repository_cache(&repository_id);
+
+    // Completion-Event
+    app_handle.emit("password-change-completed", json!({
+        "repository_id": repository_id,
+        "success": true,
+    })).ok();
+
+    Ok(())
+}
+```
+
+**Referenz:** [rustic CLI key.rs](https://github.com/rustic-rs/rustic/blob/main/src/commands/key.rs)
+
+---
+
 ## 🔄 Backup-Implementation
 
 ### Backup-Job-Struktur
@@ -243,7 +360,99 @@ pub fn validate_backup_config(config: &BackupJobConfig) -> Result<()> {
 
 ## 🔄 Restore-Implementation
 
-### Restore mit File-Selection
+### Restore mit Progress (2-step API)
+
+**WICHTIG:** `prepare_restore()` → `restore()` wie in rustic CLI:
+
+```rust
+#[tauri::command]
+pub async fn restore_files(
+    snapshot_id: String,
+    files: Vec<String>, // Leer = alle Dateien
+    target: String,
+    state: State<'_, AppState>,
+    app_handle: tauri::AppHandle,
+) -> Result<(), String> {
+    use rustic_core::{LocalDestination, LsOptions, RestoreOptions};
+
+    let repo = state.get_repository()?;
+
+    // Snapshot laden
+    let snapshot = repo.get_snapshot_from_str(&snapshot_id)
+        .map_err(|e| format!("Snapshot nicht gefunden: {}", e))?;
+
+    // Ziel validieren
+    let target_path = PathBuf::from(target);
+    if !target_path.exists() {
+        std::fs::create_dir_all(&target_path)
+            .map_err(|e| format!("Ziel erstellen fehlgeschlagen: {}", e))?;
+    }
+
+    // Event: Started
+    app_handle.emit("restore-started", json!({
+        "snapshot_id": snapshot_id,
+        "target_path": target_path,
+    })).ok();
+
+    // Tree laden
+    let tree = repo.node_from_snapshot_path("", |sn| sn.id == snapshot.id)
+        .map_err(|e| format!("Tree laden fehlgeschlagen: {}", e))?;
+
+    // Destination erstellen (wie in rustic CLI)
+    let dest = LocalDestination::new(
+        target_path.to_str().unwrap(),
+        true,  // create
+        !tree.is_dir()  // flatten
+    ).map_err(|e| format!("Destination ungültig: {}", e))?;
+
+    // Restore-Optionen
+    let restore_opts = RestoreOptions::default()
+        .delete(overwrite)
+        .no_ownership(!restore_permissions);
+
+    // LsOptions für node_streamer
+    let mut ls_opts = LsOptions::default();
+    ls_opts.recursive = true;
+
+    // Schritt 1: Restore-Plan erstellen
+    let node_streamer = repo.ls(&tree, &ls_opts)?;
+    let plan = repo.prepare_restore(&restore_opts, node_streamer, &dest, false)
+        .map_err(|e| format!("Plan erstellen fehlgeschlagen: {}", e))?;
+
+    // Total-Files extrahieren (VOR move!)
+    let total_files = plan.stats.files.restore
+                    + plan.stats.files.unchanged
+                    + plan.stats.files.verified;
+
+    // Event: Progress
+    app_handle.emit("restore-progress", json!({
+        "current": 0,
+        "total": total_files,
+        "percentage": 0.0,
+    })).ok();
+
+    // Schritt 2: Restore ausführen
+    let node_streamer_restore = repo.ls(&tree, &ls_opts)?;
+    repo.restore(plan, &restore_opts, node_streamer_restore, &dest)
+        .map_err(|e| format!("Restore fehlgeschlagen: {}", e))?;
+
+    // Event: Completed
+    app_handle.emit("restore-completed", json!({
+        "snapshot_id": snapshot_id,
+        "files_restored": total_files,
+    })).ok();
+
+    Ok(())
+}
+```
+
+**Referenz:** [rustic CLI restore.rs](https://github.com/rustic-rs/rustic/blob/main/src/commands/restore.rs)
+
+**Hinweis:** rustic_core bietet **keinen Progress-Callback** für `restore()` - muss simuliert werden.
+
+---
+
+### Restore mit File-Selection (alte Version - Referenz)
 
 ```rust
 #[tauri::command]

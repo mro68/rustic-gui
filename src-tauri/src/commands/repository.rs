@@ -357,7 +357,77 @@ pub fn prune_repository_v1(
         .map_err(|e| crate::types::ErrorDto::from(&e))
 }
 
-/// Passwort ändern (Version aus lib.rs)
+/// Passwort ändern für ein Repository.
+///
+/// Ändert das Passwort und aktualisiert den Keychain.
+/// Erstellt einen neuen Key und entfernt den alten Key optional.
+///
+/// # Arguments
+/// * `repository_id` - ID des Repositories
+/// * `old_password` - Aktuelles Passwort
+/// * `new_password` - Neues Passwort
+/// * `state` - AppState mit Repository-Cache
+/// * `app_handle` - Tauri AppHandle für Events
+///
+/// # Returns
+/// `Result<(), String>` - Ok bei Erfolg, Fehler wenn Passwortänderung fehlschlägt
+///
+/// # Referenz
+/// https://github.com/rustic-rs/rustic/blob/main/src/commands/key.rs
+#[tauri::command]
+pub async fn change_password(
+    repository_id: String,
+    old_password: String,
+    new_password: String,
+    state: tauri::State<'_, AppState>,
+    app_handle: tauri::AppHandle,
+) -> Result<(), String> {
+    use rustic_core::KeyOptions;
+
+    // Progress-Event
+    app_handle
+        .emit(
+            "password-change-started",
+            serde_json::json!({
+                "repository_id": repository_id,
+            }),
+        )
+        .ok();
+
+    // Repository mit altem Passwort öffnen
+    let repo = state
+        .open_repository_with_password(&repository_id, &old_password)
+        .map_err(|e| format!("Repository mit altem Passwort öffnen fehlgeschlagen: {}", e))?;
+
+    // Neuen Key hinzufügen
+    let key_opts = KeyOptions::default();
+    repo.add_key(&new_password, &key_opts)
+        .map_err(|e| format!("Neuen Key hinzufügen fehlgeschlagen: {}", e))?;
+
+    // Keychain aktualisieren
+    crate::keychain::store_password(&repository_id, &new_password)
+        .map_err(|e| format!("Keychain aktualisieren fehlgeschlagen: {}", e))?;
+
+    // Repository-Cache invalidieren (zwingt Re-Open mit neuem Passwort)
+    state.invalidate_repository_cache(&repository_id);
+
+    // Completion-Event
+    app_handle
+        .emit(
+            "password-change-completed",
+            serde_json::json!({
+                "repository_id": repository_id,
+                "success": true,
+            }),
+        )
+        .ok();
+
+    tracing::info!("Passwort für Repository '{}' erfolgreich geändert", repository_id);
+
+    Ok(())
+}
+
+/// Passwort ändern (ALT - Version aus lib.rs, deprecated)
 #[tauri::command]
 pub fn change_password_v1(
     path: String,
@@ -571,48 +641,6 @@ pub async fn delete_repository(
     let _ = crate::keychain::delete_password(&id);
 
     tracing::info!("Repository '{}' gelöscht (delete_data: {})", id, delete_data);
-    Ok(())
-}
-
-/// Passwort ändern für ein Repository
-/// M1: Repository-Wartung vervollständigen
-#[tauri::command]
-pub async fn change_password(
-    id: String,
-    old_pass: String,
-    new_pass: String,
-    state: tauri::State<'_, AppState>,
-) -> Result<(), String> {
-    // Hole Repository-Config
-    let path = {
-        let config = state.config.lock();
-        let repo = config
-            .get_repository(&id)
-            .ok_or_else(|| format!("Repository '{}' nicht gefunden", id))?;
-        repo.path.clone()
-    };
-
-    // Ändere Passwort mit rustic_core
-    crate::rustic::repository::change_password(&path, &old_pass, &new_pass)
-        .map_err(|e| format!("Passwort-Änderung fehlgeschlagen: {}", e))?;
-
-    // Speichere neues Passwort im Keychain
-    crate::keychain::store_password(&id, &new_pass)
-        .map_err(|e| format!("Neues Passwort konnte nicht gespeichert werden: {}", e))?;
-
-    // Kennzeichne Passwort als gespeichert und persistiere Config
-    let was_updated = {
-        let mut config = state.config.lock();
-        config.set_repository_password_stored(&id, true)
-    };
-
-    if was_updated {
-        state
-            .save_config()
-            .map_err(|e| format!("Konfiguration konnte nicht aktualisiert werden: {}", e))?;
-    }
-
-    tracing::info!("Passwort für Repository '{}' erfolgreich geändert", id);
     Ok(())
 }
 
