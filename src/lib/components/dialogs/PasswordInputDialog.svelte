@@ -81,7 +81,11 @@
   }
 </script>
 
-<Modal bind:open {title} onClose={handleCancel}>
+<Modal bind:open on:close={handleCancel}>
+  {#snippet header()}
+    {title}
+  {/snippet}
+
   <div class="password-dialog">
     <p class="description">{description}</p>
 

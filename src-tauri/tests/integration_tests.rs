@@ -82,6 +82,7 @@ mod integration_tests {
             last_run: None,
             next_run: Some("2025-10-27T02:00:00Z".to_string()),
             retention: None,
+            password: None,
         };
 
         assert_eq!(job.id, "job-1");
@@ -203,6 +204,7 @@ mod integration_tests {
                 keep_monthly: None,
                 keep_yearly: None,
             }),
+            password: None,
         };
         assert_eq!(job.repository_id, repo.id);
 
@@ -259,7 +261,7 @@ mod integration_tests {
     }
 
     #[test]
-    fn test_restore_options_dto_creation() {
+    fn test_repository_type_serialization() {
         // Teste dass alle RepositoryTypes korrekt serialisiert werden können
         let local = RepositoryType::Local;
         let json = serde_json::to_string(&local).unwrap();

@@ -286,7 +286,7 @@
               {#if job.schedule}
                 <Tooltip text={isScheduled(job.id) ? 'Job entplanen' : 'Job planen'}>
                   <Button
-                    variant={isScheduled(job.id) ? 'warning' : 'success'}
+                    variant={isScheduled(job.id) ? 'secondary' : 'primary'}
                     size="sm"
                     onclick={() => toggleSchedule(job)}
                   >

@@ -95,8 +95,9 @@
         }
       }, 500);
 
-      // ✅ Tatsächliche API-Integration mit Passwort (M1: Repository-Wartung)
-      const result = await checkRepository(repositoryId, password, readData);
+      // ✅ Tatsächliche API-Integration (M1: Repository-Wartung)
+      // trustCache=true, readData aus UI
+      const result = await checkRepository(repositoryId, true, readData);
 
       // Abschluss
       if (progressInterval) clearInterval(progressInterval);

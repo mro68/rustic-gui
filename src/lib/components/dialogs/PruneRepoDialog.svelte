@@ -100,8 +100,8 @@
         }
       }, 500);
 
-      // ✅ Tatsächliche API-Integration mit Passwort (M1: Repository-Wartung)
-      const result = await pruneRepository(repositoryId, password, dryRun);
+      // ✅ Tatsächliche API-Integration (M1: Repository-Wartung)
+      const result = await pruneRepository(repositoryId, dryRun);
 
       // Abschluss
       if (progressInterval) clearInterval(progressInterval);

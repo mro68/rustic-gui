@@ -86,7 +86,8 @@
 
     try {
       // ✅ API-Integration mit Backend
-      const result: DiffResultDto = await compareSnapshots(snapshotA.id, snapshotB.id);
+      // TODO: Passwort aus Keychain holen (Backend sollte das automatisch machen)
+      const result: DiffResultDto = await compareSnapshots(snapshotA.id, snapshotB.id, '');
 
       // Update diff data from backend response
       diff = [
