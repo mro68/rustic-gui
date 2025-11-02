@@ -388,3 +388,14 @@ mod tests {
         assert_eq!(deserialized.tags.len(), 2);
     }
 }
+
+/// DTO für Check-Ergebnisse
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CheckResultDto {
+    /// Liste von Fehlern (kritisch)
+    pub errors: Vec<String>,
+    /// Liste von Warnungen
+    pub warnings: Vec<String>,
+    /// Ob das Repository OK ist (keine Fehler)
+    pub is_ok: bool,
+}

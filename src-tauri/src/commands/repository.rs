@@ -4,6 +4,7 @@
 
 use crate::state::AppState;
 use crate::types::RepositoryDto;
+use rustic_core::CheckOptions;
 use tauri::Emitter;
 
 /// Initialisiert ein neues Repository und speichert es in der Konfiguration.
@@ -173,14 +174,90 @@ pub fn get_repository_info(
         .map_err(|e| crate::types::ErrorDto::from(&e))
 }
 
-/// Prüft ein Repository (Version aus lib.rs)
+/// Prüft ein Repository auf Fehler oder Inkonsistenzen.
+///
+/// Verwendet rustic_core's check() Methode mit CheckOptions.
+/// Referenz: https://github.com/rustic-rs/rustic/blob/main/src/commands/check.rs
+///
+/// # Arguments
+/// * `repository_id` - ID des zu prüfenden Repositories
+/// * `trust_cache` - Cache vertrauen (schneller, weniger sicher)
+/// * `read_data` - Pack-Dateien lesen und verifizieren (langsamer, gründlicher)
+/// * `state` - AppState mit Repository-Cache
+/// * `app_handle` - Tauri AppHandle für Progress-Events
+///
+/// # Returns
+/// `Result<CheckResult, String>` - Check-Ergebnisse oder Fehler
 #[tauri::command]
-pub fn check_repository_v1(
-    path: String,
-    password: String,
-) -> std::result::Result<RepositoryDto, crate::types::ErrorDto> {
-    crate::rustic::repository::check_repository(&path, &password)
-        .map_err(|e| crate::types::ErrorDto::from(&e))
+pub async fn check_repository(
+    repository_id: String,
+    trust_cache: bool,
+    read_data: bool,
+    state: tauri::State<'_, AppState>,
+    app_handle: tauri::AppHandle,
+) -> Result<crate::types::CheckResultDto, String> {
+    // Repository aus Cache holen (NICHT async!)
+    let repo = state
+        .get_repository(&repository_id)
+        .map_err(|e| format!("Repository nicht gefunden: {}", e))?;
+
+    // Progress-Events senden
+    app_handle
+        .emit(
+            "check-started",
+            serde_json::json!({
+                "repository_id": repository_id,
+            }),
+        )
+        .ok();
+
+    // CheckOptions erstellen (wie rustic CLI)
+    let opts = CheckOptions::default().trust_cache(trust_cache).read_data(read_data);
+
+    // Repository prüfen (check() lädt automatisch alle Snapshots und ihre Trees!)
+    // WICHTIG: check() gibt Result<()> zurück, keine CheckResults!
+    // Fehler werden intern über tracing geloggt.
+    match repo.check(opts) {
+        Ok(_) => {
+            // Check erfolgreich
+            app_handle
+                .emit(
+                    "check-completed",
+                    serde_json::json!({
+                        "repository_id": repository_id,
+                        "success": true,
+                    }),
+                )
+                .ok();
+
+            Ok(crate::types::CheckResultDto {
+                errors: Vec::new(),
+                warnings: Vec::new(),
+                is_ok: true,
+            })
+        }
+        Err(e) => {
+            // Check fehlgeschlagen
+            let error_msg = format!("{}", e);
+
+            app_handle
+                .emit(
+                    "check-completed",
+                    serde_json::json!({
+                        "repository_id": repository_id,
+                        "success": false,
+                        "error": error_msg.clone(),
+                    }),
+                )
+                .ok();
+
+            Ok(crate::types::CheckResultDto {
+                errors: vec![error_msg],
+                warnings: Vec::new(),
+                is_ok: false,
+            })
+        }
+    }
 }
 
 /// Prune-Operation (Version aus lib.rs)
@@ -409,54 +486,6 @@ pub async fn delete_repository(
 
     tracing::info!("Repository '{}' gelöscht (delete_data: {})", id, delete_data);
     Ok(())
-}
-
-/// Prüft ein Repository (Health-Check)
-/// M1: Repository-Wartung vervollständigen
-#[tauri::command]
-pub async fn check_repository(
-    id: String,
-    password: String,
-    _read_data: bool,
-    state: tauri::State<'_, AppState>,
-    app_handle: tauri::AppHandle,
-) -> Result<String, String> {
-    // Hole Repository-Config
-    let path = {
-        let config = state.config.lock();
-        let repo = config
-            .get_repository(&id)
-            .ok_or_else(|| format!("Repository '{}' nicht gefunden", id))?;
-        repo.path.clone()
-    };
-
-    // Progress-Event: Start
-    app_handle
-        .emit(
-            "repo-check-progress",
-            serde_json::json!({
-                "repository_id": id,
-                "stage": "starting",
-                "message": "Starte Repository-Check..."
-            }),
-        )
-        .ok();
-
-    // Führe Check durch
-    let result = crate::rustic::repository::check_repository(&path, &password)
-        .map_err(|e| format!("Repository-Check fehlgeschlagen: {}", e))?;
-
-    // Progress-Event: Completed
-    app_handle
-        .emit("repo-check-progress", serde_json::json!({
-            "repository_id": id,
-            "stage": "completed",
-            "message": format!("Check abgeschlossen: {} Snapshots gefunden", result.snapshot_count)
-        }))
-        .ok();
-
-    tracing::info!("Repository '{}' erfolgreich geprüft: Status {:?}", id, result.status);
-    Ok(format!("Repository ist {:?} - {} Snapshots gefunden", result.status, result.snapshot_count))
 }
 
 /// Prune-Operation für ein Repository

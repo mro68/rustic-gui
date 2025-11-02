@@ -10,6 +10,7 @@
 
 1. ✅ **Schaue IMMER zuerst in das [rustic CLI Repository](https://github.com/rustic-rs/rustic/)**
 2. ✅ **Nutze die Commands in `src/commands/` als Referenz:**
+   - **Check**: [`check.rs`](https://github.com/rustic-rs/rustic/blob/main/src/commands/check.rs)
    - Restore: [`restore.rs`](https://github.com/rustic-rs/rustic/blob/main/src/commands/restore.rs)
    - Backup: [`backup.rs`](https://github.com/rustic-rs/rustic/blob/main/src/commands/backup.rs)
    - Diff/Compare: [`diff.rs`](https://github.com/rustic-rs/rustic/blob/main/src/commands/diff.rs)
@@ -20,6 +21,75 @@
 4. ✅ **Bei Problemen**: Vergleiche deinen Code mit der entsprechenden Command-Datei
 
 **Warum?** Die rustic_core Dokumentation ist unvollständig. Das CLI zeigt die **korrekte** API-Nutzung.
+
+---
+
+## 🛠️ Repository-Wartung
+
+### Check Repository
+
+**WICHTIG:** `Repository::check()` gibt `Result<()>` zurück, **keine** `CheckResults`!
+
+Fehler werden intern über `tracing` geloggt. Für UI-Feedback nutze Success/Failure:
+
+```rust
+#[tauri::command]
+pub async fn check_repository(
+    repository_id: String,
+    trust_cache: bool,
+    read_data: bool,
+    state: tauri::State<'_, AppState>,
+    app_handle: tauri::AppHandle,
+) -> Result<CheckResultDto, String> {
+    use rustic_core::CheckOptions;
+
+    // Repository holen (NICHT async!)
+    let repo = state.get_repository(&repository_id)?;
+
+    // Progress-Event
+    app_handle.emit("check-started", json!({
+        "repository_id": repository_id,
+    })).ok();
+
+    // CheckOptions erstellen
+    let opts = CheckOptions::default()
+        .trust_cache(trust_cache)  // Cache vertrauen (schneller)
+        .read_data(read_data);     // Pack-Files lesen (gründlicher)
+
+    // Check ausführen (lädt automatisch alle Snapshots!)
+    match repo.check(opts) {
+        Ok(_) => {
+            app_handle.emit("check-completed", json!({
+                "repository_id": repository_id,
+                "success": true,
+            })).ok();
+
+            Ok(CheckResultDto {
+                errors: Vec::new(),
+                warnings: Vec::new(),
+                is_ok: true,
+            })
+        }
+        Err(e) => {
+            let error_msg = format!("{}", e);
+
+            app_handle.emit("check-completed", json!({
+                "repository_id": repository_id,
+                "success": false,
+                "error": error_msg.clone(),
+            })).ok();
+
+            Ok(CheckResultDto {
+                errors: vec![error_msg],
+                warnings: Vec::new(),
+                is_ok: false,
+            })
+        }
+    }
+}
+```
+
+**Referenz:** [rustic CLI check.rs](https://github.com/rustic-rs/rustic/blob/main/src/commands/check.rs)
 
 ---
 
