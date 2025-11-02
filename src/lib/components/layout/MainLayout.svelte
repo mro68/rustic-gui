@@ -35,10 +35,10 @@
   // State für mobile Navigation
   let isMobileMenuOpen = $state(false);
   let portableListener: UnlistenFn | null = null;
-  let fallbackToastShown = false;
+  let fallbackToastShown = $state(false);
   let noticeDismissed = $state(false);
   let showPortableNotice = $state(false);
-  let activePortableStatus: PortableStoreStatus | null = null;
+  let activePortableStatus = $state<PortableStoreStatus | null>(null);
 
   // Funktion zum Umschalten des mobilen Menüs
   function toggleMobileMenu() {

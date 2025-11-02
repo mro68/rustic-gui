@@ -256,7 +256,7 @@ function createMockRepo(id: string, name: string): RepositoryDto {
     status: 'Healthy' as RepositoryStatus,
     snapshot_count: 0,
     total_size: 0,
-    last_accessed: null,
+    last_accessed: undefined,
     created_at: new Date().toISOString(),
   };
 }

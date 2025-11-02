@@ -49,14 +49,14 @@
   import Tooltip from '../shared/Tooltip.svelte';
 
   // Dialog States
-  let showAddDialog = false;
-  let showUnlockDialog = false;
-  let showDeleteDialog = false;
-  let showCheckDialog = false;
-  let showPruneDialog = false;
-  let showChangePasswordDialog = false;
+  let showAddDialog = $state(false);
+  let showUnlockDialog = $state(false);
+  let showDeleteDialog = $state(false);
+  let showCheckDialog = $state(false);
+  let showPruneDialog = $state(false);
+  let showChangePasswordDialog = $state(false);
 
-  let selectedRepository: RepositoryDto | null = null;
+  let selectedRepository = $state<RepositoryDto | null>(null);
 
   async function loadRepositories() {
     try {
@@ -199,7 +199,7 @@
     <h1 class="page-title">Repository Management</h1>
     <div class="toolbar-actions">
       <Tooltip text="Repository hinzufügen">
-        <Button variant="primary" size="sm" onclick={handleAddRepository}>+ Add Repository</Button>
+        <Button variant="primary" size="sm" onclick={() => { showAddDialog = true; }}>+ Add Repository</Button>
       </Tooltip>
     </div>
   </div>
@@ -213,7 +213,7 @@
         <h3>Keine Repositories gefunden</h3>
         <p>Fügen Sie Ihr erstes Repository hinzu, um mit dem Backup zu beginnen.</p>
         <Tooltip text="Repository hinzufügen">
-          <Button variant="primary" onclick={handleAddRepository}>
+          <Button variant="primary" onclick={() => { showAddDialog = true; }}>
             Erstes Repository hinzufügen
           </Button>
         </Tooltip>
@@ -390,53 +390,48 @@
 </div>
 
 <!-- Dialoge -->
-{#if showAddDialog}
-  <AddRepositoryDialog
-    on:created={handleRepositoryAdded}
-    on:close={() => (showAddDialog = false)}
-  />
-{/if}
+<AddRepositoryDialog
+  bind:open={showAddDialog}
+  on:created={handleRepositoryAdded}
+  on:close={() => (showAddDialog = false)}
+/>
 
-{#if showUnlockDialog}
-  <UnlockRepositoryDialog
-    repositoryName={selectedRepository?.name || ''}
-    repositoryPath={selectedRepository?.path || ''}
-    on:unlocked={handleRepositoryUnlocked}
-    on:close={() => (showUnlockDialog = false)}
-  />
-{/if}
+<UnlockRepositoryDialog
+  bind:open={showUnlockDialog}
+  repositoryName={selectedRepository?.name || ''}
+  repositoryPath={selectedRepository?.path || ''}
+  repositoryId={selectedRepository?.id || ''}
+  on:unlock={handleRepositoryUnlocked}
+  on:close={() => (showUnlockDialog = false)}
+/>
 
-{#if showDeleteDialog}
-  <DeleteRepoDialog
-    repository={selectedRepository}
-    on:deleted={handleRepositoryDeleted}
-    on:close={() => (showDeleteDialog = false)}
-  />
-{/if}
+<DeleteRepoDialog
+  bind:open={showDeleteDialog}
+  repository={selectedRepository}
+  on:delete-repo={handleRepositoryDeleted}
+  on:close={() => (showDeleteDialog = false)}
+/>
 
-{#if showCheckDialog}
-  <CheckRepoDialog
-    repositoryId={selectedRepository?.id || ''}
-    on:checked={handleRepositoryChecked}
-    on:close={() => (showCheckDialog = false)}
-  />
-{/if}
+<CheckRepoDialog
+  bind:open={showCheckDialog}
+  repositoryId={selectedRepository?.id || ''}
+  on:check-complete={handleRepositoryChecked}
+  on:close={() => (showCheckDialog = false)}
+/>
 
-{#if showPruneDialog}
-  <PruneRepoDialog
-    repositoryId={selectedRepository?.id || ''}
-    on:pruned={handleRepositoryPruned}
-    on:close={() => (showPruneDialog = false)}
-  />
-{/if}
+<PruneRepoDialog
+  bind:open={showPruneDialog}
+  repositoryId={selectedRepository?.id || ''}
+  on:prune-complete={handleRepositoryPruned}
+  on:close={() => (showPruneDialog = false)}
+/>
 
-{#if showChangePasswordDialog}
-  <ChangePasswordDialog
-    repositoryId={selectedRepository?.id || ''}
-    on:password-changed={handlePasswordChanged}
-    on:close={() => (showChangePasswordDialog = false)}
-  />
-{/if}
+<ChangePasswordDialog
+  bind:open={showChangePasswordDialog}
+  repositoryId={selectedRepository?.id || ''}
+  on:password-changed={handlePasswordChanged}
+  on:close={() => (showChangePasswordDialog = false)}
+/>
 
 <style>
   .repositories-page {

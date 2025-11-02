@@ -40,7 +40,7 @@
   import Button from '$lib/components/shared/Button.svelte';
   import Modal from '$lib/components/shared/Modal.svelte';
   import Tooltip from '$lib/components/shared/Tooltip.svelte';
-  import { repositories } from '$lib/stores/repositories';
+  import { activeRepositoryId, repositories } from '$lib/stores/repositories';
   import { loadSnapshots, snapshots } from '$lib/stores/snapshots';
   import { toastStore } from '$lib/stores/toast';
   import { onMount } from 'svelte';
@@ -226,7 +226,7 @@
       toastStore.success('Snapshot wurde erfolgreich gelöscht');
       
       // Snapshot-Liste neu laden nach Deletion
-      const repoId = $repositories.currentRepository;
+      const repoId = $activeRepositoryId;
       if (repoId) {
         await loadSnapshots(repoId);
       }

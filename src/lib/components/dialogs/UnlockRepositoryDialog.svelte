@@ -32,6 +32,8 @@
   const dispatch = createEventDispatcher();
 
   interface UnlockRepositoryDialogProps {
+    /** Steuert Sichtbarkeit */
+    open?: boolean;
     /** Name des Repositories */
     repositoryName?: string;
     /** Pfad zum Repository */
@@ -41,6 +43,7 @@
   }
 
   let {
+    open = $bindable(false),
     repositoryName = '',
     repositoryPath = '',
     repositoryId = '',
@@ -125,7 +128,7 @@
       });
 
       // Close dialog on success
-      dispatch('close');
+      open = false;
     } catch (error: any) {
       const errorMessage = error?.message || 'Unbekannter Fehler';
       toastStore.error('Repository entsperren fehlgeschlagen: ' + errorMessage);
@@ -136,11 +139,12 @@
   }
 
   function handleClose() {
+    open = false;
     dispatch('close');
   }
 </script>
 
-<Modal on:close={handleClose}>
+<Modal bind:open on:close={handleClose}>
   {#snippet header()}
     Repository entsperren
   {/snippet}

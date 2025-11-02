@@ -32,11 +32,13 @@
   const dispatch = createEventDispatcher();
 
   interface CheckRepoDialogProps {
+    /** Steuert Sichtbarkeit */
+    open?: boolean;
     /** Repository-ID */
     repositoryId?: string;
   }
 
-  let { repositoryId = '' }: CheckRepoDialogProps = $props();
+  let { open = $bindable(false), repositoryId = '' }: CheckRepoDialogProps = $props();
 
   let isRunning = $state(false);
   let progress = $state(0);
@@ -108,7 +110,7 @@
 
       // Auto-close nach 2 Sekunden
       setTimeout(() => {
-        dispatch('close');
+        open = false;
       }, 2000);
     } catch (error: any) {
       if (progressInterval) clearInterval(progressInterval);
@@ -135,6 +137,7 @@
     if (isRunning) {
       stopCheck();
     }
+    open = false;
     dispatch('close');
   }
 
@@ -158,7 +161,7 @@
   });
 </script>
 
-<Modal on:close={handleClose}>
+<Modal bind:open on:close={handleClose}>
   {#snippet header()}
     <h2>Repository überprüfen</h2>
   {/snippet}

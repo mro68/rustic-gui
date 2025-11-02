@@ -288,13 +288,13 @@ function createMockSnapshot(id: string): SnapshotDto {
     username: 'test-user',
     paths: ['/test/path'],
     tags: [],
+    file_count: 0,
+    total_size: 0,
+    repository_id: 'repo-1',
     summary: {
-      files_new: 0,
-      files_changed: 0,
-      files_unmodified: 0,
-      data_added: 0,
-      total_files_processed: 0,
-      total_bytes_processed: 0,
+      files_count: 0,
+      dirs_count: 0,
+      data_size: 0,
     },
   };
 }

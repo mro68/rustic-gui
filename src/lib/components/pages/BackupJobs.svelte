@@ -41,10 +41,10 @@
   import type { BackupJobDto } from '$lib/types';
   import { onMount } from 'svelte';
 
-  let showCreateDialog = false;
-  let showEditDialog = false;
-  let showDeleteDialog = false;
-  let selectedJob: BackupJobDto | null = null;
+  let showCreateDialog = $state(false);
+  let showEditDialog = $state(false);
+  let showDeleteDialog = $state(false);
+  let selectedJob = $state<BackupJobDto | null>(null);
   let scheduledJobIds = $state<string[]>([]);
 
   async function loadJobs() {

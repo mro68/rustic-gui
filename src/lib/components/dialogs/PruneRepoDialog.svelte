@@ -33,11 +33,13 @@
   const dispatch = createEventDispatcher();
 
   interface PruneRepoDialogProps {
+    /** Steuert Sichtbarkeit */
+    open?: boolean;
     /** Repository-ID */
     repositoryId?: string;
   }
 
-  let { repositoryId = '' }: PruneRepoDialogProps = $props();
+  let { open = $bindable(false), repositoryId = '' }: PruneRepoDialogProps = $props();
 
   let isRunning = $state(false);
   let progress = $state(0);
@@ -116,7 +118,7 @@
 
       // Auto-close nach 5 Sekunden um Statistiken zu zeigen
       setTimeout(() => {
-        dispatch('close');
+        open = false;
       }, 5000);
     } catch (error: any) {
       if (progressInterval) clearInterval(progressInterval);
@@ -143,6 +145,7 @@
     if (isRunning) {
       stopPruning();
     }
+    open = false;
     dispatch('close');
   }
 
@@ -161,7 +164,7 @@
   });
 </script>
 
-<Modal on:close={handleClose}>
+<Modal bind:open on:close={handleClose}>
   {#snippet header()}
     <h2>Repository bereinigen</h2>
   {/snippet}

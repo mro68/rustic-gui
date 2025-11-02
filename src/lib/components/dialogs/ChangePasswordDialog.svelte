@@ -34,11 +34,13 @@
   const dispatch = createEventDispatcher();
 
   interface ChangePasswordDialogProps {
+    /** Steuert Sichtbarkeit */
+    open?: boolean;
     /** Repository-ID */
     repositoryId?: string;
   }
 
-  let { repositoryId = '' }: ChangePasswordDialogProps = $props();
+  let { open = $bindable(false), repositoryId = '' }: ChangePasswordDialogProps = $props();
 
   let currentPassword = $state('');
   let newPassword = $state('');
@@ -136,7 +138,7 @@
         repositoryId,
       });
 
-      dispatch('close');
+      open = false;
     } catch (error: any) {
       const errorMessage = error?.message || 'Unbekannter Fehler';
       toastStore.error('Passwort-Änderung fehlgeschlagen: ' + errorMessage);
@@ -147,6 +149,7 @@
   }
 
   function handleClose() {
+    open = false;
     dispatch('close');
   }
 
@@ -160,7 +163,7 @@
   }
 </script>
 
-<Modal on:close={handleClose}>
+<Modal bind:open on:close={handleClose}>
   {#snippet header()}
     <h2>Repository-Passwort ändern</h2>
   {/snippet}

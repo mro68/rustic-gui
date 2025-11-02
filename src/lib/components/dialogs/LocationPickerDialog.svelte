@@ -68,15 +68,15 @@
   // Local tab state
   let selectedPath = $state('');
   // eslint-disable-next-line no-unused-vars
-  let currentPath = ''; // TODO: Implement file browser navigation
+  let currentPath = $state(''); // TODO: Implement file browser navigation
   let newFolderName = $state('');
   // eslint-disable-next-line no-unused-vars
-  let fileItems: Array<{
+  let fileItems = $state<Array<{
     name: string;
     path: string;
     isDirectory: boolean;
     size?: string;
-  }> = []; // TODO: Populate with file browser results
+  }>>([]); // TODO: Populate with file browser results
 
   // Network tab state
   let networkProtocol: 'sftp' | 'smb' | 'nfs' | 'webdav' = $state('sftp');

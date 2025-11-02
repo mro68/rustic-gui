@@ -26,11 +26,13 @@
   import type { RepositoryDto } from '$lib/types';
 
   interface DeleteRepoDialogProps {
+    /** Steuert Sichtbarkeit */
+    open?: boolean;
     /** Zu löschendes Repository */
     repository?: RepositoryDto | null;
   }
 
-  let { repository = null }: DeleteRepoDialogProps = $props();
+  let { open = $bindable(false), repository = null }: DeleteRepoDialogProps = $props();
 
   let confirmName = $state('');
   let deleteData = $state(false);
@@ -52,6 +54,8 @@
         repositoryId: repository.id,
         deleteData,
       });
+
+      open = false;
     } catch (error: any) {
       // ✅ Error-Toast hinzugefügt (TODO.md Zeile 247)
       const errorMessage = error?.message || 'Unbekannter Fehler';
@@ -63,6 +67,7 @@
   }
 
   function handleClose() {
+    open = false;
     dispatch('close');
   }
 
@@ -74,7 +79,7 @@
   }
 </script>
 
-<Modal on:close={handleClose}>
+<Modal bind:open on:close={handleClose}>
   {#snippet header()}
     Repository löschen
   {/snippet}

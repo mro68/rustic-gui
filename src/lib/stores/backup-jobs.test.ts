@@ -260,10 +260,9 @@ function createMockJob(id: string, name: string): BackupJobDto {
     repository_id: 'repo-1',
     source_paths: ['/test/path'],
     tags: [],
-    schedule: null,
+    schedule: undefined,
     enabled: true,
-    last_run: null,
-    next_run: null,
-    created_at: new Date().toISOString(),
+    last_run: undefined,
+    next_run: undefined,
   };
 }

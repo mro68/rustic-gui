@@ -49,21 +49,24 @@
 
   const dispatch = createEventDispatcher();
 
+  // Props
+  let { open = $bindable(true) } = $props();
+
   // Form state
-  let repositoryName = '';
-  let repositoryType = 'local';
-  let repositoryPath = '';
-  let password = '';
-  let storePassword = true;
-  let backendOptions = '';
+  let repositoryName = $state<string>('');
+  let repositoryType = $state<string>('local');
+  let repositoryPath = $state<string>('');
+  let password = $state<string>('');
+  let storePassword = $state(true);
+  let backendOptions = $state<string>('');
   // let locationConfig: any = undefined; // Unused, commented out
 
   // UI state
-  let isSubmitting = false;
-  let showToast = false;
-  let toastMessage = '';
-  let toastType: 'success' | 'error' | 'info' = 'info';
-  let showLocationPicker = false;
+  let isSubmitting = $state(false);
+  let showToast = $state(false);
+  let toastMessage = $state('');
+  let toastType = $state<'success' | 'error' | 'info'>('info');
+  let showLocationPicker = $state(false);
 
   // ✅ Enhanced location picker (TODO.md Zeile 246, uses LocationPickerDialog.svelte)
   function openLocationPicker() {
@@ -167,11 +170,12 @@
   }
 
   function handleClose() {
+    open = false;
     dispatch('close');
   }
 </script>
 
-<Modal on:close={handleClose}>
+<Modal bind:open on:close={handleClose}>
   {#snippet header()}
     <h2>Repository hinzufügen</h2>
   {/snippet}
