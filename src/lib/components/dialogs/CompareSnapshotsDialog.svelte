@@ -37,6 +37,7 @@
    */
   import { compareSnapshots } from '$lib/api/snapshots';
   import { toastStore } from '$lib/stores/toast';
+  import CustomSelect from '$lib/components/shared/CustomSelect.svelte';
   import type { DiffResultDto } from '$lib/types';
   import { createEventDispatcher } from 'svelte';
 
@@ -136,12 +137,18 @@
       <div class="snapshot-selectors">
         <div class="snapshot-selector">
           <div class="snapshot-selector-title">📸 Snapshot A (Älter)</div>
-          <select class="snapshot-select" bind:value={snapshotA} disabled={isComparing}>
-            <option value={null}>-- Snapshot wählen --</option>
-            {#each snapshots as s}
-              <option value={s}>{new Date(s.time).toLocaleString()} - {s.hostname}</option>
-            {/each}
-          </select>
+          <CustomSelect
+            bind:value={snapshotA}
+            options={[
+              { value: null, label: '-- Snapshot wählen --' },
+              ...snapshots.map((s) => ({
+                value: s,
+                label: `${new Date(s.time).toLocaleString()} - ${s.hostname}`,
+              })),
+            ]}
+            disabled={isComparing}
+            placeholder="Snapshot wählen..."
+          />
           {#if snapshotA}
             <div class="snapshot-info">
               <span>{snapshotA.file_count || 0} Dateien</span>
@@ -151,12 +158,18 @@
         </div>
         <div class="snapshot-selector">
           <div class="snapshot-selector-title">📸 Snapshot B (Neuer)</div>
-          <select class="snapshot-select" bind:value={snapshotB} disabled={isComparing}>
-            <option value={null}>-- Snapshot wählen --</option>
-            {#each snapshots as s}
-              <option value={s}>{new Date(s.time).toLocaleString()} - {s.hostname}</option>
-            {/each}
-          </select>
+          <CustomSelect
+            bind:value={snapshotB}
+            options={[
+              { value: null, label: '-- Snapshot wählen --' },
+              ...snapshots.map((s) => ({
+                value: s,
+                label: `${new Date(s.time).toLocaleString()} - ${s.hostname}`,
+              })),
+            ]}
+            disabled={isComparing}
+            placeholder="Snapshot wählen..."
+          />
           {#if snapshotB}
             <div class="snapshot-info">
               <span>{snapshotB.file_count || 0} Dateien</span>

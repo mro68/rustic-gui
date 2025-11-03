@@ -32,6 +32,7 @@
   import { getFileTree, onRestoreProgress, restoreFiles } from '$lib/api/restore';
   import { listSnapshots } from '$lib/api/snapshots';
   import Button from '$lib/components/shared/Button.svelte';
+  import CustomSelect from '$lib/components/shared/CustomSelect.svelte';
   import Modal from '$lib/components/shared/Modal.svelte';
   import ProgressBar from '$lib/components/shared/ProgressBar.svelte';
   import type { FileTreeNode } from '$lib/types';
@@ -285,13 +286,14 @@
       <!-- Snapshot Selection -->
       <div class="form-group">
         <label for="snapshot-select" class="form-label">Select Snapshot</label>
-        <select id="snapshot-select" class="form-input" bind:value={selectedSnapshotId}>
-          {#each snapshots as snapshot}
-            <option value={snapshot.id}>
-              {formatDate(snapshot.time)} - {snapshot.id.slice(0, 8)}
-            </option>
-          {/each}
-        </select>
+        <CustomSelect
+          bind:value={selectedSnapshotId}
+          options={snapshots.map((snapshot) => ({
+            value: snapshot.id,
+            label: `${formatDate(snapshot.time)} - ${snapshot.id.slice(0, 8)}`,
+          }))}
+          placeholder="Select a snapshot..."
+        />
       </div>
 
       <!-- File Browser -->
@@ -408,11 +410,14 @@
 
           <div class="form-group">
             <label for="overwrite-policy" class="form-label">If file exists</label>
-            <select id="overwrite-policy" class="form-input" bind:value={overwritePolicy}>
-              <option value="skip">Skip existing files</option>
-              <option value="overwrite">Overwrite existing files</option>
-              <option value="rename">Rename restored files (add .restored suffix)</option>
-            </select>
+            <CustomSelect
+              bind:value={overwritePolicy}
+              options={[
+                { value: 'skip', label: 'Skip existing files' },
+                { value: 'overwrite', label: 'Overwrite existing files' },
+                { value: 'rename', label: 'Rename restored files (add .restored suffix)' },
+              ]}
+            />
           </div>
 
           <div class="checkbox-group">

@@ -2,8 +2,8 @@
 <script lang="ts">
   import { invoke } from '@tauri-apps/api/core';
   import Button from '../../shared/Button.svelte';
+  import CustomSelect from '../../shared/CustomSelect.svelte';
   import Input from '../../shared/Input.svelte';
-  import Select from '../../shared/Select.svelte';
 
   interface NetworkTabProps {
     /** Netzwerk-Protokoll */
@@ -97,12 +97,15 @@
 
   <div class="form-group">
     <span class="form-label">Protokoll</span>
-    <Select bind:value={networkProtocol}>
-      <option value="sftp">SFTP (SSH File Transfer)</option>
-      <option value="smb">SMB/CIFS (Windows Share)</option>
-      <option value="nfs">NFS (Network File System)</option>
-      <option value="webdav">WebDAV</option>
-    </Select>
+    <CustomSelect
+      bind:value={networkProtocol}
+      options={[
+        { value: 'sftp', label: 'SFTP (SSH File Transfer)' },
+        { value: 'smb', label: 'SMB/CIFS (Windows Share)' },
+        { value: 'nfs', label: 'NFS (Network File System)' },
+        { value: 'webdav', label: 'WebDAV' },
+      ]}
+    />
   </div>
 
   <div class="form-row">
@@ -123,10 +126,13 @@
     </div>
     <div class="form-group">
       <span class="form-label">Authentifizierung</span>
-      <Select bind:value={networkAuth}>
-        <option value="password">Passwort</option>
-        <option value="key">SSH Key</option>
-      </Select>
+      <CustomSelect
+        bind:value={networkAuth}
+        options={[
+          { value: 'password', label: 'Passwort' },
+          { value: 'key', label: 'SSH Key' },
+        ]}
+      />
     </div>
   </div>
 

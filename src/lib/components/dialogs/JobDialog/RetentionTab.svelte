@@ -1,5 +1,7 @@
 <!-- RetentionTab.svelte: Retention Policy Configuration -->
 <script lang="ts">
+  import CustomSelect from '../../shared/CustomSelect.svelte';
+
   interface RetentionTabProps {
     keepDaily?: number;
     keepWeekly?: number;
@@ -18,6 +20,8 @@
     errors = {},
   }: RetentionTabProps = $props();
 
+  let retentionType = $state('advanced');
+
   const retentionSummary = $derived(
     `Täglich: ${keepDaily}, Wöchentlich: ${keepWeekly}, Monatlich: ${keepMonthly}, Jährlich: ${keepYearly}`
   );
@@ -25,11 +29,14 @@
 
 <div class="form-group">
   <div class="form-label">Aufbewahrungs-Richtlinie</div>
-  <select class="form-select">
-    <option>Simple - Letzte N Snapshots behalten</option>
-    <option selected>Erweitert - Tägliche/Wöchentliche/Monatliche behalten</option>
-    <option>Benutzerdefinierte forget-Richtlinie</option>
-  </select>
+  <CustomSelect
+    bind:value={retentionType}
+    options={[
+      { value: 'simple', label: 'Simple - Letzte N Snapshots behalten' },
+      { value: 'advanced', label: 'Erweitert - Tägliche/Wöchentliche/Monatliche behalten' },
+      { value: 'custom', label: 'Benutzerdefinierte forget-Richtlinie' },
+    ]}
+  />
 </div>
 
 <div class="form-row">
