@@ -114,15 +114,15 @@
       <Input bind:value={networkHost} placeholder="backup.example.com" />
     </div>
     <div class="form-group" style="max-width: 120px;">
-      <label class="form-label">Port</label>
+      <span class="form-label">Port</span>
       <Input type="number" bind:value={networkPort} />
     </div>
   </div>
 
   <div class="form-row">
     <div class="form-group">
-      <label class="form-label">Benutzername</label>
-      <Input bind:value={networkUsername} placeholder="backup-user" />
+      <span class="form-label">Benutzername</span>
+      <Input bind:value={networkUsername} placeholder="user" />
     </div>
     <div class="form-group">
       <span class="form-label">Authentifizierung</span>

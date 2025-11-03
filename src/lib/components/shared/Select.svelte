@@ -84,11 +84,7 @@
     cursor: pointer;
   }
 
-  .select-field option {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    padding: 0.5rem;
-  }
+  /* Removed unused .select-field option - browser controls native option styling */
 
   .select-field:focus {
     outline: none;

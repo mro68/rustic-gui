@@ -237,159 +237,176 @@
 </script>
 
 <div class="snapshots-page">
-  <div class="page-header">
-    <h1>Snapshots</h1>
-    <div class="header-actions">
-      <Tooltip text="Snapshots neu laden">
-        <Button variant="secondary" onclick={refreshSnapshots} disabled={isLoading}>
-          {isLoading ? '⏳' : '🔄'} Aktualisieren
-        </Button>
-      </Tooltip>
-      <Tooltip text="Retention Policy anwenden">
-        <Button variant="primary" onclick={() => (retentionDialogOpen = true)}>
-          🗑️ Retention Policy
-        </Button>
-      </Tooltip>
-    </div>
-  </div>
-
-  <FilterBar
-    bind:search={filterSearch}
-    bind:hostname={filterHostname}
-    bind:dateRange={filterDateRange}
-    bind:size={filterSize}
-    bind:tags={filterTags}
-    allTags={allTags()}
-  />
-
-  {#if selectedSnapshots.size > 0}
-    <div class="bulk-actions">
-      <span class="selection-count">{selectedSnapshots.size} Snapshots ausgewählt</span>
-      <div class="bulk-buttons">
-        <Tooltip text="Auswahl aufheben">
-          <Button variant="secondary" size="sm" onclick={() => (selectedSnapshots = new Set())}>
-            Auswahl aufheben
-          </Button>
-        </Tooltip>
-        <Tooltip text="Snapshots löschen">
-          <Button variant="danger" size="sm" disabled={isDeleting}>
-            {isDeleting ? '...' : '🗑️'} Löschen
-          </Button>
-        </Tooltip>
+  <div class="page-wrapper">
+    <div class="snapshots-container">
+      <div class="page-header">
+        <h1>Snapshots</h1>
+        <div class="header-actions">
+          <Tooltip text="Snapshots neu laden">
+            <Button variant="secondary" onclick={refreshSnapshots} disabled={isLoading}>
+              {isLoading ? '⏳' : '🔄'} Aktualisieren
+            </Button>
+          </Tooltip>
+          <Tooltip text="Retention Policy anwenden">
+            <Button variant="primary" onclick={() => (retentionDialogOpen = true)}>
+              🗑️ Retention Policy
+            </Button>
+          </Tooltip>
+        </div>
       </div>
-    </div>
-  {/if}
 
-  <SnapshotTable
-    snapshots={pagedSnapshots()}
-    selectedIds={selectedSnapshots}
-    {sortColumn}
-    {sortDirection}
-    onSelectionToggle={toggleSelection}
-    onSelectAll={selectAll}
-    onSort={handleSort}
-    onContextMenu={(e, s) => {
-      contextMenuX = e.clientX;
-      contextMenuY = e.clientY;
-      contextMenuSnapshot = s;
-      contextMenuVisible = true;
-    }}
-    onRestore={handleRestore}
-    onShowDetails={(snapshotId) => showSnapshotDetails(snapshotId)}
-  />
+      <FilterBar
+        bind:search={filterSearch}
+        bind:hostname={filterHostname}
+        bind:dateRange={filterDateRange}
+        bind:size={filterSize}
+        bind:tags={filterTags}
+        allTags={allTags()}
+      />
 
-  {#if pagedSnapshots().length === 0}
-    <div class="empty-state">
-      {#if $snapshots.length === 0}
-        <p>Keine Snapshots gefunden. Erstellen Sie zuerst ein Backup.</p>
-      {:else}
-        <p>Keine Snapshots entsprechen dem Filter.</p>
-        <Button variant="secondary" onclick={() => (filterSearch = '')}>Filter zurücksetzen</Button>
+      {#if selectedSnapshots.size > 0}
+        <div class="bulk-actions">
+          <span class="selection-count">{selectedSnapshots.size} Snapshots ausgewählt</span>
+          <div class="bulk-buttons">
+            <Tooltip text="Auswahl aufheben">
+              <Button variant="secondary" size="sm" onclick={() => (selectedSnapshots = new Set())}>
+                Auswahl aufheben
+              </Button>
+            </Tooltip>
+            <Tooltip text="Snapshots löschen">
+              <Button variant="danger" size="sm" disabled={isDeleting}>
+                {isDeleting ? '...' : '🗑️'} Löschen
+              </Button>
+            </Tooltip>
+          </div>
+        </div>
       {/if}
+
+      <SnapshotTable
+        snapshots={pagedSnapshots()}
+        selectedIds={selectedSnapshots}
+        {sortColumn}
+        {sortDirection}
+        onSelectionToggle={toggleSelection}
+        onSelectAll={selectAll}
+        onSort={handleSort}
+        onContextMenu={(e, s) => {
+          contextMenuX = e.clientX;
+          contextMenuY = e.clientY;
+          contextMenuSnapshot = s;
+          contextMenuVisible = true;
+        }}
+        onRestore={handleRestore}
+        onShowDetails={(snapshotId) => showSnapshotDetails(snapshotId)}
+      />
+
+      {#if pagedSnapshots().length === 0}
+        <div class="empty-state">
+          {#if $snapshots.length === 0}
+            <p>Keine Snapshots gefunden. Erstellen Sie zuerst ein Backup.</p>
+          {:else}
+            <p>Keine Snapshots entsprechen dem Filter.</p>
+            <Button variant="secondary" onclick={() => (filterSearch = '')}
+              >Filter zurücksetzen</Button
+            >
+          {/if}
+        </div>
+      {/if}
+
+      <Pagination
+        {page}
+        {pageSize}
+        total={filteredSnapshots().length}
+        on:page={(e) => (page = e.detail)}
+        on:pageSize={(e) => {
+          pageSize = e.detail;
+          page = 1;
+        }}
+      />
     </div>
-  {/if}
 
-  <Pagination
-    {page}
-    {pageSize}
-    total={filteredSnapshots().length}
-    on:page={(e) => (page = e.detail)}
-    on:pageSize={(e) => {
-      pageSize = e.detail;
-      page = 1;
-    }}
-  />
+    <!-- Context Menu -->
+    <SnapshotContextMenu
+      bind:visible={contextMenuVisible}
+      x={contextMenuX}
+      y={contextMenuY}
+      snapshot={contextMenuSnapshot}
+      onClose={() => (contextMenuVisible = false)}
+      onShowDetails={(snapshotId) => showSnapshotDetails(snapshotId)}
+      onCompare={openCompareDialog}
+      onEditTags={openTagEditor}
+      onRestore={handleRestore}
+      onDelete={handleDeleteSnapshot}
+    />
+
+    <!-- Details Modal -->
+    <SnapshotDetailsModal
+      bind:open={showDetailsModal}
+      snapshot={selectedSnapshot}
+      details={snapshotDetails}
+      onRestore={handleRestore}
+    />
+
+    <!-- Tag Editor -->
+    <TagEditorDialog
+      bind:open={tagEditorOpen}
+      snapshotId={tagEditorSnapshotId}
+      currentTags={tagEditorCurrentTags}
+      on:saved={refreshSnapshots}
+    />
+
+    <!-- Compare Dialog -->
+    <CompareSnapshotsDialog
+      bind:open={compareDialogOpen}
+      snapshotA={compareSnapshotA}
+      snapshotB={compareSnapshotB}
+      on:close={() => {
+        compareDialogOpen = false;
+        compareSnapshotA = null;
+        compareSnapshotB = null;
+      }}
+    />
+
+    <!-- Retention Policy Dialog -->
+    <RetentionPolicyDialog bind:open={retentionDialogOpen} on:applied={refreshSnapshots} />
+
+    <!-- Restore Dialog -->
+    <RestoreDialog
+      bind:isOpen={restoreDialogOpen}
+      repositoryId={$activeRepositoryId ?? undefined}
+      repositoryPath={$repositories.find((r) => r.id === $activeRepositoryId)?.path ?? ''}
+      repositoryPassword={restorePassword}
+      on:restored={(event) => {
+        toastStore.success(
+          `${event.detail.files.length} Dateien wiederhergestellt nach ${event.detail.targetPath}`
+        );
+        restoreDialogOpen = false;
+      }}
+      on:error={(event) => {
+        toastStore.error(`Restore fehlgeschlagen: ${event.detail}`);
+      }}
+    />
+  </div>
 </div>
-
-<!-- Context Menu -->
-<SnapshotContextMenu
-  bind:visible={contextMenuVisible}
-  x={contextMenuX}
-  y={contextMenuY}
-  snapshot={contextMenuSnapshot}
-  onClose={() => (contextMenuVisible = false)}
-  onShowDetails={(snapshotId) => showSnapshotDetails(snapshotId)}
-  onCompare={openCompareDialog}
-  onEditTags={openTagEditor}
-  onRestore={handleRestore}
-  onDelete={handleDeleteSnapshot}
-/>
-
-<!-- Details Modal -->
-<SnapshotDetailsModal
-  bind:open={showDetailsModal}
-  snapshot={selectedSnapshot}
-  details={snapshotDetails}
-  onRestore={handleRestore}
-/>
-
-<!-- Tag Editor -->
-<TagEditorDialog
-  bind:open={tagEditorOpen}
-  snapshotId={tagEditorSnapshotId}
-  currentTags={tagEditorCurrentTags}
-  on:saved={refreshSnapshots}
-/>
-
-<!-- Compare Dialog -->
-<CompareSnapshotsDialog
-  bind:open={compareDialogOpen}
-  snapshotA={compareSnapshotA}
-  snapshotB={compareSnapshotB}
-  on:close={() => {
-    compareDialogOpen = false;
-    compareSnapshotA = null;
-    compareSnapshotB = null;
-  }}
-/>
-
-<!-- Retention Policy Dialog -->
-<RetentionPolicyDialog bind:open={retentionDialogOpen} on:applied={refreshSnapshots} />
-
-<!-- Restore Dialog -->
-<RestoreDialog
-  bind:isOpen={restoreDialogOpen}
-  repositoryId={$activeRepositoryId ?? undefined}
-  repositoryPath={$repositories.find((r) => r.id === $activeRepositoryId)?.path ?? ''}
-  repositoryPassword={restorePassword}
-  on:restored={(event) => {
-    toastStore.success(
-      `${event.detail.files.length} Dateien wiederhergestellt nach ${event.detail.targetPath}`
-    );
-    restoreDialogOpen = false;
-  }}
-  on:error={(event) => {
-    toastStore.error(`Restore fehlgeschlagen: ${event.detail}`);
-  }}
-/>
 
 <style>
   .snapshots-page {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .page-wrapper {
+    width: 100%;
+    min-width: 320px;
+    max-width: 1600px;
+    padding: 0 1rem;
+  }
+
+  .snapshots-container {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    padding: 1.5rem;
-    height: 100%;
   }
 
   .page-header {

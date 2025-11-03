@@ -48,6 +48,14 @@
   // eslint-disable-next-line no-unused-vars
   let loading = $state(false);
 
+  // Convert lock_timeout number to string for CustomSelect
+  let lockTimeoutString = $state('15');
+
+  // Sync lockTimeoutString with settings on load
+  $effect(() => {
+    lockTimeoutString = String(settings.lock_timeout);
+  });
+
   // App info (would come from backend in real implementation)
   const appVersion = '1.0.0';
   const rusticVersion = 'rustic_core 0.8.0';
@@ -122,39 +130,56 @@
   });
 
   // Watch for theme changes
-  let previousTheme = $state(settings.theme);
+  let previousTheme = $state<string | undefined>(undefined);
   $effect(() => {
-    if (settings.theme !== previousTheme && previousTheme !== undefined) {
+    if (previousTheme === undefined) {
+      previousTheme = settings.theme;
+      return;
+    }
+    if (settings.theme !== previousTheme) {
       handleThemeChange(settings.theme);
       previousTheme = settings.theme;
     }
   });
 
   // Watch for language changes
-  let previousLanguage = $state(settings.language);
+  let previousLanguage = $state<string | undefined>(undefined);
   $effect(() => {
-    if (settings.language !== previousLanguage && previousLanguage !== undefined) {
+    if (previousLanguage === undefined) {
+      previousLanguage = settings.language;
+      return;
+    }
+    if (settings.language !== previousLanguage) {
       handleLanguageChange(settings.language);
       previousLanguage = settings.language;
     }
   });
 
   // Watch for password storage changes
-  let previousPasswordStorage = $state(settings.password_storage);
+  let previousPasswordStorage = $state<string | undefined>(undefined);
   $effect(() => {
-    if (
-      settings.password_storage !== previousPasswordStorage &&
-      previousPasswordStorage !== undefined
-    ) {
+    if (previousPasswordStorage === undefined) {
+      previousPasswordStorage = settings.password_storage;
+      return;
+    }
+    if (settings.password_storage !== previousPasswordStorage) {
       handlePasswordStorageChange(settings.password_storage);
       previousPasswordStorage = settings.password_storage;
     }
   });
 
-  // Watch for lock timeout changes
-  let previousLockTimeout = $state(settings.lock_timeout);
+  // Watch lock_timeout changes (sync with string)
+  let previousLockTimeout = $state<number | undefined>(undefined);
   $effect(() => {
-    if (settings.lock_timeout !== previousLockTimeout && previousLockTimeout !== undefined) {
+    const timeoutNum = parseInt(lockTimeoutString, 10);
+    if (!isNaN(timeoutNum) && timeoutNum !== settings.lock_timeout) {
+      settings.lock_timeout = timeoutNum;
+    }
+    if (previousLockTimeout === undefined) {
+      previousLockTimeout = settings.lock_timeout;
+      return;
+    }
+    if (settings.lock_timeout !== previousLockTimeout) {
       handleLockTimeoutChange(settings.lock_timeout);
       previousLockTimeout = settings.lock_timeout;
     }
@@ -162,149 +187,153 @@
 </script>
 
 <div class="settings-page">
-  <div class="settings-header">
-    <h1 class="page-title">Einstellungen</h1>
-  </div>
-
-  <div class="settings-content">
-    <!-- General Settings -->
-    <div class="settings-card">
-      <h2 class="card-title">Allgemeine Einstellungen</h2>
-
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-label">Theme</div>
-          <p class="setting-description">Wählen Sie das visuelle Theme für die Anwendung</p>
-        </div>
-        <div class="setting-control">
-          <CustomSelect
-            bind:value={settings.theme}
-            options={[
-              { value: 'dark', label: 'Dunkel' },
-              { value: 'light', label: 'Hell' },
-              { value: 'system', label: 'System' },
-            ]}
-          />
-        </div>
-      </div>
-
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-label">Sprache</div>
-          <p class="setting-description">Wählen Sie die Sprache der Anwendung</p>
-        </div>
-        <div class="setting-control">
-          <CustomSelect
-            bind:value={settings.language}
-            options={[
-              { value: 'en', label: 'English' },
-              { value: 'de', label: 'Deutsch' },
-            ]}
-          />
-        </div>
-      </div>
-
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-label">Benachrichtigungen</div>
-          <p class="setting-description">Desktop-Benachrichtigungen für Backup-Events aktivieren</p>
-        </div>
-        <div class="setting-control">
-          <Checkbox
-            label=""
-            bind:checked={settings.notifications_enabled}
-            onchange={(e: CustomEvent<boolean>) => handleNotificationsChange(e.detail)}
-          />
-        </div>
-      </div>
+  <div class="settings-container">
+    <div class="settings-header">
+      <h1 class="page-title">Einstellungen</h1>
     </div>
 
-    <!-- Security Settings -->
-    <div class="settings-card">
-      <h2 class="card-title">Sicherheit</h2>
+    <div class="settings-content">
+      <!-- General Settings -->
+      <div class="settings-card">
+        <h2 class="card-title">Allgemeine Einstellungen</h2>
 
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-label">Passwort-Speicherung</div>
-          <p class="setting-description">Wo Repository-Passwörter sicher gespeichert werden</p>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Theme</div>
+            <p class="setting-description">Wählen Sie das visuelle Theme für die Anwendung</p>
+          </div>
+          <div class="setting-control">
+            <CustomSelect
+              bind:value={settings.theme}
+              options={[
+                { value: 'dark', label: 'Dunkel' },
+                { value: 'light', label: 'Hell' },
+                { value: 'system', label: 'System' },
+              ]}
+            />
+          </div>
         </div>
-        <div class="setting-control">
-          <CustomSelect
-            bind:value={settings.password_storage}
-            options={[
-              { value: 'system_keychain', label: 'System-Keychain (empfohlen)' },
-              { value: 'in_memory', label: 'Nur im Arbeitsspeicher' },
-            ]}
-          />
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Sprache</div>
+            <p class="setting-description">Wählen Sie die Sprache der Anwendung</p>
+          </div>
+          <div class="setting-control">
+            <CustomSelect
+              bind:value={settings.language}
+              options={[
+                { value: 'en', label: 'English' },
+                { value: 'de', label: 'Deutsch' },
+              ]}
+            />
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Benachrichtigungen</div>
+            <p class="setting-description">
+              Desktop-Benachrichtigungen für Backup-Events aktivieren
+            </p>
+          </div>
+          <div class="setting-control">
+            <Checkbox
+              label=""
+              bind:checked={settings.notifications_enabled}
+              onchange={(e: CustomEvent<boolean>) => handleNotificationsChange(e.detail)}
+            />
+          </div>
         </div>
       </div>
 
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-label">Automatische Sperre</div>
-          <p class="setting-description">Repositories automatisch sperren nach Inaktivität</p>
-        </div>
-        <div class="setting-control">
-          <CustomSelect
-            bind:value={settings.lock_timeout}
-            options={[
-              { value: '15', label: '15 Minuten' },
-              { value: '30', label: '30 Minuten' },
-              { value: '60', label: '1 Stunde' },
-              { value: '0', label: 'Nie' },
-            ]}
-          />
-        </div>
-      </div>
-    </div>
+      <!-- Security Settings -->
+      <div class="settings-card">
+        <h2 class="card-title">Sicherheit</h2>
 
-    <!-- About Section -->
-    <div class="settings-card">
-      <h2 class="card-title">Über</h2>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Passwort-Speicherung</div>
+            <p class="setting-description">Wo Repository-Passwörter sicher gespeichert werden</p>
+          </div>
+          <div class="setting-control">
+            <CustomSelect
+              bind:value={settings.password_storage}
+              options={[
+                { value: 'system_keychain', label: 'System-Keychain (empfohlen)' },
+                { value: 'in_memory', label: 'Nur im Arbeitsspeicher' },
+              ]}
+            />
+          </div>
+        </div>
 
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-label">Version</div>
-          <p class="setting-description">Aktuelle Anwendungsversion</p>
-        </div>
-        <div class="setting-control">
-          <span class="version-text">{appVersion}</span>
-        </div>
-      </div>
-
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-label">Rustic Version</div>
-          <p class="setting-description">Version des zugrundeliegenden rustic Backup-Tools</p>
-        </div>
-        <div class="setting-control">
-          <span class="version-text">{rusticVersion}</span>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Automatische Sperre</div>
+            <p class="setting-description">Repositories automatisch sperren nach Inaktivität</p>
+          </div>
+          <div class="setting-control">
+            <CustomSelect
+              bind:value={lockTimeoutString}
+              options={[
+                { value: '15', label: '15 Minuten' },
+                { value: '30', label: '30 Minuten' },
+                { value: '60', label: '1 Stunde' },
+                { value: '0', label: 'Nie' },
+              ]}
+            />
+          </div>
         </div>
       </div>
 
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-label">Konfigurations-Pfad</div>
-          <p class="setting-description">Speicherort der Anwendungskonfiguration</p>
+      <!-- About Section -->
+      <div class="settings-card">
+        <h2 class="card-title">Über</h2>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Version</div>
+            <p class="setting-description">Aktuelle Anwendungsversion</p>
+          </div>
+          <div class="setting-control">
+            <span class="version-text">{appVersion}</span>
+          </div>
         </div>
-        <div class="setting-control">
-          <span class="version-text">{configPath}</span>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Rustic Version</div>
+            <p class="setting-description">Version des zugrundeliegenden rustic Backup-Tools</p>
+          </div>
+          <div class="setting-control">
+            <span class="version-text">{rusticVersion}</span>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Konfigurations-Pfad</div>
+            <p class="setting-description">Speicherort der Anwendungskonfiguration</p>
+          </div>
+          <div class="setting-control">
+            <span class="version-text">{configPath}</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Action Buttons -->
-    <div class="settings-actions">
-      <Tooltip text="Einstellungen zurücksetzen">
-        <button class="btn btn-secondary" onclick={handleResetSettings}>
-          Auf Standard zurücksetzen
-        </button>
-      </Tooltip>
-      <Tooltip text="Einstellungen speichern">
-        <button class="btn btn-primary" onclick={handleSaveSettings}>
-          Einstellungen speichern
-        </button>
-      </Tooltip>
+      <!-- Action Buttons -->
+      <div class="settings-actions">
+        <Tooltip text="Einstellungen zurücksetzen">
+          <button class="btn btn-secondary" onclick={handleResetSettings}>
+            Auf Standard zurücksetzen
+          </button>
+        </Tooltip>
+        <Tooltip text="Einstellungen speichern">
+          <button class="btn btn-primary" onclick={handleSaveSettings}>
+            Einstellungen speichern
+          </button>
+        </Tooltip>
+      </div>
     </div>
   </div>
 </div>
@@ -392,27 +421,8 @@
     font-family: 'Courier New', monospace;
   }
 
-  .select-field {
-    padding: 0.75rem;
-    background: var(--bg-tertiary) !important;
-    border: 1px solid var(--border-color);
-    border-radius: 0.375rem;
-    color: var(--text-primary) !important;
-    font-size: 0.875rem;
-    cursor: pointer;
-    min-width: 200px;
-  }
-
-  .select-field option {
-    background: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
-  }
-
-  .select-field:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-  }
+  /* Removed unused .select-field - now using CustomSelect */
+  /* Removed unused .form-input:focus - no form-input class used */
 
   .settings-actions {
     display: flex;

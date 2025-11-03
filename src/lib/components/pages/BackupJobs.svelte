@@ -220,149 +220,161 @@
 </script>
 
 <div class="backup-jobs-page">
-  <!-- Toolbar -->
-  <div class="toolbar">
-    <h1 class="page-title">Backup-Jobs</h1>
-    <div class="toolbar-actions">
-      <Tooltip text="Neuen Backup-Job erstellen">
-        <Button
-          variant="primary"
-          size="sm"
-          onclick={() => {
-            jobDialogMode = 'create';
-            selectedJob = null;
-            showJobDialog = true;
-          }}
-        >
-          + Neuer Job
-        </Button>
-      </Tooltip>
-    </div>
-  </div>
-
-  <!-- Jobs List -->
-  <div class="jobs-container">
-    {#if $loading}
-      <div class="loading">Lade Backup-Jobs...</div>
-    {:else if $jobs.length === 0}
-      <div class="empty-state">
-        <h3>Keine Backup-Jobs gefunden</h3>
-        <p>Erstellen Sie Ihren ersten Backup-Job, um automatische Sicherungen zu planen.</p>
-        <Button
-          variant="primary"
-          onclick={() => {
-            jobDialogMode = 'create';
-            selectedJob = null;
-            showJobDialog = true;
-          }}
-        >
-          Ersten Job erstellen
-        </Button>
+  <div class="page-wrapper">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <h1 class="page-title">Backup-Jobs</h1>
+      <div class="toolbar-actions">
+        <Tooltip text="Neuen Backup-Job erstellen">
+          <Button
+            variant="primary"
+            size="sm"
+            onclick={() => {
+              jobDialogMode = 'create';
+              selectedJob = null;
+              showJobDialog = true;
+            }}
+          >
+            + Neuer Job
+          </Button>
+        </Tooltip>
       </div>
-    {:else}
-      <div class="jobs-grid">
-        {#each $jobs as job (job.id)}
-          <div class="job-card">
-            <div class="job-header">
-              <h3 class="job-name">{job.name}</h3>
-              <div class="job-status">
-                {#if isScheduled(job.id)}
-                  <span class="status-badge scheduled">Geplant</span>
-                {:else if job.schedule}
-                  <span class="status-badge paused">Pausiert</span>
-                {:else}
-                  <span class="status-badge manual">Manuell</span>
-                {/if}
-              </div>
-            </div>
+    </div>
 
-            <div class="job-details">
-              <div class="detail-item">
-                <span class="label">Repository:</span>
-                <span class="value">
-                  {$repositories.find((r) => r.id === job.repository_id)?.name || 'Unbekannt'}
-                </span>
+    <!-- Jobs List -->
+    <div class="jobs-container">
+      {#if $loading}
+        <div class="loading">Lade Backup-Jobs...</div>
+      {:else if $jobs.length === 0}
+        <div class="empty-state">
+          <h3>Keine Backup-Jobs gefunden</h3>
+          <p>Erstellen Sie Ihren ersten Backup-Job, um automatische Sicherungen zu planen.</p>
+          <Button
+            variant="primary"
+            onclick={() => {
+              jobDialogMode = 'create';
+              selectedJob = null;
+              showJobDialog = true;
+            }}
+          >
+            Ersten Job erstellen
+          </Button>
+        </div>
+      {:else}
+        <div class="jobs-grid">
+          {#each $jobs as job (job.id)}
+            <div class="job-card">
+              <div class="job-header">
+                <h3 class="job-name">{job.name}</h3>
+                <div class="job-status">
+                  {#if isScheduled(job.id)}
+                    <span class="status-badge scheduled">Geplant</span>
+                  {:else if job.schedule}
+                    <span class="status-badge paused">Pausiert</span>
+                  {:else}
+                    <span class="status-badge manual">Manuell</span>
+                  {/if}
+                </div>
               </div>
-              {#if job.schedule}
+
+              <div class="job-details">
                 <div class="detail-item">
-                  <span class="label">Cron-Schedule:</span>
-                  <span class="value">{job.schedule}</span>
+                  <span class="label">Repository:</span>
+                  <span class="value">
+                    {$repositories.find((r) => r.id === job.repository_id)?.name || 'Unbekannt'}
+                  </span>
                 </div>
-              {/if}
-              <div class="detail-item">
-                <span class="label">Quell-Pfade:</span>
-                <span class="value">{job.source_paths.length} Pfad(e)</span>
+                {#if job.schedule}
+                  <div class="detail-item">
+                    <span class="label">Cron-Schedule:</span>
+                    <span class="value">{job.schedule}</span>
+                  </div>
+                {/if}
+                <div class="detail-item">
+                  <span class="label">Quell-Pfade:</span>
+                  <span class="value">{job.source_paths.length} Pfad(e)</span>
+                </div>
               </div>
-            </div>
 
-            <div class="job-actions">
-              {#if runningJobId === job.id && backupProgress}
-                <div class="progress-section">
-                  <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: {backupProgress.percent}%"></div>
+              <div class="job-actions">
+                {#if runningJobId === job.id && backupProgress}
+                  <div class="progress-section">
+                    <div class="progress-bar-container">
+                      <div class="progress-bar" style="width: {backupProgress.percent}%"></div>
+                    </div>
+                    <div class="progress-stats">
+                      <span>{Math.round(backupProgress.percent)}%</span>
+                      <span>{backupProgress.filesProcessed} Dateien</span>
+                      <span>{(backupProgress.bytesUploaded / 1024 / 1024).toFixed(1)} MB</span>
+                    </div>
                   </div>
-                  <div class="progress-stats">
-                    <span>{Math.round(backupProgress.percent)}%</span>
-                    <span>{backupProgress.filesProcessed} Dateien</span>
-                    <span>{(backupProgress.bytesUploaded / 1024 / 1024).toFixed(1)} MB</span>
-                  </div>
-                </div>
-              {/if}
+                {/if}
 
-              {#if job.schedule}
-                <Tooltip text={isScheduled(job.id) ? 'Job entplanen' : 'Job planen'}>
+                {#if job.schedule}
+                  <Tooltip text={isScheduled(job.id) ? 'Job entplanen' : 'Job planen'}>
+                    <Button
+                      variant={isScheduled(job.id) ? 'secondary' : 'primary'}
+                      size="sm"
+                      onclick={() => toggleSchedule(job)}
+                    >
+                      {isScheduled(job.id) ? '⏸ Pausieren' : '▶ Aktivieren'}
+                    </Button>
+                  </Tooltip>
+                {/if}
+                <Tooltip text="Backup jetzt ausführen">
                   <Button
-                    variant={isScheduled(job.id) ? 'secondary' : 'primary'}
+                    variant="secondary"
                     size="sm"
-                    onclick={() => toggleSchedule(job)}
+                    onclick={() => handleRunJob(job)}
+                    disabled={runningJobId === job.id}
                   >
-                    {isScheduled(job.id) ? '⏸ Pausieren' : '▶ Aktivieren'}
+                    {runningJobId === job.id ? '⏳ Läuft...' : 'Ausführen'}
                   </Button>
                 </Tooltip>
-              {/if}
-              <Tooltip text="Backup jetzt ausführen">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onclick={() => handleRunJob(job)}
-                  disabled={runningJobId === job.id}
-                >
-                  {runningJobId === job.id ? '⏳ Läuft...' : 'Ausführen'}
-                </Button>
-              </Tooltip>
-              <Tooltip text="Job bearbeiten">
-                <Button variant="secondary" size="sm" onclick={() => handleEditJob(job)}>
-                  Bearbeiten
-                </Button>
-              </Tooltip>
-              <Tooltip text="Job löschen">
-                <Button variant="danger" size="sm" onclick={() => handleDeleteJob(job)}>
-                  Löschen
-                </Button>
-              </Tooltip>
+                <Tooltip text="Job bearbeiten">
+                  <Button variant="secondary" size="sm" onclick={() => handleEditJob(job)}>
+                    Bearbeiten
+                  </Button>
+                </Tooltip>
+                <Tooltip text="Job löschen">
+                  <Button variant="danger" size="sm" onclick={() => handleDeleteJob(job)}>
+                    Löschen
+                  </Button>
+                </Tooltip>
+              </div>
             </div>
-          </div>
-        {/each}
-      </div>
-    {/if}
+          {/each}
+        </div>
+      {/if}
+    </div>
+
+    <!-- Job Dialog (Create/Edit) -->
+    <JobDialog
+      bind:open={showJobDialog}
+      mode={jobDialogMode}
+      job={selectedJob}
+      repositories={$repositories}
+      on:created={handleJobCreated}
+      on:saved={handleJobSaved}
+    />
+
+    <!-- Delete Job Dialog -->
+    <DeleteJobDialog bind:open={showDeleteDialog} job={selectedJob} on:deleted={handleJobDeleted} />
   </div>
 </div>
 
-<!-- Job Dialog (Create/Edit) -->
-<JobDialog
-  bind:open={showJobDialog}
-  mode={jobDialogMode}
-  job={selectedJob}
-  repositories={$repositories}
-  on:created={handleJobCreated}
-  on:saved={handleJobSaved}
-/>
-
-<!-- Delete Job Dialog -->
-<DeleteJobDialog bind:open={showDeleteDialog} job={selectedJob} on:deleted={handleJobDeleted} />
-
 <style>
   .backup-jobs-page {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .page-wrapper {
+    width: 100%;
+    min-width: 320px;
+    max-width: 1400px;
+    padding: 0 1rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -472,10 +484,7 @@
     color: #fbbf24;
   }
 
-  .status-badge.idle {
-    background: rgba(156, 163, 175, 0.15);
-    color: #9ca3af;
-  }
+  /* Removed unused .status-badge.idle - status 'idle' not currently used */
 
   .job-details {
     display: flex;

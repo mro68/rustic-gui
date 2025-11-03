@@ -89,63 +89,90 @@
   });
 </script>
 
-<div class="toolbar dashboard-toolbar" role="region" aria-label="Repository Aktionen">
-  <div class="section-title">Repositories</div>
-  <div class="toolbar-actions">
-    <Tooltip text="Bestehendes Repository öffnen">
-      <button
-        class="btn btn-primary"
-        aria-label="Bestehendes Repository öffnen"
-        title="Bestehendes Repository öffnen"
-        onclick={() => {
-          showAddRepoDialog = true;
-        }}
-      >
-        <span class="btn-icon" aria-hidden="true">📂</span>
-        <span class="btn-text">Repository öffnen</span>
-      </button>
-    </Tooltip>
-    <Tooltip text="Repositories neu laden">
-      <button
-        class="btn btn-secondary"
-        aria-label="Repositories neu laden"
-        title="Repositories neu laden"
-        onclick={refreshRepos}
-        disabled={loading}
-      >
-        <span class="btn-icon" aria-hidden="true">{loading ? '⏳' : '🔄'}</span>
-        <span class="btn-text">{loading ? 'Lädt...' : 'Refresh'}</span>
-      </button>
-    </Tooltip>
-  </div>
-</div>
-
-{#if error}
-  <div class="error-message">{error}</div>
-{/if}
-
-<div class="dashboard-grid">
-  {#each repoList as repo}
-    <RepositoryCard {repo} />
-  {/each}
-</div>
-
-<div class="section-title">Storage Usage</div>
-<div class="dashboard-grid">
-  <div class="card">
-    <div class="chart-container">
-      <StorageChart totalSpace={100} usedSpace={30} label="Total Space" sublabel="30 of 100 GB" />
-      <StorageChart totalSpace={60} usedSpace={30} label="Available Space" sublabel="30 of 60 GB" />
+<div class="dashboard-page">
+  <div class="page-wrapper">
+    <div class="toolbar dashboard-toolbar" role="region" aria-label="Repository Aktionen">
+      <div class="section-title">Repositories</div>
+      <div class="toolbar-actions">
+        <Tooltip text="Bestehendes Repository öffnen">
+          <button
+            class="btn btn-primary"
+            aria-label="Bestehendes Repository öffnen"
+            title="Bestehendes Repository öffnen"
+            onclick={() => {
+              showAddRepoDialog = true;
+            }}
+          >
+            <span class="btn-icon" aria-hidden="true">📂</span>
+            <span class="btn-text">Repository öffnen</span>
+          </button>
+        </Tooltip>
+        <Tooltip text="Repositories neu laden">
+          <button
+            class="btn btn-secondary"
+            aria-label="Repositories neu laden"
+            title="Repositories neu laden"
+            onclick={refreshRepos}
+            disabled={loading}
+          >
+            <span class="btn-icon" aria-hidden="true">{loading ? '⏳' : '🔄'}</span>
+            <span class="btn-text">{loading ? 'Lädt...' : 'Refresh'}</span>
+          </button>
+        </Tooltip>
+      </div>
     </div>
+
+    {#if error}
+      <div class="error-message">{error}</div>
+    {/if}
+
+    <div class="dashboard-grid">
+      {#each repoList as repo}
+        <RepositoryCard {repo} />
+      {/each}
+    </div>
+
+    <div class="section-title">Storage Usage</div>
+    <div class="dashboard-grid">
+      <div class="card">
+        <div class="chart-container">
+          <StorageChart
+            totalSpace={100}
+            usedSpace={30}
+            label="Total Space"
+            sublabel="30 of 100 GB"
+          />
+          <StorageChart
+            totalSpace={60}
+            usedSpace={30}
+            label="Available Space"
+            sublabel="30 of 60 GB"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Recent Activity</div>
+    <ActivityLog {logEntries} />
+
+    <AddRepositoryDialog bind:open={showAddRepoDialog} mode="open" onCreated={refreshRepos} />
   </div>
 </div>
-
-<div class="section-title">Recent Activity</div>
-<ActivityLog {logEntries} />
-
-<AddRepositoryDialog bind:open={showAddRepoDialog} mode="open" onCreated={refreshRepos} />
 
 <style>
+  .dashboard-page {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .page-wrapper {
+    width: 100%;
+    min-width: 320px;
+    max-width: 1600px;
+    padding: 0 1rem;
+  }
+
   .dashboard-toolbar {
     position: sticky;
     top: 0;

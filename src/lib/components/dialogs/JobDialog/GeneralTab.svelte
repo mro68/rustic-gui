@@ -100,8 +100,7 @@
     margin-bottom: 8px;
   }
 
-  .form-input,
-  .form-select {
+  .form-input {
     width: 100%;
     padding: 10px 12px;
     background: #1a1d2e;
@@ -112,8 +111,7 @@
     font-family: inherit;
   }
 
-  .form-input:focus,
-  .form-select:focus {
+  .form-input:focus {
     outline: none;
     border-color: #3b82f6;
   }

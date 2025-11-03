@@ -203,8 +203,7 @@
     color: #a1a1aa;
     font-weight: 500;
   }
-  .filter-input,
-  .filter-select {
+  .filter-input {
     background: #1a1d2e !important;
     border: 1px solid #3e4457;
     border-radius: 6px;
@@ -212,12 +211,10 @@
     color: #e4e4e7 !important;
     font-size: 14px;
   }
-  .filter-select option {
-    background: #22273a !important;
-    color: #e4e4e7 !important;
-  }
-  .filter-input:focus,
-  .filter-select:focus {
+
+  /* Removed unused .filter-select - now using CustomSelect */
+
+  .filter-input:focus {
     outline: none;
     border-color: #3b82f6;
   }

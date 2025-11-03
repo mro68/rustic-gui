@@ -194,210 +194,212 @@
 </script>
 
 <div class="repositories-page">
-  <!-- Toolbar -->
-  <div class="toolbar">
-    <h1 class="page-title">Repository Management</h1>
-    <div class="toolbar-actions">
-      <Tooltip text="Repository hinzufügen">
-        <Button
-          variant="primary"
-          size="sm"
-          onclick={() => {
-            showAddDialog = true;
-          }}>+ Add Repository</Button
-        >
-      </Tooltip>
-    </div>
-  </div>
-
-  <!-- Repository List -->
-  <div class="repositories-container">
-    {#if $loading}
-      <div class="loading">Lade Repositories...</div>
-    {:else if $repositories.length === 0}
-      <div class="empty-state">
-        <h3>Keine Repositories gefunden</h3>
-        <p>Fügen Sie Ihr erstes Repository hinzu, um mit dem Backup zu beginnen.</p>
+  <div class="page-wrapper">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <h1 class="page-title">Repository Management</h1>
+      <div class="toolbar-actions">
         <Tooltip text="Repository hinzufügen">
           <Button
             variant="primary"
+            size="sm"
             onclick={() => {
               showAddDialog = true;
-            }}
+            }}>+ Add Repository</Button
           >
-            Erstes Repository hinzufügen
-          </Button>
         </Tooltip>
       </div>
-    {:else}
-      <div class="repositories-list">
-        {#each $repositories as repo (repo.id)}
-          <div class="repository-item">
-            <div class="repository-info">
-              <div class="repository-name">{repo.name}</div>
-              <div class="repository-details">
-                <span class="repository-detail">
-                  📍 {repo.path}
-                </span>
-                <span class="repository-detail">
-                  🔧 {repo.repository_type}
-                </span>
-                <span class="repository-detail">
-                  💾 {repo.snapshot_count} snapshots
-                </span>
-                <span class="repository-detail">
-                  <span class={`status-badge ${getStatusBadgeClass(repo.status)}`}>
-                    ● {getStatusText(repo.status)}
+    </div>
+
+    <!-- Repository List -->
+    <div class="repositories-container">
+      {#if $loading}
+        <div class="loading">Lade Repositories...</div>
+      {:else if $repositories.length === 0}
+        <div class="empty-state">
+          <h3>Keine Repositories gefunden</h3>
+          <p>Fügen Sie Ihr erstes Repository hinzu, um mit dem Backup zu beginnen.</p>
+          <Tooltip text="Repository hinzufügen">
+            <Button
+              variant="primary"
+              onclick={() => {
+                showAddDialog = true;
+              }}
+            >
+              Erstes Repository hinzufügen
+            </Button>
+          </Tooltip>
+        </div>
+      {:else}
+        <div class="repositories-list">
+          {#each $repositories as repo (repo.id)}
+            <div class="repository-item">
+              <div class="repository-info">
+                <div class="repository-name">{repo.name}</div>
+                <div class="repository-details">
+                  <span class="repository-detail">
+                    📍 {repo.path}
                   </span>
-                </span>
+                  <span class="repository-detail">
+                    🔧 {repo.repository_type}
+                  </span>
+                  <span class="repository-detail">
+                    💾 {repo.snapshot_count} snapshots
+                  </span>
+                  <span class="repository-detail">
+                    <span class={`status-badge ${getStatusBadgeClass(repo.status)}`}>
+                      ● {getStatusText(repo.status)}
+                    </span>
+                  </span>
+                </div>
+              </div>
+              <div class="repository-actions">
+                <Tooltip text="Repository anzeigen">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onclick={() => handleViewRepository(repo)}
+                    ariaLabel="Repository anzeigen"
+                  >
+                    🔍
+                  </Button>
+                </Tooltip>
+                <Tooltip text="Repository bearbeiten">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onclick={() => handleEditRepository(repo)}
+                    ariaLabel="Repository bearbeiten"
+                  >
+                    ✏️
+                  </Button>
+                </Tooltip>
+                <Tooltip text="Repository entsperren">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onclick={() => handleUnlockRepository(repo)}
+                    ariaLabel="Repository entsperren"
+                  >
+                    🔓
+                  </Button>
+                </Tooltip>
               </div>
             </div>
-            <div class="repository-actions">
-              <Tooltip text="Repository anzeigen">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onclick={() => handleViewRepository(repo)}
-                  ariaLabel="Repository anzeigen"
-                >
-                  🔍
-                </Button>
-              </Tooltip>
-              <Tooltip text="Repository bearbeiten">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onclick={() => handleEditRepository(repo)}
-                  ariaLabel="Repository bearbeiten"
-                >
-                  ✏️
-                </Button>
-              </Tooltip>
-              <Tooltip text="Repository entsperren">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onclick={() => handleUnlockRepository(repo)}
-                  ariaLabel="Repository entsperren"
-                >
-                  🔓
-                </Button>
-              </Tooltip>
+          {/each}
+        </div>
+      {/if}
+    </div>
+
+    <!-- Repository Details (nur wenn ein Repository ausgewählt ist) -->
+    {#if selectedRepository}
+      <div class="repository-details-section">
+        <h2 class="section-title">Repository Details</h2>
+        <div class="repo-details-grid">
+          <div class="detail-card">
+            <h3>Configuration</h3>
+            <div class="detail-row">
+              <span class="detail-label">Type</span>
+              <span class="detail-value">{selectedRepository.repository_type}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Path</span>
+              <span class="detail-value">{selectedRepository.path}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Version</span>
+              <span class="detail-value">2</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Compression</span>
+              <span class="detail-value">auto</span>
             </div>
           </div>
-        {/each}
+
+          <div class="detail-card">
+            <h3>Statistics</h3>
+            <div class="detail-row">
+              <span class="detail-label">Total Snapshots</span>
+              <span class="detail-value">{selectedRepository.snapshot_count}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Total Size</span>
+              <span class="detail-value">{formatBytes(selectedRepository.total_size)}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Deduplicated</span>
+              <span class="detail-value">87.2 GB (44% savings)</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Last Check</span>
+              <span class="detail-value">
+                {selectedRepository.last_accessed
+                  ? new Date(selectedRepository.last_accessed).toLocaleString('de-DE')
+                  : '2025-10-10 14:23'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Maintenance Actions -->
+        <div class="maintenance-card">
+          <h3>Maintenance Actions</h3>
+          <div class="maintenance-actions">
+            <Tooltip text="Repository überprüfen">
+              <Button
+                variant="secondary"
+                size="sm"
+                onclick={() => selectedRepository && handleCheckRepository(selectedRepository)}
+                disabled={!selectedRepository}
+              >
+                🔍 Check Repository
+              </Button>
+            </Tooltip>
+            <Tooltip text="Repository bereinigen">
+              <Button
+                variant="secondary"
+                size="sm"
+                onclick={() => selectedRepository && handlePruneRepository(selectedRepository)}
+                disabled={!selectedRepository}
+              >
+                ✂️ Prune Unused Data
+              </Button>
+            </Tooltip>
+            <Tooltip text="Repository entsperren">
+              <Button
+                variant="secondary"
+                size="sm"
+                onclick={() => selectedRepository && handleUnlockRepository(selectedRepository)}
+                disabled={!selectedRepository}
+              >
+                🔓 Unlock Repository
+              </Button>
+            </Tooltip>
+            <Tooltip text="Passwort ändern">
+              <Button
+                variant="secondary"
+                size="sm"
+                onclick={() => selectedRepository && handleChangePassword(selectedRepository)}
+                disabled={!selectedRepository}
+              >
+                🔑 Change Password
+              </Button>
+            </Tooltip>
+            <Tooltip text="Alte Snapshots vergessen">
+              <Button
+                variant="secondary"
+                size="sm"
+                onclick={() => selectedRepository && handleForgetSnapshots(selectedRepository)}
+                disabled={!selectedRepository}
+              >
+                🧹 Forget Old Snapshots
+              </Button>
+            </Tooltip>
+          </div>
+        </div>
       </div>
     {/if}
   </div>
-
-  <!-- Repository Details (nur wenn ein Repository ausgewählt ist) -->
-  {#if selectedRepository}
-    <div class="repository-details-section">
-      <h2 class="section-title">Repository Details</h2>
-      <div class="repo-details-grid">
-        <div class="detail-card">
-          <h3>Configuration</h3>
-          <div class="detail-row">
-            <span class="detail-label">Type</span>
-            <span class="detail-value">{selectedRepository.repository_type}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Path</span>
-            <span class="detail-value">{selectedRepository.path}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Version</span>
-            <span class="detail-value">2</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Compression</span>
-            <span class="detail-value">auto</span>
-          </div>
-        </div>
-
-        <div class="detail-card">
-          <h3>Statistics</h3>
-          <div class="detail-row">
-            <span class="detail-label">Total Snapshots</span>
-            <span class="detail-value">{selectedRepository.snapshot_count}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Total Size</span>
-            <span class="detail-value">{formatBytes(selectedRepository.total_size)}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Deduplicated</span>
-            <span class="detail-value">87.2 GB (44% savings)</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Last Check</span>
-            <span class="detail-value">
-              {selectedRepository.last_accessed
-                ? new Date(selectedRepository.last_accessed).toLocaleString('de-DE')
-                : '2025-10-10 14:23'}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Maintenance Actions -->
-      <div class="maintenance-card">
-        <h3>Maintenance Actions</h3>
-        <div class="maintenance-actions">
-          <Tooltip text="Repository überprüfen">
-            <Button
-              variant="secondary"
-              size="sm"
-              onclick={() => selectedRepository && handleCheckRepository(selectedRepository)}
-              disabled={!selectedRepository}
-            >
-              🔍 Check Repository
-            </Button>
-          </Tooltip>
-          <Tooltip text="Repository bereinigen">
-            <Button
-              variant="secondary"
-              size="sm"
-              onclick={() => selectedRepository && handlePruneRepository(selectedRepository)}
-              disabled={!selectedRepository}
-            >
-              ✂️ Prune Unused Data
-            </Button>
-          </Tooltip>
-          <Tooltip text="Repository entsperren">
-            <Button
-              variant="secondary"
-              size="sm"
-              onclick={() => selectedRepository && handleUnlockRepository(selectedRepository)}
-              disabled={!selectedRepository}
-            >
-              🔓 Unlock Repository
-            </Button>
-          </Tooltip>
-          <Tooltip text="Passwort ändern">
-            <Button
-              variant="secondary"
-              size="sm"
-              onclick={() => selectedRepository && handleChangePassword(selectedRepository)}
-              disabled={!selectedRepository}
-            >
-              🔑 Change Password
-            </Button>
-          </Tooltip>
-          <Tooltip text="Alte Snapshots vergessen">
-            <Button
-              variant="secondary"
-              size="sm"
-              onclick={() => selectedRepository && handleForgetSnapshots(selectedRepository)}
-              disabled={!selectedRepository}
-            >
-              🧹 Forget Old Snapshots
-            </Button>
-          </Tooltip>
-        </div>
-      </div>
-    </div>
-  {/if}
 </div>
 
 <!-- Dialoge -->

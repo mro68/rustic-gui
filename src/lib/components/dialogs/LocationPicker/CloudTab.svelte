@@ -139,7 +139,7 @@
 
   {#if selectedCloudProvider}
     <div class="form-group" style="margin-top: 20px;">
-      <label class="form-label">Endpoint / Region</label>
+      <span class="form-label">Endpoint / Region</span>
       <Input
         bind:value={cloudEndpoint}
         placeholder={selectedCloudProvider === 's3'
@@ -149,13 +149,13 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">Bucket / Container</label>
+      <span class="form-label">Bucket / Container</span>
       <Input bind:value={cloudBucket} placeholder="my-backup-bucket" />
     </div>
 
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Access Key / Client ID</label>
+        <span class="form-label">Access Key / Client ID</span>
         <Input bind:value={cloudAccessKey} placeholder="AKIAIOSFODNN7EXAMPLE" />
       </div>
       <div class="form-group">

@@ -100,7 +100,6 @@
           placeholder="Repository-Passwort"
           class="input"
           autocomplete="off"
-          autofocus
         />
         <button
           type="button"
