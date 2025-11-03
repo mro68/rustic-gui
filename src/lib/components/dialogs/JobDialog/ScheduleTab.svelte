@@ -1,5 +1,7 @@
 <!-- ScheduleTab.svelte: Job Schedule Configuration (Cron Builder) -->
 <script lang="ts">
+  import CustomSelect from '../../shared/CustomSelect.svelte';
+
   interface ScheduleTabProps {
     scheduleType?: string;
     scheduleTime?: string;
@@ -105,10 +107,13 @@
     </div>
     <div class="form-group">
       <label class="form-label" for="timezone">Zeitzone</label>
-      <select id="timezone" class="form-select" bind:value={scheduleTimezone}>
-        <option value="Local">Lokale Zeit</option>
-        <option value="UTC">UTC</option>
-      </select>
+      <CustomSelect
+        bind:value={scheduleTimezone}
+        options={[
+          { value: 'Local', label: 'Lokale Zeit' },
+          { value: 'UTC', label: 'UTC' },
+        ]}
+      />
     </div>
   </div>
 {/if}

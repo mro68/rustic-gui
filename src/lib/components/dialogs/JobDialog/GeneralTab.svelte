@@ -1,6 +1,7 @@
 <!-- GeneralTab.svelte: General Job Settings (Name, Repository, Tags) -->
 <script lang="ts">
   import type { RepositoryDto } from '$lib/types';
+  import CustomSelect from '../../shared/CustomSelect.svelte';
 
   interface GeneralTabProps {
     jobName?: string;
@@ -37,12 +38,17 @@
 
 <div class="form-group">
   <label class="form-label" for="repository">Ziel-Repository</label>
-  <select id="repository" class="form-select" bind:value={selectedRepository}>
-    <option value="">Repository auswählen...</option>
-    {#each repositories as repo}
-      <option value={repo.id}>{repo.name} - {repo.path}</option>
-    {/each}
-  </select>
+  <CustomSelect
+    bind:value={selectedRepository}
+    options={[
+      { value: '', label: 'Repository auswählen...', disabled: true },
+      ...repositories.map((repo) => ({
+        value: repo.id,
+        label: `${repo.name} - ${repo.path}`,
+      })),
+    ]}
+    placeholder="Repository auswählen..."
+  />
   {#if errors.repository}<div class="error">{errors.repository}</div>{/if}
 </div>
 

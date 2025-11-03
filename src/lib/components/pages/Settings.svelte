@@ -30,6 +30,7 @@
   import { getSettings, resetSettings, saveSettings, updateTheme } from '../../api/settings';
   import { toastStore } from '../../stores/toast';
   import Checkbox from '../shared/Checkbox.svelte';
+  import CustomSelect from '../shared/CustomSelect.svelte';
   import Tooltip from '../shared/Tooltip.svelte';
 
   // Settings state
@@ -119,6 +120,45 @@
       loading = false;
     }
   });
+
+  // Watch for theme changes
+  let previousTheme = $state(settings.theme);
+  $effect(() => {
+    if (settings.theme !== previousTheme && previousTheme !== undefined) {
+      handleThemeChange(settings.theme);
+      previousTheme = settings.theme;
+    }
+  });
+
+  // Watch for language changes
+  let previousLanguage = $state(settings.language);
+  $effect(() => {
+    if (settings.language !== previousLanguage && previousLanguage !== undefined) {
+      handleLanguageChange(settings.language);
+      previousLanguage = settings.language;
+    }
+  });
+
+  // Watch for password storage changes
+  let previousPasswordStorage = $state(settings.password_storage);
+  $effect(() => {
+    if (
+      settings.password_storage !== previousPasswordStorage &&
+      previousPasswordStorage !== undefined
+    ) {
+      handlePasswordStorageChange(settings.password_storage);
+      previousPasswordStorage = settings.password_storage;
+    }
+  });
+
+  // Watch for lock timeout changes
+  let previousLockTimeout = $state(settings.lock_timeout);
+  $effect(() => {
+    if (settings.lock_timeout !== previousLockTimeout && previousLockTimeout !== undefined) {
+      handleLockTimeoutChange(settings.lock_timeout);
+      previousLockTimeout = settings.lock_timeout;
+    }
+  });
 </script>
 
 <div class="settings-page">
@@ -137,15 +177,14 @@
           <p class="setting-description">Wählen Sie das visuelle Theme für die Anwendung</p>
         </div>
         <div class="setting-control">
-          <select
-            class="select-field"
+          <CustomSelect
             bind:value={settings.theme}
-            onchange={(e) => handleThemeChange(e.currentTarget.value)}
-          >
-            <option value="dark">Dunkel</option>
-            <option value="light">Hell</option>
-            <option value="system">System</option>
-          </select>
+            options={[
+              { value: 'dark', label: 'Dunkel' },
+              { value: 'light', label: 'Hell' },
+              { value: 'system', label: 'System' },
+            ]}
+          />
         </div>
       </div>
 
@@ -155,14 +194,13 @@
           <p class="setting-description">Wählen Sie die Sprache der Anwendung</p>
         </div>
         <div class="setting-control">
-          <select
-            class="select-field"
+          <CustomSelect
             bind:value={settings.language}
-            onchange={(e) => handleLanguageChange(e.currentTarget.value)}
-          >
-            <option value="en">English</option>
-            <option value="de">Deutsch</option>
-          </select>
+            options={[
+              { value: 'en', label: 'English' },
+              { value: 'de', label: 'Deutsch' },
+            ]}
+          />
         </div>
       </div>
 
@@ -191,14 +229,13 @@
           <p class="setting-description">Wo Repository-Passwörter sicher gespeichert werden</p>
         </div>
         <div class="setting-control">
-          <select
-            class="select-field"
+          <CustomSelect
             bind:value={settings.password_storage}
-            onchange={(e) => handlePasswordStorageChange(e.currentTarget.value)}
-          >
-            <option value="system_keychain">System-Keychain (empfohlen)</option>
-            <option value="in_memory">Nur im Arbeitsspeicher</option>
-          </select>
+            options={[
+              { value: 'system_keychain', label: 'System-Keychain (empfohlen)' },
+              { value: 'in_memory', label: 'Nur im Arbeitsspeicher' },
+            ]}
+          />
         </div>
       </div>
 
@@ -208,16 +245,15 @@
           <p class="setting-description">Repositories automatisch sperren nach Inaktivität</p>
         </div>
         <div class="setting-control">
-          <select
-            class="select-field"
+          <CustomSelect
             bind:value={settings.lock_timeout}
-            onchange={(e) => handleLockTimeoutChange(Number(e.currentTarget.value))}
-          >
-            <option value="15">15 Minuten</option>
-            <option value="30">30 Minuten</option>
-            <option value="60">1 Stunde</option>
-            <option value="0">Nie</option>
-          </select>
+            options={[
+              { value: '15', label: '15 Minuten' },
+              { value: '30', label: '30 Minuten' },
+              { value: '60', label: '1 Stunde' },
+              { value: '0', label: 'Nie' },
+            ]}
+          />
         </div>
       </div>
     </div>

@@ -22,6 +22,7 @@
    * ```
    */
   import { createEventDispatcher } from 'svelte';
+  import CustomSelect from './CustomSelect.svelte';
 
   interface FilterBarProps {
     /** Suchbegriff für Snapshot-Namen/Pfade */
@@ -52,6 +53,11 @@
   function update() {
     dispatch('change', { search, hostname, dateRange, size, tags });
   }
+
+  // Watch for filter changes and trigger update
+  $effect(() => {
+    update();
+  });
 
   function toggleTag(tag: string) {
     if (tags.includes(tag)) {
@@ -92,33 +98,42 @@
     </div>
     <div class="filter-group">
       <label class="filter-label" for="filter-hostname">Hostname</label>
-      <select id="filter-hostname" class="filter-select" bind:value={hostname} onchange={update}>
-        <option value="">Alle Hosts</option>
-        <option value="workstation">workstation</option>
-        <option value="server-01">server-01</option>
-        <option value="laptop">laptop</option>
-      </select>
+      <CustomSelect
+        bind:value={hostname}
+        options={[
+          { value: '', label: 'Alle Hosts' },
+          { value: 'workstation', label: 'workstation' },
+          { value: 'server-01', label: 'server-01' },
+          { value: 'laptop', label: 'laptop' },
+        ]}
+      />
     </div>
     <div class="filter-group">
       <label class="filter-label" for="filter-dateRange">Zeitraum</label>
-      <select id="filter-dateRange" class="filter-select" bind:value={dateRange} onchange={update}>
-        <option value="">Alle</option>
-        <option value="today">Heute</option>
-        <option value="week">Letzte 7 Tage</option>
-        <option value="month">Letzter Monat</option>
-        <option value="year">Letztes Jahr</option>
-        <option value="custom">Benutzerdefiniert...</option>
-      </select>
+      <CustomSelect
+        bind:value={dateRange}
+        options={[
+          { value: '', label: 'Alle' },
+          { value: 'today', label: 'Heute' },
+          { value: 'week', label: 'Letzte 7 Tage' },
+          { value: 'month', label: 'Letzter Monat' },
+          { value: 'year', label: 'Letztes Jahr' },
+          { value: 'custom', label: 'Benutzerdefiniert...' },
+        ]}
+      />
     </div>
     <div class="filter-group">
       <label class="filter-label" for="filter-size">Größe</label>
-      <select id="filter-size" class="filter-select" bind:value={size} onchange={update}>
-        <option value="">Alle</option>
-        <option value="small">&lt; 100 MB</option>
-        <option value="medium">100 MB - 1 GB</option>
-        <option value="large">1 GB - 10 GB</option>
-        <option value="xlarge">&gt; 10 GB</option>
-      </select>
+      <CustomSelect
+        bind:value={size}
+        options={[
+          { value: '', label: 'Alle' },
+          { value: 'small', label: '< 100 MB' },
+          { value: 'medium', label: '100 MB - 1 GB' },
+          { value: 'large', label: '1 GB - 10 GB' },
+          { value: 'xlarge', label: '> 10 GB' },
+        ]}
+      />
     </div>
   </div>
   <div class="filter-group">
