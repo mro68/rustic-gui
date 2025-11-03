@@ -260,10 +260,14 @@
     <!-- Action Buttons -->
     <div class="settings-actions">
       <Tooltip text="Einstellungen zurücksetzen">
-        <button class="btn btn-secondary" onclick={handleResetSettings}> Auf Standard zurücksetzen </button>
+        <button class="btn btn-secondary" onclick={handleResetSettings}>
+          Auf Standard zurücksetzen
+        </button>
       </Tooltip>
       <Tooltip text="Einstellungen speichern">
-        <button class="btn btn-primary" onclick={handleSaveSettings}> Einstellungen speichern </button>
+        <button class="btn btn-primary" onclick={handleSaveSettings}>
+          Einstellungen speichern
+        </button>
       </Tooltip>
     </div>
   </div>
@@ -354,13 +358,18 @@
 
   .select-field {
     padding: 0.75rem;
-    background: var(--bg-tertiary);
+    background: var(--bg-tertiary) !important;
     border: 1px solid var(--border-color);
     border-radius: 0.375rem;
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     font-size: 0.875rem;
     cursor: pointer;
     min-width: 200px;
+  }
+
+  .select-field option {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
   }
 
   .select-field:focus {

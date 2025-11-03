@@ -275,7 +275,7 @@
   }
 </script>
 
-<Modal open={isOpen} on:close={handleClose}>
+<Modal open={isOpen}>
   {#snippet header()}
     <h2>Restore Files</h2>
   {/snippet}

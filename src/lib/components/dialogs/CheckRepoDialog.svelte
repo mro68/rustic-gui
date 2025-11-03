@@ -23,14 +23,11 @@
 
   import { checkRepository } from '$lib/api/repositories';
   import { toastStore } from '$lib/stores/toast';
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { onMount } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
   import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
-
-  const dispatch = createEventDispatcher();
-
   interface CheckRepoDialogProps {
     /** Steuert Sichtbarkeit */
     open?: boolean;
@@ -106,9 +103,6 @@
       logEntries = ['Überprüfung erfolgreich abgeschlossen', ...logEntries];
 
       toastStore.success('Repository-Überprüfung erfolgreich abgeschlossen');
-
-      dispatch('check-complete', { repositoryId, result });
-
       // Auto-close nach 2 Sekunden
       setTimeout(() => {
         open = false;
@@ -131,7 +125,6 @@
     if (progressInterval) clearInterval(progressInterval);
     progressInterval = null;
     currentStep = 'Überprüfung abgebrochen';
-    dispatch('cancel-check');
   }
 
   function handleClose() {
@@ -139,7 +132,6 @@
       stopCheck();
     }
     open = false;
-    dispatch('close');
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -162,7 +154,7 @@
   });
 </script>
 
-<Modal bind:open on:close={handleClose}>
+<Modal bind:open>
   {#snippet header()}
     <h2>Repository überprüfen</h2>
   {/snippet}

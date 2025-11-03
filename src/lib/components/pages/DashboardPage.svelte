@@ -143,15 +143,7 @@
 <div class="section-title">Recent Activity</div>
 <ActivityLog {logEntries} />
 
-<AddRepositoryDialog
-  bind:open={showAddRepoDialog}
-  mode="open"
-  on:created={async () => {
-    showAddRepoDialog = false;
-    await refreshRepos();
-  }}
-  on:close={() => (showAddRepoDialog = false)}
-/>
+<AddRepositoryDialog bind:open={showAddRepoDialog} mode="open" onCreated={refreshRepos} />
 
 <style>
   .dashboard-toolbar {

@@ -59,14 +59,14 @@
     };
   });
 
-  $: {
+  $effect(() => {
     if (open) {
       document.body.style.overflow = 'hidden';
       tick().then(() => modalDialogRef && modalDialogRef.focus());
     } else {
       document.body.style.overflow = '';
     }
-  }
+  });
 </script>
 
 {#if open}

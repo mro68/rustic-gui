@@ -71,7 +71,22 @@ pub fn init_repository(
         }
     };
 
-    // 4. Repository in Config speichern
+    // 4. Prüfe ob Repository bereits existiert (nach Pfad)
+    {
+        let config = state.config.lock();
+        if config.repositories.iter().any(|r| r.path == path) {
+            return Err(crate::types::ErrorDto {
+                code: "RepositoryAlreadyAdded".to_string(),
+                message: format!(
+                    "Repository '{}' wurde bereits zur Konfiguration hinzugefügt",
+                    path
+                ),
+                details: Some(format!("Pfad: {}", path)),
+            });
+        }
+    }
+
+    // 5. Repository in Config speichern
     {
         let mut config = state.config.lock();
         let repo_config = crate::config::RepositoryConfig {
@@ -92,7 +107,7 @@ pub fn init_repository(
         config.add_repository(repo_config);
     }
 
-    // 5. Config speichern
+    // 6. Config speichern
     state.save_config().map_err(|e| crate::types::ErrorDto {
         code: "ConfigError".to_string(),
         message: format!("Config-Speicherung fehlgeschlagen: {}", e),
@@ -168,7 +183,19 @@ pub fn open_repository(
         }
     };
 
-    // 4. Repository in Config speichern
+    // 4. Prüfe ob Repository bereits existiert (nach Pfad)
+    {
+        let config = state.config.lock();
+        if config.repositories.iter().any(|r| r.path == path) {
+            return Err(crate::types::ErrorDto {
+                code: "RepositoryAlreadyAdded".to_string(),
+                message: format!("Repository '{}' wurde bereits hinzugefügt", path),
+                details: Some(format!("Pfad: {}", path)),
+            });
+        }
+    }
+
+    // 5. Repository in Config speichern
     {
         let mut config = state.config.lock();
         let repo_config = crate::config::RepositoryConfig {
@@ -182,7 +209,7 @@ pub fn open_repository(
         config.add_repository(repo_config);
     }
 
-    // 5. Config speichern
+    // 6. Config speichern
     state.save_config().map_err(|e| crate::types::ErrorDto {
         code: "ConfigError".to_string(),
         message: format!("Config-Speicherung fehlgeschlagen: {}", e),

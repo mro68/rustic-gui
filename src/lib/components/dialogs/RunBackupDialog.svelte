@@ -163,7 +163,6 @@
   ariaLabel="Backup läuft"
   closeOnEsc={!!(completed || error)}
   closeOnBackdrop={!!(completed || error)}
-  on:close={close}
 >
   {#snippet header()}
     <h2 class="modal-title">Backup läuft</h2>

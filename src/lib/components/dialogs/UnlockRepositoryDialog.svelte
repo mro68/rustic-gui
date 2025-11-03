@@ -140,15 +140,14 @@
 
   function handleClose() {
     open = false;
-    dispatch('close');
   }
 </script>
 
-<Modal bind:open on:close={handleClose}>
+<Modal bind:open>
   {#snippet header()}
     Repository entsperren
   {/snippet}
-  
+
   <div class="unlock-dialog">
     <!-- Repository Info -->
     <div class="repo-info">

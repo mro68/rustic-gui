@@ -39,7 +39,6 @@
    * />
    * ```
    */
-  import { createEventDispatcher } from 'svelte';
   import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
   import Input from '../shared/Input.svelte';
@@ -47,13 +46,16 @@
   import Toast from '../shared/Toast.svelte';
   import LocationPickerDialog from './LocationPickerDialog.svelte';
 
-  const dispatch = createEventDispatcher();
-
   // Props
   let {
     open = $bindable(true),
     mode = 'init', // 'init' für neues Repository, 'open' für bestehendes
-  }: { open?: boolean; mode?: 'init' | 'open' } = $props();
+    onCreated = () => {},
+  }: {
+    open?: boolean;
+    mode?: 'init' | 'open';
+    onCreated?: () => void;
+  } = $props();
 
   // Form state
   let repositoryName = $state<string>('');
@@ -142,26 +144,23 @@
         }
       }
 
-      dispatch('create', {
-        name: repositoryName.trim(),
-        type: repositoryType,
-        path: repositoryPath.trim(),
-        password: storePassword ? password : '',
-        storePassword,
-        backendOptions: backendOptions.trim(),
-      });
-
       const successMsg =
         mode === 'init' ? 'Repository erfolgreich erstellt' : 'Repository erfolgreich geöffnet';
       showToastMessage(successMsg, 'success');
 
-      // Reset form
-      repositoryName = '';
-      repositoryPath = '';
-      password = '';
-      backendOptions = '';
-      selectedType = repositoryTypes[0];
-      repositoryType = 'local';
+      // Callback für Parent-Komponente
+      onCreated();
+
+      // Reset form & close nach kurzer Verzögerung
+      setTimeout(() => {
+        repositoryName = '';
+        repositoryPath = '';
+        password = '';
+        backendOptions = '';
+        selectedType = repositoryTypes[0];
+        repositoryType = 'local';
+        open = false;
+      }, 1500);
     } catch (error) {
       console.error('Repository operation error:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -184,11 +183,10 @@
 
   function handleClose() {
     open = false;
-    dispatch('close');
   }
 </script>
 
-<Modal bind:open on:close={handleClose}>
+<Modal bind:open>
   {#snippet header()}
     <h2>{mode === 'init' ? 'Neues Repository erstellen' : 'Bestehendes Repository öffnen'}</h2>
   {/snippet}

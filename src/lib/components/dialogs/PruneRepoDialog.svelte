@@ -164,7 +164,7 @@
   });
 </script>
 
-<Modal bind:open on:close={handleClose}>
+<Modal bind:open>
   {#snippet header()}
     <h2>Repository bereinigen</h2>
   {/snippet}
@@ -187,12 +187,10 @@
         <h3>Bereinigungsoptionen</h3>
 
         <div class="option-group">
-          <Checkbox
-            label="Dry-Run (Simulation ohne tatsächliches Löschen)"
-            bind:checked={dryRun}
-          />
+          <Checkbox label="Dry-Run (Simulation ohne tatsächliches Löschen)" bind:checked={dryRun} />
           <p class="option-description">
-            Simuliert die Bereinigung ohne Daten zu löschen. Zeigt, wie viel Speicherplatz freigegeben werden würde.
+            Simuliert die Bereinigung ohne Daten zu löschen. Zeigt, wie viel Speicherplatz
+            freigegeben werden würde.
           </p>
         </div>
 

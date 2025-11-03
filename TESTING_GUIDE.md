@@ -1,6 +1,6 @@
 # 🧪 Schnell-Test-Anleitung: Backup & Restore
 
-> **Ready to Test:** Die App läuft im Dev-Modus (`npm run tauri dev`)  
+> **Ready to Test:** Die App läuft im Dev-Modus (`npm run tauri:dev`)  
 > **Test-Repository:** `/tmp/rustic-test/repo`  
 > **Passwort:** `test123`
 
@@ -203,7 +203,7 @@
    - ✅ `docs/` (noch da)
 
 5. **Kombiniert:**
-   - .gitignore schließt aus: node_modules/, _.log, temp/, _.tmp
+   - .gitignore schließt aus: node*modules/, *.log, temp/, \_.tmp
    - Custom Exclude schließt aus: \*.yaml
    - **Insgesamt:** 5 Patterns aktiv!
 

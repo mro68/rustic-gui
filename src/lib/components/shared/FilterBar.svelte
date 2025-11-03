@@ -190,12 +190,16 @@
   }
   .filter-input,
   .filter-select {
-    background: #1a1d2e;
+    background: #1a1d2e !important;
     border: 1px solid #3e4457;
     border-radius: 6px;
     padding: 8px 12px;
-    color: #e4e4e7;
+    color: #e4e4e7 !important;
     font-size: 14px;
+  }
+  .filter-select option {
+    background: #22273a !important;
+    color: #e4e4e7 !important;
   }
   .filter-input:focus,
   .filter-select:focus {

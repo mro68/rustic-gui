@@ -84,6 +84,12 @@
     cursor: pointer;
   }
 
+  .select-field option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 0.5rem;
+  }
+
   .select-field:focus {
     outline: none;
     border-color: var(--color-primary);

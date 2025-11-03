@@ -25,14 +25,10 @@
   import { storeRepositoryPassword } from '$lib/api/keychain';
   import { changePassword } from '$lib/api/repositories';
   import { toastStore } from '$lib/stores/toast';
-  import { createEventDispatcher } from 'svelte';
-  import Button from '../shared/Button.svelte';
+    import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
   import Input from '../shared/Input.svelte';
   import Modal from '../shared/Modal.svelte';
-
-  const dispatch = createEventDispatcher();
-
   interface ChangePasswordDialogProps {
     /** Steuert Sichtbarkeit */
     open?: boolean;
@@ -133,11 +129,6 @@
       }
 
       toastStore.success('Passwort erfolgreich geändert');
-
-      dispatch('password-changed', {
-        repositoryId,
-      });
-
       open = false;
     } catch (error: any) {
       const errorMessage = error?.message || 'Unbekannter Fehler';
@@ -149,9 +140,7 @@
   }
 
   function handleClose() {
-    open = false;
-    dispatch('close');
-  }
+    open = false;  }
 
   // eslint-disable-next-line no-unused-vars
   function resetForm() {
@@ -163,7 +152,7 @@
   }
 </script>
 
-<Modal bind:open on:close={handleClose}>
+<Modal bind:open>
   {#snippet header()}
     <h2>Repository-Passwort ändern</h2>
   {/snippet}

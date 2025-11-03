@@ -81,7 +81,7 @@
   }
 </script>
 
-<Modal bind:open on:close={handleCancel}>
+<Modal bind:open>
   {#snippet header()}
     {title}
   {/snippet}
@@ -115,7 +115,12 @@
 
     <div class="actions">
       <button type="button" class="btn btn-secondary" onclick={handleCancel}>Abbrechen</button>
-      <button type="button" class="btn btn-primary" onclick={handleConfirm} disabled={!password.trim()}>
+      <button
+        type="button"
+        class="btn btn-primary"
+        onclick={handleConfirm}
+        disabled={!password.trim()}
+      >
         Bestätigen
       </button>
     </div>

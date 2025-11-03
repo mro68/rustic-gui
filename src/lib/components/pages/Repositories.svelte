@@ -199,7 +199,13 @@
     <h1 class="page-title">Repository Management</h1>
     <div class="toolbar-actions">
       <Tooltip text="Repository hinzufügen">
-        <Button variant="primary" size="sm" onclick={() => { showAddDialog = true; }}>+ Add Repository</Button>
+        <Button
+          variant="primary"
+          size="sm"
+          onclick={() => {
+            showAddDialog = true;
+          }}>+ Add Repository</Button
+        >
       </Tooltip>
     </div>
   </div>
@@ -213,7 +219,12 @@
         <h3>Keine Repositories gefunden</h3>
         <p>Fügen Sie Ihr erstes Repository hinzu, um mit dem Backup zu beginnen.</p>
         <Tooltip text="Repository hinzufügen">
-          <Button variant="primary" onclick={() => { showAddDialog = true; }}>
+          <Button
+            variant="primary"
+            onclick={() => {
+              showAddDialog = true;
+            }}
+          >
             Erstes Repository hinzufügen
           </Button>
         </Tooltip>
@@ -390,11 +401,7 @@
 </div>
 
 <!-- Dialoge -->
-<AddRepositoryDialog
-  bind:open={showAddDialog}
-  on:created={handleRepositoryAdded}
-  on:close={() => (showAddDialog = false)}
-/>
+<AddRepositoryDialog bind:open={showAddDialog} />
 
 <UnlockRepositoryDialog
   bind:open={showUnlockDialog}
@@ -402,35 +409,17 @@
   repositoryPath={selectedRepository?.path || ''}
   repositoryId={selectedRepository?.id || ''}
   on:unlock={handleRepositoryUnlocked}
-  on:close={() => (showUnlockDialog = false)}
 />
 
-<DeleteRepoDialog
-  bind:open={showDeleteDialog}
-  repository={selectedRepository}
-  on:delete-repo={handleRepositoryDeleted}
-  on:close={() => (showDeleteDialog = false)}
-/>
+<DeleteRepoDialog bind:open={showDeleteDialog} repository={selectedRepository} />
 
-<CheckRepoDialog
-  bind:open={showCheckDialog}
-  repositoryId={selectedRepository?.id || ''}
-  on:check-complete={handleRepositoryChecked}
-  on:close={() => (showCheckDialog = false)}
-/>
+<CheckRepoDialog bind:open={showCheckDialog} repositoryId={selectedRepository?.id || ''} />
 
-<PruneRepoDialog
-  bind:open={showPruneDialog}
-  repositoryId={selectedRepository?.id || ''}
-  on:prune-complete={handleRepositoryPruned}
-  on:close={() => (showPruneDialog = false)}
-/>
+<PruneRepoDialog bind:open={showPruneDialog} repositoryId={selectedRepository?.id || ''} />
 
 <ChangePasswordDialog
   bind:open={showChangePasswordDialog}
   repositoryId={selectedRepository?.id || ''}
-  on:password-changed={handlePasswordChanged}
-  on:close={() => (showChangePasswordDialog = false)}
 />
 
 <style>

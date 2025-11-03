@@ -16,13 +16,9 @@
    * ```
    */
   import { toastStore } from '$lib/stores/toast';
-  import { createEventDispatcher } from 'svelte';
-  import Button from '../shared/Button.svelte';
+    import Button from '../shared/Button.svelte';
   import Checkbox from '../shared/Checkbox.svelte';
   import Modal from '../shared/Modal.svelte';
-
-  const dispatch = createEventDispatcher();
-
   import type { RepositoryDto } from '$lib/types';
 
   interface DeleteRepoDialogProps {
@@ -49,12 +45,6 @@
       await deleteRepository(repository.id, deleteData);
 
       toastStore.success('Repository erfolgreich gelöscht');
-
-      dispatch('delete-repo', {
-        repositoryId: repository.id,
-        deleteData,
-      });
-
       open = false;
     } catch (error: any) {
       // ✅ Error-Toast hinzugefügt (TODO.md Zeile 247)
@@ -67,9 +57,7 @@
   }
 
   function handleClose() {
-    open = false;
-    dispatch('close');
-  }
+    open = false;  }
 
   // eslint-disable-next-line no-unused-vars
   function resetForm() {
@@ -79,7 +67,7 @@
   }
 </script>
 
-<Modal bind:open on:close={handleClose}>
+<Modal bind:open>
   {#snippet header()}
     Repository löschen
   {/snippet}
