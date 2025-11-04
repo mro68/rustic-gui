@@ -50,6 +50,7 @@
 
   // Dialog States
   let showAddDialog = $state(false);
+  let showOpenDialog = $state(false); // Bestehendes Repository öffnen
   let showUnlockDialog = $state(false);
   let showDeleteDialog = $state(false);
   let showCheckDialog = $state(false);
@@ -117,6 +118,10 @@
     // TODO: Forget-Snapshots-Dialog öffnen
     console.log('Forget snapshots for:', repo.name);
   }
+
+  onMount(() => {
+    loadRepositories();
+  });
 
   // Event Handler für Dialoge
   function handleRepositoryAdded(event: any) {
@@ -187,25 +192,30 @@
         return status;
     }
   }
-
-  onMount(() => {
-    loadRepositories();
-  });
 </script>
 
 <div class="repositories-page">
   <div class="page-wrapper">
-    <!-- Toolbar -->
-    <div class="toolbar">
+    <!-- Page Header mit Buttons -->
+    <div class="page-header">
       <h1 class="page-title">Repository Management</h1>
-      <div class="toolbar-actions">
+      <div class="header-actions">
         <Tooltip text="Repository hinzufügen">
           <Button
             variant="primary"
             size="sm"
             onclick={() => {
               showAddDialog = true;
-            }}>+ Add Repository</Button
+            }}>➕ Add</Button
+          >
+        </Tooltip>
+        <Tooltip text="Bestehendes Repository öffnen">
+          <Button
+            variant="secondary"
+            size="sm"
+            onclick={() => {
+              showOpenDialog = true;
+            }}>📂 Open</Button
           >
         </Tooltip>
       </div>
@@ -403,7 +413,11 @@
 </div>
 
 <!-- Dialoge -->
-<AddRepositoryDialog bind:open={showAddDialog} />
+<!-- Add Repository Dialog (Create New) -->
+<AddRepositoryDialog bind:open={showAddDialog} mode="init" onCreated={loadRepositories} />
+
+<!-- Open Repository Dialog (Add Existing) -->
+<AddRepositoryDialog bind:open={showOpenDialog} mode="open" onCreated={loadRepositories} />
 
 <UnlockRepositoryDialog
   bind:open={showUnlockDialog}
@@ -429,6 +443,26 @@
     display: flex;
     flex-direction: column;
     gap: 2rem;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
   }
 
   .toolbar {

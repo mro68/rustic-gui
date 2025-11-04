@@ -48,9 +48,6 @@ pub struct AppState {
 }
 
 impl AppState {
-    /// Repository-Cache Timeout (5 Minuten)
-    const CACHE_TIMEOUT: Duration = Duration::from_secs(300);
-
     /// Erstellt neuen AppState und lädt Config.
     ///
     /// Der Scheduler wird NICHT in new() initialisiert, da dies async sein muss.

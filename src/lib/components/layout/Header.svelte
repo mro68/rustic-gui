@@ -18,7 +18,7 @@
   // Props
   let {
     showUserAvatar = false,
-    onToggleMobileMenu
+    onToggleMobileMenu,
   }: {
     showUserAvatar?: boolean;
     onToggleMobileMenu?: () => void;
@@ -48,12 +48,7 @@
 
   <!-- User Avatar (für zukünftige Features) -->
   {#if showUserAvatar}
-    <div
-      class="user-avatar"
-      role="button"
-      tabindex="0"
-      aria-label="User profile"
-    ></div>
+    <div class="user-avatar" role="button" tabindex="0" aria-label="User profile"></div>
   {/if}
 </header>
 

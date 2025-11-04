@@ -27,7 +27,6 @@
   let { value = undefined, label = '' }: ProgressBarProps = $props();
 </script>
 
-/* eslint-env browser */
 <div
   class="progress-bar"
   role="progressbar"

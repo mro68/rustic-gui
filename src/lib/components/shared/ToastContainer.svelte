@@ -28,7 +28,6 @@
   });
 </script>
 
-/* eslint-env browser */
 <div class="toast-container">
   {#each toasts as toast (toast.id)}
     <Toast

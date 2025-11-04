@@ -17,6 +17,7 @@
   - Scheduler (`BackupScheduler`) initialisiert und stellt Jobs wieder her, führt aber keine echten Backups aus (Simulation via `tokio::sleep`).
 - **Frontend (Svelte 5 + TypeScript)**
   - ✅ **Vollständige Svelte 5 Migration:** Alle Komponenten nutzen `$state()`, `$bindable()` und `bind:open` Pattern (2025-11-02).
+  - ✅ **Per-Page Header Architecture:** Globaler Header entfernt, jede Seite verwaltet eigenen Header mit spezifischen Buttons (2025-11-04). Siehe Details unten.
   - Layout, Navigation und Kernseiten existieren; Stores laden reale Daten über die Tauri-API.
   - ✅ **Repository-Wartungs-Dialoge vollständig integriert:** Check, Prune, Change Password mit Backend-Anbindung (2025-11-02).
   - Snapshots-Seite: Liste/Filter funktionieren, ✅ Snapshot-Vergleich mit vollständigem Tree-Diff implementiert (2025-11-02), Restore-Dialoge warten auf Wiring.
@@ -25,6 +26,121 @@
   - ✅ 16/16 Rust Integration-Tests passing (2025-11-02).
   - Vitest-Konfiguration aktiv (`npm test` → `vitest run`), Store-Tests vorhanden und passing.
   - Keine automatisierten End-To-End-Tests.
+
+---
+
+## UI-Architektur: Per-Page Headers (November 2025)
+
+**Architektur-Entscheidung (2025-11-04):** Wechsel von globalem Header zu seitenspezifischen Headers.
+
+### Grund für die Änderung
+
+**Früher:**
+
+- Ein globaler `Header.svelte` in `MainLayout.svelte`
+- Musste Buttons für alle Seiten verwalten
+- Komplexe Prop/Snippet-Übergabe zwischen MainLayout → Header → Pages
+
+**Problem:**
+
+- Schwer wartbar (Änderungen betrafen mehrere Dateien)
+- Unflexibel (neue Page-Actions brauchten globale Änderungen)
+- Event-Bubbling über mehrere Ebenen
+
+**Lösung:**
+
+- Header.svelte komplett entfernt
+- Jede Page implementiert eigenen Header mit spezifischen Actions
+- Volle Kontrolle auf Page-Ebene
+
+### Implementierungs-Pattern
+
+**Standard-Struktur für alle Pages:**
+
+```svelte
+<div class="page-wrapper">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">Seitenname</h1>
+    <div class="header-actions">
+      <!-- Seiten-spezifische Action-Buttons -->
+      <Tooltip text="Beschreibung">
+        <Button variant="primary" size="sm" onclick={handler}>➕ Add</Button>
+      </Tooltip>
+    </div>
+  </div>
+
+  <!-- Page Content -->
+  <div class="page-content">
+    <!-- ... -->
+  </div>
+</div>
+```
+
+**CSS-Guidelines:**
+
+```css
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-left: auto; /* Rechtsbündig */
+}
+```
+
+### Button-Emoji-Konventionen
+
+Konsistente Emoji-Nutzung über alle Pages:
+
+- ➕ **Add/Create** - Neue Elemente erstellen (Repository, Job, etc.)
+- 📂 **Open/Browse** - Dateien/Verzeichnisse öffnen
+- 🔄 **Refresh/Reload** - Daten neu laden
+- 🗑️ **Delete/Remove** - Elemente löschen
+- ⚙️ **Configure/Settings** - Einstellungen öffnen
+
+### Implementierte Pages
+
+| Page         | Header-Actions  | Komponente                            |
+| ------------ | --------------- | ------------------------------------- |
+| Dashboard    | 🔄 Refresh      | `DashboardPage.svelte` (Lines 93-111) |
+| Repositories | ➕ Add, 📂 Open | `Repositories.svelte` (Lines 226-240) |
+| Snapshots    | 🔄 Refresh      | `Snapshots.svelte`                    |
+| Backup Jobs  | ➕ Create Job   | `BackupJobs.svelte` (Lines 225-236)   |
+| Settings     | 🔄 Reset        | `Settings.svelte`                     |
+
+### Vorteile dieser Architektur
+
+- ✨ **Einfacherer Code** - Keine Props/Snippets zwischen Layouts
+- ✨ **Bessere Wartbarkeit** - Änderungen lokal in der Page
+- ✨ **Volle Kontrolle** - Jede Page entscheidet selbst über Actions
+- ✨ **Klarere Separation** - Keine gemischten Verantwortlichkeiten
+- ✨ **Schnellere Entwicklung** - Neue Pages brauchen keine Layout-Änderungen
+
+### Migration (abgeschlossen 2025-11-04)
+
+- [x] `MainLayout.svelte` - Header-Import und Rendering entfernt
+- [x] `Header.svelte` - Komponente gelöscht (nicht mehr benötigt)
+- [x] `DashboardPage.svelte` - Page-Header mit Refresh hinzugefügt
+- [x] `Repositories.svelte` - Page-Header mit Add/Open Buttons
+- [x] `Snapshots.svelte` - Page-Header mit Refresh
+- [x] `BackupJobs.svelte` - Page-Header mit Create Job
+- [x] `Settings.svelte` - Page-Header mit Reset
+- [x] CSS bereinigt - Alle Toolbar-bezogenen Styles entfernt
 
 ---
 

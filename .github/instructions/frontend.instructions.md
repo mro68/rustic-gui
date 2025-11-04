@@ -58,16 +58,14 @@ src/
 │   │   │   └── ConfirmDialog.svelte
 │   │   ├── layout/                # Layout-Komponenten
 │   │   │   ├── Sidebar.svelte
-│   │   │   ├── Header.svelte
-│   │   │   ├── MainLayout.svelte
-│   │   │   └── TabContainer.svelte
+│   │   │   └── MainLayout.svelte  # ⚠️ Header.svelte entfernt (Nov 2025)! Pages haben eigene Headers.
 │   │   └── pages/                 # Seiten-Komponenten
-│   │       ├── Dashboard.svelte
-│   │       ├── Repositories.svelte
-│   │       ├── Snapshots.svelte       # Modularisiert mit Sub-Komponenten
-│   │       │   └── Snapshots/        # SnapshotTable, SnapshotDetailsModal, SnapshotContextMenu
-│   │       ├── BackupJobs.svelte
-│   │       └── Settings.svelte
+│   │       ├── DashboardPage.svelte      # Mit eigenem Page-Header (🔄 Refresh)
+│   │       ├── Repositories.svelte       # Mit eigenem Page-Header (➕ Add, 📂 Open)
+│   │       ├── Snapshots.svelte          # Mit eigenem Page-Header (🔄 Refresh)
+│   │       │   └── Snapshots/           # SnapshotTable, SnapshotDetailsModal, SnapshotContextMenu
+│   │       ├── BackupJobs.svelte         # Mit eigenem Page-Header (➕ Create Job)
+│   │       └── Settings.svelte           # Mit eigenem Page-Header (🔄 Reset)
 │   ├── stores/                    # Svelte Stores (State Management)
 │   │   ├── repositories.ts
 │   │   ├── snapshots.ts
@@ -1539,6 +1537,174 @@ export let open = false; export let snapshotId: string;
 
 ---
 
+## 📐 Layout-Patterns
+
+### Per-Page Header Pattern (seit Nov 2025)
+
+**⚠️ WICHTIG:** Seit November 2025 hat **jede Page ihren eigenen Header** mit spezifischen Action-Buttons. Der globale `Header.svelte` wurde entfernt!
+
+#### Warum der Wechsel?
+
+**Früher:**
+
+- Globaler `Header.svelte` in `MainLayout.svelte`
+- Komplexe Prop/Snippet-Übergabe für Page-spezifische Buttons
+- Schwer wartbar, unflexibel
+
+**Jetzt:**
+
+- Jede Page verwaltet eigenen Header
+- Einfacher Code, volle Kontrolle
+- Lokale Änderungen ohne globale Anpassungen
+
+#### Standard-Implementation
+
+**Jede Page sollte diesem Pattern folgen:**
+
+```svelte
+<script lang="ts">
+  import Button from '$lib/components/shared/Button.svelte';
+  import Tooltip from '$lib/components/shared/Tooltip.svelte';
+
+  // Page-spezifische Logik
+  function handleAction() {
+    // ...
+  }
+</script>
+
+<div class="page-wrapper">
+  <!-- Page Header mit Actions -->
+  <div class="page-header">
+    <h1 class="page-title">Seitenname</h1>
+    <div class="header-actions">
+      <Tooltip text="Beschreibung">
+        <Button variant="primary" size="sm" onclick={handleAction}>➕ Add</Button>
+      </Tooltip>
+
+      <!-- Weitere Actions nach Bedarf -->
+      <Tooltip text="Weitere Aktion">
+        <Button variant="secondary" size="sm" onclick={handleRefresh}>🔄 Refresh</Button>
+      </Tooltip>
+    </div>
+  </div>
+
+  <!-- Page Content -->
+  <div class="page-content">
+    <!-- Dein Inhalt -->
+  </div>
+</div>
+```
+
+#### CSS für Page-Header
+
+**Standard-Styles (in jeder Page):**
+
+```css
+.page-wrapper {
+  width: 100%;
+  min-width: 320px;
+  max-width: 1600px; /* Oder je nach Page: 1200px für Settings, etc. */
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-left: auto; /* Rechtsbündig */
+}
+```
+
+#### Button-Emoji-Konventionen
+
+**Nutze diese Emojis konsistent über alle Pages:**
+
+| Emoji | Bedeutung          | Beispiel                             |
+| ----- | ------------------ | ------------------------------------ |
+| ➕    | Add/Create         | "➕ Add Repository", "➕ Create Job" |
+| 📂    | Open/Browse        | "📂 Open Repository"                 |
+| 🔄    | Refresh/Reload     | "🔄 Refresh", "🔄 Reload Data"       |
+| 🗑️    | Delete/Remove      | "🗑️ Delete", "🗑️ Remove"             |
+| ⚙️    | Configure/Settings | "⚙️ Configure", "⚙️ Settings"        |
+
+**Beispiel:**
+
+```svelte
+<Button variant="primary" size="sm" onclick={handleAdd}>➕ Add</Button>
+```
+
+#### Implementierte Pages
+
+**Stand 2025-11-04:**
+
+| Page         | Header-Actions  | Datei                  | Zeilen  |
+| ------------ | --------------- | ---------------------- | ------- |
+| Dashboard    | 🔄 Refresh      | `DashboardPage.svelte` | 93-111  |
+| Repositories | ➕ Add, 📂 Open | `Repositories.svelte`  | 226-240 |
+| Snapshots    | 🔄 Refresh      | `Snapshots.svelte`     | -       |
+| Backup Jobs  | ➕ Create Job   | `BackupJobs.svelte`    | 225-236 |
+| Settings     | 🔄 Reset        | `Settings.svelte`      | -       |
+
+#### Best Practices
+
+✅ **DO:**
+
+- Header in jeder Page separat implementieren
+- Button-Emojis konsistent verwenden
+- `size="sm"` für Header-Buttons
+- Tooltips für bessere UX
+- `margin-left: auto` für rechtsbündige Actions
+
+❌ **DON'T:**
+
+- Versuche **nicht**, einen globalen Header zu verwenden
+- Keine Props an MainLayout für Header-Content
+- Keine Event-Bubbling über mehrere Ebenen für Page-Actions
+
+#### Migration-Beispiel (falls du alte Pages findest)
+
+**Vorher (ALT - nicht mehr verwenden):**
+
+```svelte
+<!-- MainLayout.svelte -->
+<Header>
+  {#snippet actions()}
+    <!-- Props/Snippets für alle Pages -->
+  {/snippet}
+</Header>
+```
+
+**Nachher (NEU - aktuelles Pattern):**
+
+```svelte
+<!-- InDerPage.svelte -->
+<div class="page-header">
+  <h1 class="page-title">Meine Page</h1>
+  <div class="header-actions">
+    <Button size="sm">➕ Add</Button>
+  </div>
+</div>
+```
+
+---
+
 ## ✅ Frontend-Checkliste
 
 ### Vor Implementierung
@@ -1568,5 +1734,6 @@ export let open = false; export let snapshotId: string;
 
 ---
 
-**Version**: 1.1  
-**Letzte Aktualisierung**: 2025-11-01
+**Version**: 1.2  
+**Letzte Aktualisierung**: 2025-11-04  
+**Wichtige Änderungen:** Per-Page Header Pattern dokumentiert

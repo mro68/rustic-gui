@@ -287,6 +287,7 @@ mod tests {
     use std::env;
 
     // Test-Repository-ID für Tests
+    #[allow(dead_code)]
     const TEST_REPO_ID: &str = "test-repo-keychain";
 
     #[test]

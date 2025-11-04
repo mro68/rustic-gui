@@ -1,6 +1,6 @@
 use rustic_gui_lib::error::RusticGuiError;
 use rustic_gui_lib::rustic::snapshot;
-use rustic_gui_lib::types::{RetentionPolicy, SnapshotDto};
+use rustic_gui_lib::types::RetentionPolicy;
 
 #[tokio::test]
 async fn test_list_snapshots_empty_repo() {

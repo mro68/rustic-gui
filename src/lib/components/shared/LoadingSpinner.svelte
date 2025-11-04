@@ -22,7 +22,6 @@
   let { size = 40, color = 'var(--color-primary)' }: LoadingSpinnerProps = $props();
 </script>
 
-/* eslint-env browser */
 <div class="spinner" style="width: {size}px; height: {size}px; border-top-color: {color};"></div>
 
 <style>

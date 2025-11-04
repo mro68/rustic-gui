@@ -201,38 +201,32 @@ pub async fn run_backup_command(
 /// Die ID des erstellten Jobs
 #[tauri::command]
 pub async fn create_backup_job(
-    name: String,
-    repository_id: String,
-    source_paths: Vec<String>,
-    exclude_patterns: Option<Vec<String>>,
-    tags: Option<Vec<String>>,
-    schedule: Option<String>,
-    retention: Option<crate::types::RetentionPolicy>,
+    job: crate::types::BackupJobDto,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
     // Validierung
-    if name.trim().is_empty() {
+    if job.name.trim().is_empty() {
         return Err("Job-Name darf nicht leer sein".to_string());
     }
 
-    if repository_id.trim().is_empty() {
+    if job.repository_id.trim().is_empty() {
         return Err("Repository-ID darf nicht leer sein".to_string());
     }
 
-    if source_paths.is_empty() {
+    if job.source_paths.is_empty() {
         return Err("Mindestens ein Quellpfad muss angegeben werden".to_string());
     }
 
     // Prüfe ob Repository existiert
     {
         let config = state.config.lock();
-        if config.get_repository(&repository_id).is_none() {
-            return Err(format!("Repository '{}' nicht gefunden", repository_id));
+        if config.get_repository(&job.repository_id).is_none() {
+            return Err(format!("Repository '{}' nicht gefunden", job.repository_id));
         }
     }
 
     // Validiere Pfade
-    let source_paths: Vec<PathBuf> = source_paths.into_iter().map(PathBuf::from).collect();
+    let source_paths: Vec<PathBuf> = job.source_paths.iter().map(PathBuf::from).collect();
 
     for path in &source_paths {
         if !path.exists() {
@@ -244,13 +238,14 @@ pub async fn create_backup_job(
     let job_id = Uuid::new_v4().to_string();
     let job_config = BackupJobConfig {
         id: job_id.clone(),
-        name: name.trim().to_string(),
-        repository_id,
+        name: job.name.trim().to_string(),
+        repository_id: job.repository_id,
         source_paths,
-        exclude_patterns: exclude_patterns.unwrap_or_default(),
-        tags: tags.unwrap_or_default(),
-        schedule,
-        retention: retention
+        exclude_patterns: job.exclude_patterns.unwrap_or_default(),
+        tags: job.tags, // Bereits Vec<String>, kein Option
+        schedule: job.schedule,
+        retention: job
+            .retention
             .map(|r| RetentionPolicy {
                 keep_last: r.keep_last,
                 keep_daily: r.keep_daily,
@@ -260,7 +255,7 @@ pub async fn create_backup_job(
             })
             .unwrap_or_default(),
         enabled: true,
-        password: None, // Wird später in CreateJobDialog gesetzt
+        password: job.password, // Verwende Passwort aus DTO
     };
 
     // Speichere in Config
@@ -274,7 +269,7 @@ pub async fn create_backup_job(
         .save_config()
         .map_err(|e| format!("Job erstellt aber Config-Speicherung fehlgeschlagen: {}", e))?;
 
-    tracing::info!("Backup-Job '{}' erstellt (ID: {})", name, job_id);
+    tracing::info!("Backup-Job '{}' erstellt (ID: {})", job.name, job_id);
 
     Ok(job_id)
 }

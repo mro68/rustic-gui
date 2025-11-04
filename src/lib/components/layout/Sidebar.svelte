@@ -52,7 +52,7 @@
 <div class="sidebar {mobileOpen ? 'mobile-open' : ''} {className}" role="navigation" aria-label="Main navigation">
   <!-- Logo Section -->
   <div class="logo">
-    <div class="logo-icon" aria-hidden="true">R</div>
+    <img src="/icon.png" alt="Rustic Logo" class="logo-icon" />
     <div class="logo-text">
       <h1>Rustic</h1>
       <p>Backup Manager</p>
@@ -100,14 +100,10 @@
   .logo-icon {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 20px;
-    color: white;
+    object-fit: contain;
+    background: var(--bg-tertiary);
+    padding: 4px;
   }
 
   .logo-text h1 {

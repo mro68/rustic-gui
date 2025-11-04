@@ -79,14 +79,16 @@
 
 ```
 Pages (Routen)
-  └─> Layout-Komponenten (Sidebar, Header)
-      └─> Feature-Komponenten (SnapshotList, JobCard)
+  └─> Layout-Komponenten (Sidebar, MainLayout)
+      └─> Feature-Komponenten (SnapshotList, JobCard, RepositoryCard)
           └─> Shared-Komponenten (Button, Modal, Toast)
 ```
 
+> ⚠️ **Architektur-Änderung (Nov 2025):** Globaler Header entfernt! Jede Page verwaltet jetzt ihren eigenen Header mit spezifischen Action-Buttons. Siehe "Per-Page Header Pattern" unten.
+
 **Verantwortlichkeiten:**
 
-- **Pages**: Routing, Daten-Loading, Layout-Komposition
+- **Pages**: Routing, Daten-Loading, Layout-Komposition, **eigener Page-Header mit Actions**
 - **Feature-Komponenten**: Feature-spezifische UI-Logik
 - **Shared-Komponenten**: Wiederverwendbare UI-Elemente
 
@@ -95,6 +97,70 @@ Pages (Routen)
 - Props down (Parent → Child)
 - Events up (Child → Parent via dispatch)
 - Stores für globalen State
+
+**Per-Page Header Pattern (seit Nov 2025):**
+
+Jede Page implementiert dieses Standard-Pattern:
+
+```svelte
+<div class="page-wrapper">
+  <!-- Page Header mit Actions -->
+  <div class="page-header">
+    <h1 class="page-title">Seitenname</h1>
+    <div class="header-actions">
+      <Tooltip text="Beschreibung">
+        <Button variant="primary" size="sm" onclick={handler}>➕ Add</Button>
+      </Tooltip>
+    </div>
+  </div>
+
+  <!-- Page Content -->
+  <div class="page-content">
+    <!-- ... -->
+  </div>
+</div>
+```
+
+**CSS für Page-Header:**
+
+```css
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-left: auto;
+}
+```
+
+**Button-Emoji-Konventionen:**
+
+- ➕ Add/Create
+- 📂 Open/Browse
+- 🔄 Refresh/Reload
+- 🗑️ Delete/Remove
+- ⚙️ Configure/Settings
+
+**Vorteile:**
+
+- ✨ Einfacher Code - keine Props/Snippets nötig
+- ✨ Bessere Wartbarkeit - Änderungen lokal in Page
+- ✨ Volle Kontrolle - jede Page entscheidet über Actions
+- ✨ Klarere Separation of Concerns
 
 #### 2. State Management (Stores)
 

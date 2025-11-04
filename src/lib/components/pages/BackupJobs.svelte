@@ -221,6 +221,27 @@
 
 <div class="backup-jobs-page">
   <div class="page-wrapper">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">Backup Jobs</h1>
+      <div class="header-actions">
+        <Tooltip text="Neuen Backup-Job erstellen">
+          <Button
+            variant="primary"
+            size="sm"
+            onclick={() => {
+              jobDialogMode = 'create';
+              selectedJob = null;
+              showJobDialog = true;
+            }}
+          >
+            <span>➕</span>
+            <span>Create Job</span>
+          </Button>
+        </Tooltip>
+      </div>
+    </div>
+
     <!-- Toolbar -->
     <div class="toolbar">
       <h1 class="page-title">Backup-Jobs</h1>
@@ -368,6 +389,27 @@
     width: 100%;
     display: flex;
     justify-content: center;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 24px 0;
+  }
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
   }
 
   .page-wrapper {

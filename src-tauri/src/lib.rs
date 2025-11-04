@@ -181,6 +181,7 @@ pub fn run() {
             commands::repository::delete_repository_password,
             commands::repository::list_repositories,
             commands::repository::delete_repository,
+            commands::repository::remove_repository_from_config,
             commands::repository::check_repository,
             commands::repository::prune_repository_v1,
             commands::repository::change_password_v1,

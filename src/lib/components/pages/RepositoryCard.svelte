@@ -138,10 +138,27 @@
     closeContextMenu();
   }
 
-  function handleDelete() {
-    // TODO: Delete-Repository-Dialog öffnen
-    console.log(`Delete für ${repo.name} geöffnet (Platzhalter)`);
+  async function handleDelete() {
+    // Schließe Menü sofort
     closeContextMenu();
+
+    // Entferne nur aus der Liste (Config), nicht das Repository selbst
+    if (
+      confirm(
+        `Repository "${repo.name}" aus der Liste entfernen?\n\nHinweis: Das Repository selbst wird NICHT gelöscht, nur der Eintrag aus der Konfiguration.`
+      )
+    ) {
+      try {
+        const { removeRepositoryFromConfig } = await import('../../api/repositories');
+        await removeRepositoryFromConfig(repo.id);
+
+        const { loadRepositories } = await import('../../stores/repositories');
+        loadRepositories();
+      } catch (error) {
+        console.error('Fehler beim Entfernen:', error);
+        alert(`Fehler beim Entfernen: ${error}`);
+      }
+    }
   }
 
   function handleContextMenuKeydown(event: KeyboardEvent) {
@@ -237,27 +254,23 @@
       >
         <span class="btn-icon" aria-hidden="true">📂</span>
         <span class="btn-text">Browse</span>
-<!-- Passwort-Input-Dialog (falls Passwort nicht in Job-Config) -->
-<PasswordInputDialog
-  bind:open={showPasswordDialog}
-  bind:password={currentPassword}
-  title="Passwort für Backup eingeben"
-  description="Dieses Backup-Job hat kein gespeichertes Passwort. Bitte geben Sie das Repository-Passwort ein."
-  onConfirm={handlePasswordConfirm}
-/>
+        <!-- Passwort-Input-Dialog (falls Passwort nicht in Job-Config) -->
+        <PasswordInputDialog
+          bind:open={showPasswordDialog}
+          bind:password={currentPassword}
+          title="Passwort für Backup eingeben"
+          description="Dieses Backup-Job hat kein gespeichertes Passwort. Bitte geben Sie das Repository-Passwort ein."
+          onConfirm={handlePasswordConfirm}
+        />
 
-<!-- Backup-Dialog -->
-<RunBackupDialog
-  bind:open={showBackupDialog}
-  jobName={currentJobName}
-  jobId={currentJobId}
-  password={currentPassword}
-  onCancel={handleCancelBackup}
-/>      title="Configure Repository"
-        disabled
-      >
-        <span class="btn-icon" aria-hidden="true">⚙️</span>
-        <span class="btn-text">Configure</span>
+        <!-- Backup-Dialog -->
+        <RunBackupDialog
+          bind:open={showBackupDialog}
+          jobName={currentJobName}
+          jobId={currentJobId}
+          password={currentPassword}
+          onCancel={handleCancelBackup}
+        />
       </button>
     </Tooltip>
   </div>
@@ -282,16 +295,16 @@
   >
     <button class="context-menu-item" onclick={handleEdit} type="button">
       <span>✏️</span>
-      <span>Edit</span>
+      <span>Bearbeiten</span>
     </button>
     <button class="context-menu-item" onclick={handleDuplicate} type="button">
       <span>📋</span>
-      <span>Duplicate</span>
+      <span>Duplizieren</span>
     </button>
     <div class="context-menu-divider"></div>
     <button class="context-menu-item danger" onclick={handleDelete} type="button">
       <span>🗑️</span>
-      <span>Delete</span>
+      <span>Aus Liste entfernen</span>
     </button>
   </div>
 {/if}
@@ -453,7 +466,11 @@
     align-items: center;
     gap: 10px;
     color: #e4e4e7;
-    transition: background-color 0.2s;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.15s;
   }
   .context-menu-item:hover {
     background: #2d3348;
@@ -462,7 +479,8 @@
     color: #f87171;
   }
   .context-menu-item.danger:hover {
-    background: rgba(239, 68, 68, 0.1);
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
   }
   .context-menu-divider {
     height: 1px;

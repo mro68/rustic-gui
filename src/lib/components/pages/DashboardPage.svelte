@@ -30,7 +30,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { listRepositories } from '../../api/repositories';
-  import { setRepositories } from '../../stores/repositories';
+  import { setRepositories, repositories } from '../../stores/repositories';
   import type { RepositoryDto } from '../../types';
   import AddRepositoryDialog from '../dialogs/AddRepositoryDialog.svelte';
   import ActivityLog from './ActivityLog.svelte';
@@ -41,11 +41,13 @@
   import { getVersion } from '@tauri-apps/api/app';
   // State-Variablen
   let loading = $state(false);
-  let repoList: RepositoryDto[] = $state([]);
   let error: string | null = $state(null);
   type LogEntry = { time: string; type: 'error' | 'warning' | 'info'; message: string };
   let logEntries: LogEntry[] = $state([]);
   let showAddRepoDialog = $state(false);
+
+  // Reaktive Repository-Liste aus Store
+  let repoList: RepositoryDto[] = $derived($repositories);
 
   // Lädt die Repository-Liste
   async function refreshRepos() {
@@ -53,7 +55,6 @@
     error = null;
     try {
       const repos = await listRepositories();
-      repoList = repos;
       setRepositories(repos);
       logEntries = [
         {
@@ -91,36 +92,25 @@
 
 <div class="dashboard-page">
   <div class="page-wrapper">
-    <div class="toolbar dashboard-toolbar" role="region" aria-label="Repository Aktionen">
-      <div class="section-title">Repositories</div>
-      <div class="toolbar-actions">
-        <Tooltip text="Bestehendes Repository öffnen">
-          <button
-            class="btn btn-primary"
-            aria-label="Bestehendes Repository öffnen"
-            title="Bestehendes Repository öffnen"
-            onclick={() => {
-              showAddRepoDialog = true;
-            }}
-          >
-            <span class="btn-icon" aria-hidden="true">📂</span>
-            <span class="btn-text">Repository öffnen</span>
-          </button>
-        </Tooltip>
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">Dashboard</h1>
+      <div class="header-actions">
         <Tooltip text="Repositories neu laden">
           <button
             class="btn btn-secondary"
             aria-label="Repositories neu laden"
-            title="Repositories neu laden"
             onclick={refreshRepos}
             disabled={loading}
           >
-            <span class="btn-icon" aria-hidden="true">{loading ? '⏳' : '🔄'}</span>
+            <span class="btn-icon">{loading ? '⏳' : '🔄'}</span>
             <span class="btn-text">{loading ? 'Lädt...' : 'Refresh'}</span>
           </button>
         </Tooltip>
       </div>
     </div>
+
+    <div class="section-title">Repositories</div>
 
     {#if error}
       <div class="error-message">{error}</div>
@@ -166,6 +156,27 @@
     justify-content: center;
   }
 
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 24px 0;
+  }
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
   .page-wrapper {
     width: 100%;
     min-width: 320px;
@@ -173,23 +184,13 @@
     padding: 0 1rem;
   }
 
-  .dashboard-toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--bg-primary, #1a1d2e);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 0 0 12px 0;
-    border-bottom: 1px solid var(--border-color, #2d3348);
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 1.5rem 0 1rem 0;
   }
-  .toolbar-actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  }
+
   .btn {
     display: inline-flex;
     align-items: center;
@@ -201,13 +202,6 @@
     cursor: pointer;
     font-weight: 500;
     transition: all 0.2s;
-  }
-  .btn-primary {
-    background: var(--color-primary, #3b82f6);
-    color: white;
-  }
-  .btn-primary:hover {
-    background: var(--color-primary-dark, #2563eb);
   }
   .btn-secondary {
     background: var(--bg-secondary, #2d3348);
@@ -228,17 +222,6 @@
   }
   .btn-text {
     display: inline;
-  }
-  @media (max-width: 768px) {
-    .dashboard-toolbar {
-      flex-direction: column;
-      align-items: stretch;
-      padding: 0 0 8px 0;
-    }
-    .toolbar-actions {
-      margin-top: 8px;
-      justify-content: flex-start;
-    }
   }
   @media (max-width: 1024px) {
     .dashboard-grid {

@@ -670,6 +670,55 @@ pub async fn list_repositories(
     Ok(repos)
 }
 
+/// Entfernt ein Repository aus der Konfiguration (ohne Daten zu löschen)
+///
+/// Diese Funktion entfernt nur den Eintrag aus der Config-Datei.
+/// Das Repository selbst (Ordner/Daten) bleibt unverändert.
+/// Passwort wird ebenfalls aus dem Keychain entfernt.
+///
+/// # Arguments
+/// * `id` - Repository-ID
+/// * `state` - AppState mit Config-Zugriff
+///
+/// # Returns
+/// `Result<(), String>` - Ok bei Erfolg, Fehler wenn Repository nicht gefunden
+#[tauri::command]
+pub async fn remove_repository_from_config(
+    id: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    // Prüfe ob Repository existiert
+    {
+        let config = state.config.lock();
+        let _repo = config
+            .get_repository(&id)
+            .ok_or_else(|| format!("Repository '{}' nicht gefunden", id))?;
+    }
+
+    // Entferne Repository aus Config
+    {
+        let mut config = state.config.lock();
+        if !config.remove_repository(&id) {
+            return Err(format!("Repository '{}' konnte nicht entfernt werden", id));
+        }
+    }
+
+    // Speichere Config
+    state.save_config().map_err(|e| format!("Config-Speicherung fehlgeschlagen: {}", e))?;
+
+    // Lösche Passwort aus Keychain
+    let _ = crate::keychain::delete_password(&id);
+
+    // Invalidiere Repository-Cache falls gesetzt
+    if state.get_current_repository_id() == Some(id.clone()) {
+        state.set_current_repository(None);
+    }
+    state.invalidate_repository_cache(&id);
+
+    tracing::info!("Repository '{}' aus der Konfiguration entfernt (Daten bleiben unberührt)", id);
+    Ok(())
+}
+
 /// Löscht ein Repository
 /// TODO.md: Phase 1 Zeile 168 ✅ IMPLEMENTIERT
 #[tauri::command]

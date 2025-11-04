@@ -172,6 +172,26 @@ export async function listRepositories(): Promise<RepositoryDto[]> {
 }
 
 /**
+ * Entfernt ein Repository aus der Konfiguration (ohne Daten zu löschen).
+ *
+ * Diese Funktion entfernt nur den Eintrag aus der Config-Datei.
+ * Das Repository selbst (Ordner/Daten) bleibt unverändert.
+ *
+ * @param id - Repository-ID
+ * @returns Promise (void)
+ * @throws Error wenn Entfernen fehlschlägt
+ *
+ * @example
+ * ```typescript
+ * // Repository aus der Liste entfernen (Daten bleiben erhalten)
+ * await removeRepositoryFromConfig('repo-123');
+ * ```
+ */
+export async function removeRepositoryFromConfig(id: string): Promise<void> {
+  await invoke('remove_repository_from_config', { id });
+}
+
+/**
  * Löscht ein Repository.
  *
  * @param id - Repository-ID

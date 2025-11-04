@@ -17,7 +17,6 @@
    */
 
   import Sidebar from '$lib/components/layout/Sidebar.svelte';
-  import Header from '$lib/components/layout/Header.svelte';
   import ToastContainer from '$lib/components/shared/ToastContainer.svelte';
   import PortableNotice from '$lib/components/shared/PortableNotice.svelte';
   import { getPortableStoreStatus } from '$lib/api/system';
@@ -101,25 +100,15 @@
 <div class="app">
   <ToastContainer />
   <!-- Sidebar Navigation -->
-  <Sidebar
-    activePage={$currentPage}
-    mobileOpen={isMobileMenuOpen}
-  />
+  <Sidebar activePage={$currentPage} mobileOpen={isMobileMenuOpen} />
 
   <!-- Haupt-Content-Bereich -->
   <div class="main">
     {#if showPortableNotice && activePortableStatus}
       <div class="main__banner">
-        <PortableNotice
-          status={activePortableStatus}
-          on:dismiss={handlePortableNoticeDismiss}
-        />
+        <PortableNotice status={activePortableStatus} on:dismiss={handlePortableNoticeDismiss} />
       </div>
     {/if}
-    <!-- Header mit Titel und Mobile-Menü-Button -->
-    <Header
-      onToggleMobileMenu={toggleMobileMenu}
-    />
 
     <!-- Content-Bereich für Seiten-Inhalte -->
     <div class="content">

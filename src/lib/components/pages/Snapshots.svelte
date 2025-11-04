@@ -396,6 +396,20 @@
     justify-content: center;
   }
 
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 24px 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
   .page-wrapper {
     width: 100%;
     min-width: 320px;

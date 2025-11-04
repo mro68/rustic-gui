@@ -627,10 +627,24 @@ cargo test --test integration_tests
 - **[CHANGELOG.md](CHANGELOG.md)** - Änderungshistorie & Release-Notes
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution-Guidelines
 - **[docs/](docs/)** - Erweiterte Dokumentation
-  - [AI Instructions](docs/copilot-instructions.md) - Für AI-gestützte Entwicklung
+  - [AI Instructions](.github/copilot-instructions.md) - Für AI-gestützte Entwicklung
   - [UI-Mockups](docs/mockups/) - HTML-Prototypen der gesamten UI
   - [Feature-Specs](docs/features/) - Detaillierte Feature-Beschreibungen
   - [Development-Reports](docs/reports/) - Entwicklungs-Status-Reports
+
+### Wichtige Architektur-Hinweise für Entwickler
+
+**UI-Layout-Architektur (Nov 2025):**
+
+Das Projekt verwendet **Per-Page Headers** statt eines globalen Headers. Jede Page (Dashboard, Repositories, Snapshots, etc.) implementiert ihren eigenen Header mit spezifischen Action-Buttons.
+
+**Warum?**
+
+- ✨ Einfacherer Code - keine Props/Snippets nötig
+- ✨ Bessere Wartbarkeit - Änderungen lokal in der Page
+- ✨ Volle Kontrolle - jede Page entscheidet über Actions
+
+**Details:** Siehe [frontend.instructions.md](.github/instructions/frontend.instructions.md) Abschnitt "Per-Page Header Pattern"
 
 ---
 

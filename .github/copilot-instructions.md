@@ -211,8 +211,10 @@ docs/mockups/
 ```
 Mockup-Datei                              → Svelte-Komponente
 ───────────────────────────────────────────────────────────────────────────────
+⚠️ WICHTIG: Seit Nov 2025 hat jede Page EIGENEN Header (kein globales Header.svelte mehr!)
+───────────────────────────────────────────────────────────────────────────────
 rustic_gui_mockup.html (Sidebar)         → src/lib/components/layout/Sidebar.svelte
-rustic_gui_mockup.html (Dashboard)       → src/lib/components/pages/Dashboard.svelte
+rustic_gui_mockup.html (Dashboard)       → src/lib/components/pages/DashboardPage.svelte (mit eigenem Page-Header!)
 rustic_backup_dialogs.html (Create)      → src/lib/components/dialogs/JobDialog.svelte (mode='create')
 rustic_backup_dialogs.html (Edit)        → src/lib/components/dialogs/JobDialog.svelte (mode='edit')
                                          → dialogs/JobDialog/GeneralTab.svelte
