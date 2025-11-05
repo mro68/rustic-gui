@@ -518,6 +518,42 @@ Der Development-Server startet:
 - **Frontend**: http://localhost:1420 (Vite HMR)
 - **Backend**: Tauri Window mit Hot-Reload
 
+### 🎨 Icons aktualisieren
+
+Das Projekt verwendet `rustic-gui.svg` als Icon-Quelle für alle Plattformen.
+
+**Icons neu generieren:**
+
+```bash
+# Alle Icons aus rustic-gui.svg erstellen
+pnpm run icons
+
+# Oder manuell:
+./scripts/generate-icons.sh
+```
+
+**Generierte Dateien:**
+
+- `src-tauri/icons/*.png` (32×32, 128×128, 256×256, 512×512, 768×768)
+- `src-tauri/icons/icon.ico` (Windows Multi-Size)
+- `src-tauri/icons/icon.icns` (macOS)
+- `static/favicon.png` (32×32 Web-Favicon)
+- `static/icon.png` (512×512 Web-Icon)
+- `static/icon.svg` (SVG Original)
+
+**Benötigte Tools:**
+
+- [Inkscape](https://inkscape.org/) für SVG → PNG Konvertierung
+- [ImageMagick](https://imagemagick.org/) für ICO/ICNS Erstellung
+
+```bash
+# Arch Linux
+sudo pacman -S inkscape imagemagick
+
+# Ubuntu/Debian
+sudo apt install inkscape imagemagick
+```
+
 ### Projekt-Struktur
 
 ```
