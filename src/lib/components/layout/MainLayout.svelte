@@ -125,7 +125,7 @@
   }
 
   .main__banner {
-    padding: 24px 32px 0;
+    padding: var(--layout-header-padding-y) var(--layout-content-padding-x) 0;
   }
 
   .main__banner :global(.portable-notice) {
@@ -134,7 +134,7 @@
 
   @media (max-width: 960px) {
     .main__banner {
-      padding: 16px;
+      padding: 16px var(--layout-content-padding-x) 0;
     }
   }
 </style>

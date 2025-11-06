@@ -19,7 +19,7 @@
   let {
     activePage = 'dashboard',
     mobileOpen = false,
-    class: className = ''
+    class: className = '',
   }: {
     activePage?: string;
     mobileOpen?: boolean;
@@ -32,7 +32,7 @@
     { id: 'repositories', label: 'Repositories', icon: '📦' },
     { id: 'snapshots', label: 'Snapshots', icon: '⏱️' },
     { id: 'backup-jobs', label: 'Backup Jobs', icon: '🔄' },
-    { id: 'settings', label: 'Settings', icon: '⚙️' }
+    { id: 'settings', label: 'Settings', icon: '⚙️' },
   ];
 
   // Navigation Handler
@@ -49,7 +49,11 @@
   }
 </script>
 
-<div class="sidebar {mobileOpen ? 'mobile-open' : ''} {className}" role="navigation" aria-label="Main navigation">
+<div
+  class="sidebar {mobileOpen ? 'mobile-open' : ''} {className}"
+  role="navigation"
+  aria-label="Main navigation"
+>
   <!-- Logo Section -->
   <div class="logo">
     <img src="/icon.png" alt="Rustic Logo" class="logo-icon" />
@@ -81,12 +85,33 @@
 
 <style>
   .sidebar {
+    --sidebar-nav-padding-inline-start: 12px;
+    --sidebar-nav-padding-inline-end: 12px;
+    --sidebar-gradient-extension: calc(
+      var(--layout-content-padding-x) - var(--sidebar-nav-padding-inline-end)
+    );
     width: 280px;
     background: var(--bg-secondary);
     display: flex;
     flex-direction: column;
-    border-right: 1px solid var(--border-color);
+    border-right: none;
     flex-shrink: 0;
+    position: relative;
+    overflow: visible;
+    z-index: 2;
+  }
+
+  .sidebar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 1px;
+    background: var(--border-color);
+    opacity: 1;
+    pointer-events: none;
+    z-index: 0;
   }
 
   .logo {
@@ -121,7 +146,7 @@
 
   .nav {
     flex: 1;
-    padding: 16px 12px;
+    padding: 16px var(--sidebar-nav-padding-inline-end) 16px var(--sidebar-nav-padding-inline-start);
   }
 
   .nav-item {
@@ -147,8 +172,36 @@
   }
 
   .nav-item.active {
-    background: var(--color-primary);
+    background-color: var(--color-primary);
     color: white;
+    position: relative;
+    z-index: 1;
+    border-top-left-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .nav-item.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: calc(-1 * var(--sidebar-gradient-extension));
+    background-image: linear-gradient(90deg, var(--color-primary) 0%, var(--bg-primary) 100%);
+    border-top-left-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
+    border-top-right-radius: var(--sidebar-gradient-extension);
+    border-bottom-right-radius: var(--sidebar-gradient-extension);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .nav-item.active .nav-icon,
+  .nav-item.active span {
+    position: relative;
+    z-index: 1;
   }
 
   .nav-item:focus-visible {
@@ -165,6 +218,7 @@
   /* Mobile Styles */
   @media (max-width: 768px) {
     .sidebar {
+      --sidebar-gradient-extension: 0px;
       position: fixed;
       left: -280px;
       transition: left 0.3s;
